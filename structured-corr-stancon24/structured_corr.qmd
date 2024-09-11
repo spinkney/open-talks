@@ -1,0 +1,396 @@
+---
+title: "Structured Correlation Matrices in Stan"
+subtitle: "StanCon 2024"
+format: clean-revealjs
+filters:
+  - naquiz
+  - include-code-files
+# html-math-method:
+#   method: mathjax
+#   url: "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+html-math-method: katex
+author:
+ - name: "Sean Pinkney"
+   email: sean.pinkney@gmail.com
+   affiliations: 
+    - name: Managing Director at Omnicom Media Group
+    - name: Stan Developer
+highlight-style: "nord"
+bibliography: refs.bib
+---
+
+```{r, include=FALSE, cache=FALSE}
+cmdstanr::register_knitr_engine(override = TRUE)
+options(mc.cores = parallel::detectCores())
+
+Sys.setenv(LIBGS ="/opt/homebrew/Cellar/ghostscript/10.03.1/lib/libgs.dylib")
+```
+
+## What is a correlation matrix?
+
+-   Symmetric
+-   1s along the diagonal
+-   Off diagonal elements between \[-1, 1\]
+-   Positive semi-definite
+
+That last requirement is the tough one.
+
+An $n \times n$ matrix $\Sigma$ is p.s.d iff
+
+$$
+\mathbf{x}^\top \, \Sigma \, \mathbf{x} \ge 0 \quad \forall \, \mathbf{x} \in \mathbb{R}^n
+$$
+
+## Why is positive semi-definite tough?
+
+Things get really, really constrained as the dimension of $n$ increases
+
+![](images/003_rot.gif){fig-align="center"}
+
+## What is a structured correlation matrix?
+
+Anything with structure.
+
+> "So any help you could give us would be most...helpful." - Monthy Python
+
+## Types of structure
+
+-   Known values
+-   Block structure
+-   Bounds on correlation values
+
+## Cholesky factors
+
+A positive definite matrix, $\Sigma$, can be factored into a lower triangular matrix, $\mathbf{L}$ such that $$
+\Sigma = \mathbf{LL}^\top
+$$
+
+Bonus:
+
+A positive definite matrix, $\Sigma$, can also be factored into a strictly lower triangular matrix, $\mathbf{L_*}$ and diagonal matrix, $\mathbf{D}$ such that
+
+$$
+\Sigma = \mathbf{L_* D L_*}^\top
+$$
+
+## Stan's current Cholesky factor of correlation matrix transform
+
+``` {.stan code-line-numbers="true" include="./stan/stan_cholesky.stan"}
+```
+
+## Motivating Example
+
+Constrain the `y` "raw" parameters to be positive. This should make the correlation matrix all positive.
+
+``` {.stan code-line-numbers="false"}
+...
+  vector[K_choose_2] z = inv_logit(y); // z is between 0 and 1
+  log_det_jacobian += sum(log_inv_logit(y) + log1m_inv_logit(y));
+...
+```
+
+## Let's first see how rejection sampling handles this
+
+::: columns
+::: {.column style="width: 50%; font-size: 70%;"}
+Sample a bunch and if **all** are positive then keep
+
+``` {.julia code-line-numbers="false"}
+using ArviZ, Distributions, PrettyTables
+ 
+xs = Matrix[];
+
+while length(xs) < 10000
+           X = rand(LKJ(5, 4))
+           if all(≥(0), X)
+               push!(xs, X)
+           end
+       end
+```
+:::
+
+::: {.column style="width: 50%; font-size: 70%;"}
+Mean should be about 0.28 and std 0.18
+
+``` {.julia code-line-numbers="false"}
+───────────┬─────────┬─────────┬──────────┬───────────┐
+│ parameter │    mean │     std │ hdi_2.5% │ hdi_97.5% │
+│    String │ Float64 │ Float64 │  Float64 │   Float64 │
+├───────────┼─────────┼─────────┼──────────┼───────────┤
+│    x[1,1] │     1.0 │     0.0 │      1.0 │       1.0 │
+│    x[2,1] │   0.282 │   0.181 │      0.0 │     0.611 │
+│    x[3,1] │  0.2806 │  0.1783 │   0.0001 │    0.6035 │
+│    x[4,1] │  0.2809 │  0.1815 │      0.0 │    0.6098 │
+│    x[5,1] │  0.2801 │  0.1808 │   0.0001 │    0.6115 │
+│    x[1,2] │   0.282 │   0.181 │      0.0 │     0.611 │
+│    x[2,2] │     1.0 │     0.0 │      1.0 │       1.0 │
+│    x[3,2] │  0.2819 │  0.1816 │      0.0 │    0.6119 │
+│    x[4,2] │  0.2787 │  0.1792 │      0.0 │    0.6091 │
+│    x[5,2] │  0.2827 │  0.1808 │      0.0 │    0.6109 │
+│    x[1,3] │  0.2806 │  0.1783 │   0.0001 │    0.6035 │
+│    x[2,3] │  0.2819 │  0.1816 │      0.0 │    0.6119 │
+│    x[3,3] │     1.0 │     0.0 │      1.0 │       1.0 │
+│    x[4,3] │   0.277 │  0.1799 │   0.0001 │    0.6068 │
+│    x[5,3] │  0.2792 │  0.1801 │   0.0004 │    0.6065 │
+│    x[1,4] │  0.2809 │  0.1815 │      0.0 │    0.6098 │
+│    x[2,4] │  0.2787 │  0.1792 │      0.0 │    0.6091 │
+│    x[3,4] │   0.277 │  0.1799 │   0.0001 │    0.6068 │
+│    x[4,4] │     1.0 │     0.0 │      1.0 │       1.0 │
+│    x[5,4] │  0.2778 │  0.1791 │   0.0003 │    0.6003 │
+│    x[1,5] │  0.2801 │  0.1808 │   0.0001 │    0.6115 │
+│    x[2,5] │  0.2827 │  0.1808 │      0.0 │    0.6109 │
+│    x[3,5] │  0.2792 │  0.1801 │   0.0004 │    0.6065 │
+│    x[4,5] │  0.2778 │  0.1791 │   0.0003 │    0.6003 │
+│    x[5,5] │     1.0 │     0.0 │      1.0 │       1.0 
+```
+:::
+:::
+
+## Output in Stan
+
+``` r
+# A tibble: 25 × 10
+   variable    mean median    sd   mad     q5   q95  rhat ess_bulk ess_tail
+   <chr>      <dbl>  <dbl> <dbl> <dbl>  <dbl> <dbl> <dbl>    <dbl>    <dbl>
+ 1 Omega[1,1] 1      1     0     0     1      1     NA         NA       NA 
+ 2 Omega[2,1] 0.235  0.206 0.167 0.175 0.0195 0.549  1.00   44411.   20215.
+ 3 Omega[3,1] 0.235  0.205 0.168 0.177 0.0195 0.555  1.00   51831.   22326.
+ 4 Omega[4,1] 0.235  0.206 0.167 0.177 0.0200 0.555  1.00   46224.   21451.
+ 5 Omega[5,1] 0.235  0.206 0.166 0.175 0.0198 0.551  1.00   50078.   21105.
+ 6 Omega[1,2] 0.235  0.206 0.167 0.175 0.0195 0.549  1.00   44411.   20215.
+ 7 Omega[2,2] 1      1     0     0     1      1     NA         NA       NA 
+ 8 Omega[3,2] 0.280  0.257 0.165 0.176 0.0510 0.587  1.00   53901.   27702.
+ 9 Omega[4,2] 0.280  0.258 0.167 0.178 0.0497 0.588  1.00   45097.   25476.
+10 Omega[5,2] 0.280  0.258 0.166 0.175 0.0498 0.588  1.00   47192.   24449.
+11 Omega[1,3] 0.235  0.205 0.168 0.177 0.0195 0.555  1.00   51831.   22326.
+12 Omega[2,3] 0.280  0.257 0.165 0.176 0.0510 0.587  1.00   53901.   27702.
+13 Omega[3,3] 1      1     0     0     1      1     NA         NA       NA 
+14 Omega[4,3] 0.325  0.307 0.165 0.176 0.0870 0.624  1.00   51438.   29513.
+15 Omega[5,3] 0.324  0.307 0.164 0.175 0.0870 0.621  1.00   48371.   28163.
+16 Omega[1,4] 0.235  0.206 0.167 0.177 0.0200 0.555  1.00   46224.   21451.
+17 Omega[2,4] 0.280  0.258 0.167 0.178 0.0497 0.588  1.00   45097.   25476.
+18 Omega[3,4] 0.325  0.307 0.165 0.176 0.0870 0.624  1.00   51438.   29513.
+19 Omega[4,4] 1      1     0     0     1      1     NA         NA       NA 
+20 Omega[5,4] 0.368  0.355 0.163 0.175 0.122  0.657  1.00   50304.   30427.
+21 Omega[1,5] 0.235  0.206 0.166 0.175 0.0198 0.551  1.00   50078.   21105.
+22 Omega[2,5] 0.280  0.258 0.166 0.175 0.0498 0.588  1.00   47192.   24449.
+23 Omega[3,5] 0.324  0.307 0.164 0.175 0.0870 0.621  1.00   48371.   28163.
+24 Omega[4,5] 0.368  0.355 0.163 0.175 0.122  0.657  1.00   50304.   30427.
+25 Omega[5,5] 1      1     0     0     1      1     NA         NA       NA 
+```
+
+## Wtf?
+
+???
+
+::: fragment
+Let's think about Cholesky factors really quick
+:::
+
+::: fragment
+Andre Cholesky 
+![](images/clipboard-3375023326.png)
+:::
+
+## Cholesky factors
+
+The value $C_{i,j} \in \mathbf{C}$ is a correlation value that is between $-1, 1$
+
+<div class="small-math">
+$$
+\begin{align*}
+\mathbf{L} =
+\begin{pmatrix}
+1 &  0 & 0  & \cdots & 0 \\
+C_{2,1} & \sqrt{1 - L_{2,1}^2} & 0 & \cdots & 0 \\
+C_{3,1} &  \left( C_{3,2} - L_{3,1}L_{2,1} \right) /L_{2,2}  &\sqrt{1 - L_{3,1}^2 - L_{3,2}^2} & \cdots & 0 \\
+\vdots & \vdots & \vdots & \cdots & \vdots \\
+C_{n,1} & \left( C_{n,2} - L_{n,1}L_{2,1} \right) / L_{2,2} & \left( C_{n, 3} - L_{n,1} L_{2,1} - L_{n,2} L_{3,2} \right) / L_{3,3} & \cdots & \sqrt{1 - \sum_{k=1}^{n-1} L^2_{n,k}}
+\end{pmatrix}
+\end{align*}
+$$
+</div>
+
+## Let's try something
+
+<div class="small-math">
+Let's condense it into an equation
+$$
+\begin{align*}
+L_{j,j} &= \sqrt{1 - \sum_{k=1}^{j-1} L^2_{j,k}} \\
+L_{i,j} &= \frac{1}{L_{j,j}} \left( C_{i,j} - \sum_{k=1}^{j-1} L_{i,k}L_{j,k} \right) \quad \text{for } i>j
+\end{align*}
+$$
+
+Re-arrange and add in user specified [lower]{.emphasis3} and [upper]{.emphasis3} bounds
+
+$$
+-L_{j,j} + \sum_{k=1}^{j-1} L_{i,k}L_{j,k} \le \color{#21409A}a_{i,j}\color{black} < C_{i,j} < \color{#21409A}b_{i,j}\color{black} \le L_{j,j} + \sum_{k=1}^{j-1} L_{i,k}L_{j,k}
+$$
+</div>
+
+## Continuing
+
+<div class="small-math">
+$$
+\begin{align*} 
+-\sqrt{1 - \sum_{k=1}^{j-1} L^2_{i,k}} \; \le \; \frac{\color{#21409A}a_{i,j}\color{black} - \sum\limits_{k=1}^{j-1} L_{i,k}L_{j,k}}{L_{j,j}} < \; & L_{i,j} \;  < \frac{\color{#21409A}b_{i,j}\color{black} - \sum\limits_{k=1}^{j-1} L_{i,k}L_{j,k}}{L_{j,j}} \; \le \;\sqrt{1 - \sum_{k=1}^{j-1} L^2_{i,k}} \\
+\max\left\{ -\sqrt{1 - \sum_{k=1}^{j-1} L^2_{j,k}} ,\; \frac{\color{#21409A}a_{i,j}\color{black} - \sum\limits_{k=1}^{j-1} L_{i,k}L_{j,k} }{L_{j,j}} \right\} < &\; L_{i,j} \; < \min\left\{\sqrt{1 - \sum_{k=1}^{j-1} L^2_{j,k}}, \; \frac{\color{#21409A}b_{i,j}\color{black} - \sum\limits_{k=1}^{j-1} L_{i,k}L_{j,k}}{L_{j,j}} \right\}
+\end{align*}
+$$
+</div>
+
+This gives us bounds but we need to be really careful
+
+What's neat is that the Jacobian is "easy", put those bounds into our constraining function like `tanh()` or use the upper-lower bound transform to satisfy the constraints. That's it. 
+
+## Extra Care
+
+Assume we have $3 \times 3$ matrix that we wish to constrain all correlation values to be negative. 
+
+Let us choose $C_{2, 1} = C_{3,1} = \frac{-1}{\sqrt{2}}$ and solve for the bounds of $C_{3,2}$:
+
+<div class="small-math">
+\begin{align*}
+\max\left\{-1, -\sqrt{1 - C_{3,1}^2} \right\} &< \frac{B - C_{2,1} C_{3,1}}{L_{2, 2}} < \min\left\{0, \sqrt{1 - C_{3,1}^2} \right\} \\
+-\sqrt{0.5} &< \frac{B - 0.5}{\sqrt{0.5}} < 0 \\
+\implies 0 &< B < 0.5
+\end{align*}
+</div>
+
+:::{.callout-note}
+This is all in @pinkney2024
+:::
+
+## The Stan code
+
+This is a bit more stable than what's in the paper but also more opaque. The `exp()`'s here are just calculating stuff on the log-scale. Line 13 I take the log and try to stick with this as much as possible.
+
+``` {.stan}
+matrix cholesky_corr_constrain_lp (vector col_one_raw, vector off_raw,
+                                           real lb, real ub) {
+    int K = num_elements(col_one_raw) + 1;
+    matrix[K, K] L = rep_matrix(0, K, K);
+    L[1, 1] = 1;
+    L[2, 1] = lb_ub_lp(col_one_raw[1], lb, ub);
+    L[2, 2] = sqrt(1 - L[2, 1]^2);
+
+    int cnt = 1;
+
+    for (i in 3:K) {
+       L[i, 1] = lb_ub_lp(col_one_raw[2:K - 1], lb,  ub);
+       real l_ij_old = log1m(L[i, 1]^2);
+      for (j in 2:i - 1) {
+         real b1 = dot_product(L[j, 1:(j - 1)], L[i, 1:(j - 1)]);
+         real stick_length = exp(0.5 * l_ij_old);
+         real low = max({-stick_length, (lb - b1) / L[j, j]});
+         real up = min({stick_length, (ub - b1) /  L[j, j] });
+         L[i, j] = lb_ub_lp(off_raw[cnt], low, up);
+         l_ij_old = log_diff_exp(l_ij_old, 2 * log(abs(L[i, j])));
+         cnt += 1;
+        }
+         L[i, i] = exp(0.5 * l_ij_old);
+      }
+    return L;
+  }
+```
+
+## Back to the motivating example
+
+The new method that gives the right answer!
+
+``` r
+# A tibble: 25 × 10
+   variable    mean median    sd   mad     q5   q95  rhat ess_bulk ess_tail
+   <chr>      <dbl>  <dbl> <dbl> <dbl>  <dbl> <dbl> <dbl>    <dbl>    <dbl>
+ 1 Omega[1,1] 1      1     0     0     1      1     NA         NA       NA 
+ 2 Omega[2,1] 0.278  0.256 0.179 0.198 0.0281 0.607  1.00   29806.   17895.
+ 3 Omega[3,1] 0.279  0.258 0.180 0.200 0.0273 0.609  1.00   34574.   18758.
+ 4 Omega[4,1] 0.279  0.258 0.180 0.199 0.0276 0.607  1.00   29344.   16380.
+ 5 Omega[5,1] 0.281  0.259 0.181 0.201 0.0291 0.610  1.00   36064.   18496.
+ 6 Omega[1,2] 0.278  0.256 0.179 0.198 0.0281 0.607  1.00   29806.   17895.
+ 7 Omega[2,2] 1      1     0     0     1      1     NA         NA       NA 
+ 8 Omega[3,2] 0.279  0.258 0.179 0.200 0.0283 0.605  1.00   37118.   21150.
+ 9 Omega[4,2] 0.279  0.256 0.181 0.199 0.0281 0.609  1.00   31789.   17563.
+10 Omega[5,2] 0.279  0.258 0.179 0.197 0.0280 0.607  1.00   35208.   18021.
+11 Omega[1,3] 0.279  0.258 0.180 0.200 0.0273 0.609  1.00   34574.   18758.
+12 Omega[2,3] 0.279  0.258 0.179 0.200 0.0283 0.605  1.00   37118.   21150.
+13 Omega[3,3] 1      1     0     0     1      1     NA         NA       NA 
+14 Omega[4,3] 0.278  0.258 0.179 0.199 0.0277 0.603  1.00   35278.   19265.
+15 Omega[5,3] 0.280  0.258 0.180 0.199 0.0298 0.608  1.00   35150.   20777.
+16 Omega[1,4] 0.279  0.258 0.180 0.199 0.0276 0.607  1.00   29344.   16380.
+17 Omega[2,4] 0.279  0.256 0.181 0.199 0.0281 0.609  1.00   31789.   17563.
+18 Omega[3,4] 0.278  0.258 0.179 0.199 0.0277 0.603  1.00   35278.   19265.
+19 Omega[4,4] 1      1     0     0     1      1     NA         NA       NA 
+20 Omega[5,4] 0.279  0.257 0.179 0.198 0.0292 0.604  1.00   38312.   22281.
+21 Omega[1,5] 0.281  0.259 0.181 0.201 0.0291 0.610  1.00   36064.   18496.
+22 Omega[2,5] 0.279  0.258 0.179 0.197 0.0280 0.607  1.00   35208.   18021.
+23 Omega[3,5] 0.280  0.258 0.180 0.199 0.0298 0.608  1.00   35150.   20777.
+24 Omega[4,5] 0.279  0.257 0.179 0.198 0.0292 0.604  1.00   38312.   22281.
+25 Omega[5,5] 1      1     0     0     1      1     NA         NA       NA 
+```
+
+## What else can this do?
+
+-   Known values
+-   Specific bounds on certain values
+-   Block structure
+
+Let's do a really motivating example
+
+## An even more motivating example
+
+We want a 6 x 6 correlation matrix $\Sigma$ where
+
+$$
+\begin{align*}
+\sigma_{2,1} = 0, &\; \sigma_{4, 3} = 0 \\
+\sigma_{4,1} \in (-0.8, 0), &\; \sigma_{5, 3} \in (0.3, 0.7)
+\end{align*}
+$$
+
+```r
+   --        
+    0.       --   
+   NA        NA   --        
+   (-0.8, 0) NA    0         --   
+   NA        NA   (0.3, 0.7) NA   --   
+   NA        NA   NA         NA   NA   --
+```
+
+## Output
+
+```{.r}
+variable    mean  median     sd    mad      q5     q95    rhat  ess_bulk  ess_tail
+<chr>       <dbl>   <dbl>  <dbl>  <dbl>   <dbl>   <dbl>   <dbl>     <dbl>     <dbl>
+Omega[1,1]  1.0000  1.0000 0.0000 0.0000  1.0000  1.0000 NA        NA        NA     
+Omega[2,1]  0.0000  0.0000 0.0000 0.0000  0.0000  0.0000 NA        NA        NA     
+Omega[3,1] -0.0056 -0.0101 0.2484 0.2559 -0.4211  0.4068  0.9999 4410.0862 3220.8831
+Omega[4,1] -0.2124 -0.1881 0.1512 0.1579 -0.5044 -0.0173  1.0003 4729.1236 2149.4316
+Omega[5,1] -0.0057 -0.0065 0.2621 0.2772 -0.4435  0.4217  1.0000 4657.2520 3017.0624
+Omega[6,1] -0.0018 -0.0002 0.2553 0.2599 -0.4284  0.4143  1.0013 4674.8017 2903.7293
+
+Omega[2,2]  1.0000  1.0000 0.0000 0.0000  1.0000  1.0000 NA        NA        NA     
+Omega[3,2] -0.0043 -0.0078 0.2499 0.2636 -0.4178  0.4093  1.0001 4023.8517 2705.3045
+Omega[4,2]  0.0043  0.0027 0.2594 0.2767 -0.4159  0.4328  1.0007 5443.1496 3098.8828
+Omega[5,2]  0.0014  0.0093 0.2575 0.2682 -0.4298  0.4201  1.0017 4128.4046 2987.4422
+Omega[6,2]  0.0058  0.0064 0.2538 0.2693 -0.4197  0.4224  1.0006 4736.2346 2668.6795
+
+Omega[3,3]  1.0000  1.0000 0.0000 0.0000  1.0000  1.0000 NA        NA        NA     
+Omega[4,3] -0.0000  0.0000 0.0000 0.0000  0.0000  0.0000  1.0014 4280.0269   NA     
+Omega[5,3]  0.4128  0.3934 0.0882 0.0884  0.3072  0.5888  1.0012 4809.9923 2377.6445
+Omega[6,3] -0.0032 -0.0064 0.2624 0.2747 -0.4394  0.4265  1.0022 4673.5773 3037.9778
+
+Omega[4,4]  1.0000  1.0000 0.0000 0.0000  1.0000  1.0000 NA        NA        NA     
+Omega[5,4]  0.0024  0.0020 0.2371 0.2475 -0.3873  0.3970  1.0002 3895.9938 2933.7159
+Omega[6,4] -0.0004 -0.0033 0.2576 0.2659 -0.4183  0.4327  1.0019 4303.5343 2949.4916
+
+Omega[5,5]  1.0000  1.0000 0.0000 0.0000  1.0000  1.0000 NA        NA        NA     
+Omega[6,5]  0.0009 -0.0018 0.2533 0.2675 -0.4113  0.4213  1.0002 4139.6808 2995.0615
+```
+
+## The Future
+
+Look-ahead given bound constraints and known values to ensure the impossible bounds don't hit
+
+Explore new priors for correlation matrices that exploit structure
