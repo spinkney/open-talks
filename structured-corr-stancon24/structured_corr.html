@@ -823,6 +823,95 @@ L_{i,j} &amp;= \frac{1}{L_{j,j}} \left( C_{i,j} - \sum_{k=1}^{j-1} L_{i,k}L_{j,k
 <span id="cb9-25"><a href=""></a>Omega[<span class="dv">5</span>,<span class="dv">5</span>]  <span class="fl">1.0000</span>  <span class="fl">1.0000</span> <span class="fl">0.0000</span> <span class="fl">0.0000</span>  <span class="fl">1.0000</span>  <span class="fl">1.0000</span> <span class="cn">NA</span>        <span class="cn">NA</span>        <span class="cn">NA</span>     </span>
 <span id="cb9-26"><a href=""></a>Omega[<span class="dv">6</span>,<span class="dv">5</span>]  <span class="fl">0.0009</span> <span class="sc">-</span><span class="fl">0.0018</span> <span class="fl">0.2533</span> <span class="fl">0.2675</span> <span class="sc">-</span><span class="fl">0.4113</span>  <span class="fl">0.4213</span>  <span class="fl">1.0002</span> <span class="fl">4139.6808</span> <span class="fl">2995.0615</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
+<section id="do-you-want-to-see-the-stan-code-for-this" class="slide level2">
+<h2>Do you want to see the Stan code for this?</h2>
+<div class="sourceCode" id="cb10"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb10-1"><a href=""></a>  <span class="dt">matrix</span> cholesky_corr_constrain_lp(<span class="dt">int</span> K, <span class="dt">vector</span> raw, <span class="dt">int</span> N_blocks,</span>
+<span id="cb10-2"><a href=""></a>                                    <span class="dt">array</span>[,] <span class="dt">int</span> res_index,</span>
+<span id="cb10-3"><a href=""></a>                                    <span class="dt">array</span>[] <span class="dt">int</span> res_id,</span>
+<span id="cb10-4"><a href=""></a>                                    <span class="dt">array</span>[,] <span class="dt">int</span> known_index,</span>
+<span id="cb10-5"><a href=""></a>                                    <span class="dt">vector</span> known_vals,</span>
+<span id="cb10-6"><a href=""></a>                                    <span class="dt">vector</span> lb, <span class="dt">vector</span> ub) {</span>
+<span id="cb10-7"><a href=""></a>    <span class="dt">matrix</span>[K, K] L = rep_matrix(<span class="dv">0</span>, K, K);</span>
+<span id="cb10-8"><a href=""></a>    <span class="dt">int</span> cnt = <span class="dv">1</span>;</span>
+<span id="cb10-9"><a href=""></a>    <span class="dt">int</span> N_res = num_elements(res_id);</span>
+<span id="cb10-10"><a href=""></a>    <span class="dt">int</span> N_known = size(known_vals);</span>
+<span id="cb10-11"><a href=""></a>    <span class="dt">vector</span>[N_blocks] x_cache;</span>
+<span id="cb10-12"><a href=""></a>    <span class="dt">array</span>[N_blocks] <span class="dt">int</span> res_id_cnt = ones_int_array(N_blocks);</span>
+<span id="cb10-13"><a href=""></a>    <span class="dt">int</span> res_row = <span class="dv">1</span>;</span>
+<span id="cb10-14"><a href=""></a>    <span class="dt">int</span> known_row = <span class="dv">1</span>;</span>
+<span id="cb10-15"><a href=""></a>    </span>
+<span id="cb10-16"><a href=""></a>    L[<span class="dv">1</span>, <span class="dv">1</span>] = <span class="dv">1</span>;</span>
+<span id="cb10-17"><a href=""></a>    <span class="cf">if</span> (known_index[known_row, <span class="dv">1</span>] == <span class="dv">2</span>) {</span>
+<span id="cb10-18"><a href=""></a>      L[<span class="dv">2</span>, <span class="dv">1</span>] = known_vals[<span class="dv">1</span>];</span>
+<span id="cb10-19"><a href=""></a>      known_row += <span class="dv">1</span>;</span>
+<span id="cb10-20"><a href=""></a>    } <span class="cf">else</span> {</span>
+<span id="cb10-21"><a href=""></a>      L[<span class="dv">2</span>, <span class="dv">1</span>] = lb_ub_lp(raw[cnt], lb[cnt], ub[cnt]);</span>
+<span id="cb10-22"><a href=""></a>      <span class="cf">if</span> (res_index[res_row, <span class="dv">1</span>] == <span class="dv">2</span>) {</span>
+<span id="cb10-23"><a href=""></a>        x_cache[res_id[res_row]] = L[<span class="dv">2</span>, <span class="dv">1</span>];</span>
+<span id="cb10-24"><a href=""></a>        res_id_cnt[res_id[res_row]] += <span class="dv">1</span>;</span>
+<span id="cb10-25"><a href=""></a>        res_row += <span class="dv">1</span>;</span>
+<span id="cb10-26"><a href=""></a>      } </span>
+<span id="cb10-27"><a href=""></a>      cnt += <span class="dv">1</span>;</span>
+<span id="cb10-28"><a href=""></a>    }</span>
+<span id="cb10-29"><a href=""></a>    </span>
+<span id="cb10-30"><a href=""></a>    L[<span class="dv">2</span>, <span class="dv">2</span>] = sqrt(<span class="dv">1</span> - L[<span class="dv">2</span>, <span class="dv">1</span>] ^ <span class="dv">2</span>);</span>
+<span id="cb10-31"><a href=""></a>    </span>
+<span id="cb10-32"><a href=""></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">3</span> : K) {</span>
+<span id="cb10-33"><a href=""></a>      <span class="cf">if</span> (res_index[res_row, <span class="dv">1</span>] == i &amp;&amp; res_index[res_row, <span class="dv">2</span>] == <span class="dv">1</span>) {</span>
+<span id="cb10-34"><a href=""></a>     <span class="co">// restricted case</span></span>
+<span id="cb10-35"><a href=""></a>        <span class="cf">if</span> (res_id_cnt[res_id[res_row]] == <span class="dv">1</span>) {</span>
+<span id="cb10-36"><a href=""></a>          L[i, <span class="dv">1</span>] = lb_ub_lp(raw[cnt], lb[cnt], ub[cnt]);</span>
+<span id="cb10-37"><a href=""></a>          x_cache[res_id[res_row]] = L[i, <span class="dv">1</span>];</span>
+<span id="cb10-38"><a href=""></a>          res_id_cnt[res_id[res_row]] += <span class="dv">1</span>;</span>
+<span id="cb10-39"><a href=""></a>          cnt += <span class="dv">1</span>;</span>
+<span id="cb10-40"><a href=""></a>        } <span class="cf">else</span> {</span>
+<span id="cb10-41"><a href=""></a>          L[i, <span class="dv">1</span>] = x_cache[res_id[res_row]];</span>
+<span id="cb10-42"><a href=""></a>        }</span>
+<span id="cb10-43"><a href=""></a>        res_row += <span class="dv">1</span>;</span>
+<span id="cb10-44"><a href=""></a>      } </span>
+<span id="cb10-45"><a href=""></a>      <span class="cf">else</span> <span class="cf">if</span> (known_index[known_row, <span class="dv">1</span>] == i &amp;&amp; known_index[known_row, <span class="dv">2</span>] == <span class="dv">1</span>) {</span>
+<span id="cb10-46"><a href=""></a>        <span class="co">// known case </span></span>
+<span id="cb10-47"><a href=""></a>          L[i, <span class="dv">1</span>] = known_vals[known_row];</span>
+<span id="cb10-48"><a href=""></a>         known_row += <span class="dv">1</span>;</span>
+<span id="cb10-49"><a href=""></a>      } <span class="cf">else</span> {</span>
+<span id="cb10-50"><a href=""></a>        <span class="co">// base case</span></span>
+<span id="cb10-51"><a href=""></a>        L[i, <span class="dv">1</span>] = lb_ub_lp(raw[cnt], lb[cnt], ub[cnt]);</span>
+<span id="cb10-52"><a href=""></a>        cnt += <span class="dv">1</span>;</span>
+<span id="cb10-53"><a href=""></a>      } </span>
+<span id="cb10-54"><a href=""></a>      </span>
+<span id="cb10-55"><a href=""></a>      L[i, <span class="dv">2</span>] = sqrt(<span class="dv">1</span> - L[i, <span class="dv">1</span>] ^ <span class="dv">2</span>);</span>
+<span id="cb10-56"><a href=""></a>      <span class="dt">real</span> l_ij_old = log1m(L[i, <span class="dv">1</span>] ^ <span class="dv">2</span>);</span>
+<span id="cb10-57"><a href=""></a>      <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">2</span> : i - <span class="dv">1</span>) {</span>
+<span id="cb10-58"><a href=""></a>        <span class="dt">real</span> b1 = dot_product(L[j, <span class="dv">1</span> : (j - <span class="dv">1</span>)], L[i, <span class="dv">1</span> : (j - <span class="dv">1</span>)]);</span>
+<span id="cb10-59"><a href=""></a>        <span class="dt">real</span> stick_length = exp(<span class="fl">0.5</span> * l_ij_old);</span>
+<span id="cb10-60"><a href=""></a>        <span class="dt">real</span> low = max({-stick_length, (lb[cnt] - b1) / L[j, j]});</span>
+<span id="cb10-61"><a href=""></a>        <span class="dt">real</span> up = min({stick_length, (ub[cnt] - b1) / L[j, j]});</span>
+<span id="cb10-62"><a href=""></a>        </span>
+<span id="cb10-63"><a href=""></a>        <span class="cf">if</span> (known_index[known_row, <span class="dv">1</span>] == i &amp;&amp; known_index[known_row, <span class="dv">2</span>] == j) {</span>
+<span id="cb10-64"><a href=""></a>          L[i, j] = (known_vals[known_row] - b1) / L[j, j];</span>
+<span id="cb10-65"><a href=""></a>          known_row = known_row == N_known ? N_known : known_row + <span class="dv">1</span>;</span>
+<span id="cb10-66"><a href=""></a>        } <span class="cf">else</span> <span class="cf">if</span> (res_index[res_row, <span class="dv">1</span>] == i &amp;&amp; res_index[res_row, <span class="dv">2</span>] == j) {</span>
+<span id="cb10-67"><a href=""></a>          <span class="cf">if</span> (res_id_cnt[res_id[res_row]] == <span class="dv">1</span>) {</span>
+<span id="cb10-68"><a href=""></a>            L[i, j] = lb_ub_lp(raw[cnt], low, up);</span>
+<span id="cb10-69"><a href=""></a>            x_cache[res_id[res_row]] = L[i, j] * L[j, j] + b1;</span>
+<span id="cb10-70"><a href=""></a>            res_id_cnt[res_id[res_row]] += <span class="dv">1</span>;</span>
+<span id="cb10-71"><a href=""></a>            cnt += <span class="dv">1</span>;</span>
+<span id="cb10-72"><a href=""></a>          } <span class="cf">else</span> {</span>
+<span id="cb10-73"><a href=""></a>            L[i, j] = (x_cache[res_id[res_row]] - b1) / L[j, j];</span>
+<span id="cb10-74"><a href=""></a>            <span class="kw">target +=</span> -log(L[j, j]);</span>
+<span id="cb10-75"><a href=""></a>          }</span>
+<span id="cb10-76"><a href=""></a>          res_row = res_row == N_res ? N_res : res_row + <span class="dv">1</span>;</span>
+<span id="cb10-77"><a href=""></a>        } <span class="cf">else</span> {</span>
+<span id="cb10-78"><a href=""></a>          L[i, j] = lb_ub_lp(raw[cnt], low, up);</span>
+<span id="cb10-79"><a href=""></a>          cnt += <span class="dv">1</span>;</span>
+<span id="cb10-80"><a href=""></a>        }</span>
+<span id="cb10-81"><a href=""></a>        l_ij_old = log_diff_exp(l_ij_old, <span class="dv">2</span> * log(abs(L[i, j])));</span>
+<span id="cb10-82"><a href=""></a>      }</span>
+<span id="cb10-83"><a href=""></a>      L[i, i] = exp(<span class="fl">0.5</span> * l_ij_old);</span>
+<span id="cb10-84"><a href=""></a>    }</span>
+<span id="cb10-85"><a href=""></a>    <span class="cf">return</span> L;</span>
+<span id="cb10-86"><a href=""></a>  }</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
 <section id="the-future" class="slide level2 smaller scrollable">
 <h2>The Future</h2>
 <p>LDL parameterization is done. It’s even more stable.</p>
