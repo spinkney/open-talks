@@ -92,24 +92,26 @@ Constrain the `y` "raw" parameters to be positive. This should make the correlat
 ## Let's first see how rejection sampling handles this
 
 ::: columns
-::: {.column style="width: 50%; font-size: 70%;"}
+::: {.column style="width: 60%; font-size: 70%;"}
 Sample a bunch and if **all** are positive then keep
 
 ``` {.julia code-line-numbers="false"}
-using ArviZ, Distributions, PrettyTables
+using ArviZ, 
+      Distributions, 
+      PrettyTables
  
 xs = Matrix[];
 
 while length(xs) < 10000
-           X = rand(LKJ(5, 4))
-           if all(≥(0), X)
-               push!(xs, X)
-           end
-       end
+    X = rand(LKJ(5, 4))
+    if all(≥(0), X)
+        push!(xs, X)
+    end
+end
 ```
 :::
 
-::: {.column style="width: 50%; font-size: 70%;"}
+::: {.column style="width: 40%; font-size: 70%;"}
 Mean should be about 0.28 and std 0.18
 
 ``` {.julia code-line-numbers="false"}
@@ -184,19 +186,18 @@ Mean should be about 0.28 and std 0.18
 ???
 
 ::: fragment
-Let's think about Cholesky factors really quick
+A foray into Cholesky factors
 :::
 
 ::: fragment
-Andre Cholesky 
-![](images/clipboard-3375023326.png)
+Andre Cholesky ![](images/clipboard-3375023326.png)
 :::
 
 ## Cholesky factors
 
 The value $C_{i,j} \in \mathbf{C}$ is a correlation value that is between $-1, 1$
 
-<div class="small-math">
+::: small-math
 $$
 \begin{align*}
 \mathbf{L} =
@@ -209,13 +210,12 @@ C_{n,1} & \left( C_{n,2} - L_{n,1}L_{2,1} \right) / L_{2,2} & \left( C_{n, 3} - 
 \end{pmatrix}
 \end{align*}
 $$
-</div>
+:::
 
 ## Let's try something
 
-<div class="small-math">
-Let's condense it into an equation
-$$
+::: small-math
+Let's condense it into an equation $$
 \begin{align*}
 L_{j,j} &= \sqrt{1 - \sum_{k=1}^{j-1} L^2_{j,k}} \\
 L_{i,j} &= \frac{1}{L_{j,j}} \left( C_{i,j} - \sum_{k=1}^{j-1} L_{i,k}L_{j,k} \right) \quad \text{for } i>j
@@ -227,46 +227,48 @@ Re-arrange and add in user specified [lower]{.emphasis3} and [upper]{.emphasis3}
 $$
 -L_{j,j} + \sum_{k=1}^{j-1} L_{i,k}L_{j,k} \le \color{#21409A}a_{i,j}\color{black} < C_{i,j} < \color{#21409A}b_{i,j}\color{black} \le L_{j,j} + \sum_{k=1}^{j-1} L_{i,k}L_{j,k}
 $$
-</div>
+:::
 
 ## Continuing
 
-<div class="small-math">
+::: small-math
 $$
 \begin{align*} 
 -\sqrt{1 - \sum_{k=1}^{j-1} L^2_{i,k}} \; \le \; \frac{\color{#21409A}a_{i,j}\color{black} - \sum\limits_{k=1}^{j-1} L_{i,k}L_{j,k}}{L_{j,j}} < \; & L_{i,j} \;  < \frac{\color{#21409A}b_{i,j}\color{black} - \sum\limits_{k=1}^{j-1} L_{i,k}L_{j,k}}{L_{j,j}} \; \le \;\sqrt{1 - \sum_{k=1}^{j-1} L^2_{i,k}} \\
 \max\left\{ -\sqrt{1 - \sum_{k=1}^{j-1} L^2_{j,k}} ,\; \frac{\color{#21409A}a_{i,j}\color{black} - \sum\limits_{k=1}^{j-1} L_{i,k}L_{j,k} }{L_{j,j}} \right\} < &\; L_{i,j} \; < \min\left\{\sqrt{1 - \sum_{k=1}^{j-1} L^2_{j,k}}, \; \frac{\color{#21409A}b_{i,j}\color{black} - \sum\limits_{k=1}^{j-1} L_{i,k}L_{j,k}}{L_{j,j}} \right\}
 \end{align*}
 $$
-</div>
+:::
 
 This gives us bounds but we need to be really careful
 
-What's neat is that the Jacobian is "easy", put those bounds into our constraining function like `tanh()` or use the upper-lower bound transform to satisfy the constraints. That's it. 
+The Jacobian is "easy"
 
 ## Extra Care
 
-Assume we have $3 \times 3$ matrix that we wish to constrain all correlation values to be negative. 
+Assume we have $3 \times 3$ matrix that we wish to constrain all correlation values to be negative.
 
 Let us choose $C_{2, 1} = C_{3,1} = \frac{-1}{\sqrt{2}}$ and solve for the bounds of $C_{3,2}$:
 
-<div class="small-math">
+::: small-math
+```{=tex}
 \begin{align*}
 \max\left\{-1, -\sqrt{1 - C_{3,1}^2} \right\} &< \frac{B - C_{2,1} C_{3,1}}{L_{2, 2}} < \min\left\{0, \sqrt{1 - C_{3,1}^2} \right\} \\
 -\sqrt{0.5} &< \frac{B - 0.5}{\sqrt{0.5}} < 0 \\
 \implies 0 &< B < 0.5
 \end{align*}
-</div>
+```
+:::
 
-:::{.callout-note}
+::: callout-note
 This is all in @pinkney2024
 :::
 
 ## The Stan code
 
-This is a bit more stable than what's in the paper but also more opaque. The `exp()`'s here are just calculating stuff on the log-scale. Line 13 I take the log and try to stick with this as much as possible.
-
-``` {.stan}
+::: columns
+::: {.column style="width: 80%; font-size: 60%;"}
+``` stan
 matrix cholesky_corr_constrain_lp (vector col_one_raw, vector off_raw,
                                            real lb, real ub) {
     int K = num_elements(col_one_raw) + 1;
@@ -294,6 +296,15 @@ matrix cholesky_corr_constrain_lp (vector col_one_raw, vector off_raw,
     return L;
   }
 ```
+:::
+::: {.column style="width: 20%; font-size: 50%;"}
+This is a bit more stable than what's in the paper but also more opaque. 
+
+The exp()'s here are just calculating stuff on the log-scale. 
+
+Line 13 I take the log and try to stick with this as much as possible.
+:::
+:::
 
 ## Back to the motivating example
 
@@ -349,7 +360,7 @@ $$
 \end{align*}
 $$
 
-```r
+``` r
    --        
     0.       --   
    NA        NA   --        
@@ -360,7 +371,7 @@ $$
 
 ## Output
 
-```{.r}
+``` r
 variable    mean  median     sd    mad      q5     q95    rhat  ess_bulk  ess_tail
 <chr>       <dbl>   <dbl>  <dbl>  <dbl>   <dbl>   <dbl>   <dbl>     <dbl>     <dbl>
 Omega[1,1]  1.0000  1.0000 0.0000 0.0000  1.0000  1.0000 NA        NA        NA     
@@ -391,6 +402,10 @@ Omega[6,5]  0.0009 -0.0018 0.2533 0.2675 -0.4113  0.4213  1.0002 4139.6808 2995.
 
 ## The Future
 
+LDL parameterization is done. It's even more stable.
+
 Look-ahead given bound constraints and known values to ensure the impossible bounds don't hit
 
 Explore new priors for correlation matrices that exploit structure
+
+References:

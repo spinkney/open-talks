@@ -542,19 +542,21 @@ Sean Pinkney
 <section id="lets-first-see-how-rejection-sampling-handles-this" class="slide level2">
 <h2>Let’s first see how rejection sampling handles this</h2>
 <div class="columns">
-<div class="column" style="width: 50%; font-size: 70%;">
+<div class="column" style="width: 60%; font-size: 70%;">
 <p>Sample a bunch and if <strong>all</strong> are positive then keep</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">ArviZ</span>, <span class="bu">Distributions</span>, <span class="bu">PrettyTables</span></span>
-<span id="cb3-2"><a href="" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb3-3"><a href="" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> <span class="dt">Matrix</span>[];</span>
-<span id="cb3-4"><a href="" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-5"><a href="" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> <span class="fu">length</span>(xs) <span class="op">&lt;</span> <span class="fl">10000</span></span>
-<span id="cb3-6"><a href="" aria-hidden="true" tabindex="-1"></a>           X <span class="op">=</span> <span class="fu">rand</span>(<span class="fu">LKJ</span>(<span class="fl">5</span>, <span class="fl">4</span>))</span>
-<span id="cb3-7"><a href="" aria-hidden="true" tabindex="-1"></a>           <span class="cf">if</span> <span class="fu">all</span>(<span class="fu">≥</span>(<span class="fl">0</span>), X)</span>
-<span id="cb3-8"><a href="" aria-hidden="true" tabindex="-1"></a>               <span class="fu">push!</span>(xs, X)</span>
-<span id="cb3-9"><a href="" aria-hidden="true" tabindex="-1"></a>           <span class="cf">end</span></span>
-<span id="cb3-10"><a href="" aria-hidden="true" tabindex="-1"></a>       <span class="cf">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div><div class="column" style="width: 50%; font-size: 70%;">
+<div class="sourceCode" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">ArviZ</span>, </span>
+<span id="cb3-2"><a href="" aria-hidden="true" tabindex="-1"></a>      <span class="bu">Distributions</span>, </span>
+<span id="cb3-3"><a href="" aria-hidden="true" tabindex="-1"></a>      <span class="bu">PrettyTables</span></span>
+<span id="cb3-4"><a href="" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb3-5"><a href="" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> <span class="dt">Matrix</span>[];</span>
+<span id="cb3-6"><a href="" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> <span class="fu">length</span>(xs) <span class="op">&lt;</span> <span class="fl">10000</span></span>
+<span id="cb3-8"><a href="" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> <span class="fu">rand</span>(<span class="fu">LKJ</span>(<span class="fl">5</span>, <span class="fl">4</span>))</span>
+<span id="cb3-9"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="fu">all</span>(<span class="fu">≥</span>(<span class="fl">0</span>), X)</span>
+<span id="cb3-10"><a href="" aria-hidden="true" tabindex="-1"></a>        <span class="fu">push!</span>(xs, X)</span>
+<span id="cb3-11"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
+<span id="cb3-12"><a href="" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div><div class="column" style="width: 40%; font-size: 70%;">
 <p>Mean should be about 0.28 and std 0.18</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="" aria-hidden="true" tabindex="-1"></a>───────────┬─────────┬─────────┬──────────┬───────────┐</span>
 <span id="cb4-2"><a href="" aria-hidden="true" tabindex="-1"></a>│ parameter │    mean │     std │ hdi_2<span class="fl">.5</span><span class="op">%</span> │ hdi_97<span class="fl">.5</span><span class="op">%</span> │</span>
@@ -622,7 +624,7 @@ Sean Pinkney
 <h2>Wtf?</h2>
 <p>???</p>
 <div class="fragment">
-<p>Let’s think about Cholesky factors really quick</p>
+<p>A foray into Cholesky factors</p>
 </div>
 <div class="fragment">
 <p>Andre Cholesky <img data-src="images/clipboard-3375023326.png"></p>
@@ -672,18 +674,18 @@ L_{i,j} &amp;= \frac{1}{L_{j,j}} \left( C_{i,j} - \sum_{k=1}^{j-1} L_{i,k}L_{j,k
 </span></p>
 </div>
 <p>This gives us bounds but we need to be really careful</p>
-<p>What’s neat is that the Jacobian is “easy”, put those bounds into our constraining function like <code>tanh()</code> or use the upper-lower bound transform to satisfy the constraints. That’s it.</p>
+<p>The Jacobian is “easy”</p>
 </section>
 <section id="extra-care" class="slide level2">
 <h2>Extra Care</h2>
 <p>Assume we have <span class="math inline">3 \times 3</span> matrix that we wish to constrain all correlation values to be negative.</p>
 <p>Let us choose <span class="math inline">C_{2, 1} = C_{3,1} = \frac{-1}{\sqrt{2}}</span> and solve for the bounds of <span class="math inline">C_{3,2}</span>:</p>
 <div class="small-math">
-<p><span class="math display">\begin{align*}
+<span class="math display">\begin{align*}
 \max\left\{-1, -\sqrt{1 - C_{3,1}^2} \right\} &amp;&lt; \frac{B - C_{2,1} C_{3,1}}{L_{2, 2}} &lt; \min\left\{0, \sqrt{1 - C_{3,1}^2} \right\} \\
 -\sqrt{0.5} &amp;&lt; \frac{B - 0.5}{\sqrt{0.5}} &lt; 0 \\
 \implies 0 &amp;&lt; B &lt; 0.5
-\end{align*}</span></p>
+\end{align*}</span>
 </div>
 <div class="callout callout-note callout-titled callout-style-default">
 <div class="callout-body">
@@ -701,7 +703,8 @@ L_{i,j} &amp;= \frac{1}{L_{j,j}} \left( C_{i,j} - \sum_{k=1}^{j-1} L_{i,k}L_{j,k
 </section>
 <section id="the-stan-code" class="slide level2">
 <h2>The Stan code</h2>
-<p>This is a bit more stable than what’s in the paper but also more opaque. The <code>exp()</code>’s here are just calculating stuff on the log-scale. Line 13 I take the log and try to stick with this as much as possible.</p>
+<div class="columns">
+<div class="column" style="width: 80%; font-size: 60%;">
 <div class="sourceCode" id="cb6"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb6-1"><a href=""></a><span class="dt">matrix</span> cholesky_corr_constrain_lp (<span class="dt">vector</span> col_one_raw, <span class="dt">vector</span> off_raw,</span>
 <span id="cb6-2"><a href=""></a>                                           <span class="dt">real</span> lb, <span class="dt">real</span> ub) {</span>
 <span id="cb6-3"><a href=""></a>    <span class="dt">int</span> K = num_elements(col_one_raw) + <span class="dv">1</span>;</span>
@@ -728,6 +731,11 @@ L_{i,j} &amp;= \frac{1}{L_{j,j}} \left( C_{i,j} - \sum_{k=1}^{j-1} L_{i,k}L_{j,k
 <span id="cb6-24"><a href=""></a>      }</span>
 <span id="cb6-25"><a href=""></a>    <span class="cf">return</span> L;</span>
 <span id="cb6-26"><a href=""></a>  }</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div><div class="column" style="width: 20%; font-size: 50%;">
+<p>This is a bit more stable than what’s in the paper but also more opaque.</p>
+<p>The exp()’s here are just calculating stuff on the log-scale.</p>
+<p>Line 13 I take the log and try to stick with this as much as possible.</p>
+</div></div>
 </section>
 <section id="back-to-the-motivating-example" class="slide level2">
 <h2>Back to the motivating example</h2>
@@ -817,8 +825,10 @@ L_{i,j} &amp;= \frac{1}{L_{j,j}} \left( C_{i,j} - \sum_{k=1}^{j-1} L_{i,k}L_{j,k
 </section>
 <section id="the-future" class="slide level2 smaller scrollable">
 <h2>The Future</h2>
+<p>LDL parameterization is done. It’s even more stable.</p>
 <p>Look-ahead given bound constraints and known values to ensure the impossible bounds don’t hit</p>
 <p>Explore new priors for correlation matrices that exploit structure</p>
+<p>References:</p>
 <div class="quarto-auto-generated-content">
 <div class="footer footer-default">
 

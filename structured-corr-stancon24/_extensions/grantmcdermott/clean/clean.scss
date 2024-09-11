@@ -50,7 +50,7 @@ $inline-code-color: #131516; // Your desired color
 /* Target the container to apply general styles if needed */
 .sourceCode {
   background-color: #f8f9fa; /* Light background for the code block */
-  border: 1px solid #ddd;    /* Add a border to the code block */
+//  border: 1px solid #ddd;    /* Add a border to the code block */
   border-radius: 4px;        /* Rounded corners */
   padding: 10px;             /* Padding inside the code block */
 }
@@ -61,7 +61,7 @@ $inline-code-color: #131516; // Your desired color
   color: #212529;            /* Text color */
   background-color: #F7F8F9; /* Example: Change background color */
   padding: 2px 4px;          /* Optional: Add padding */
-  border-radius: 3px;        /* Optional: Add rounded corners */
+//  border-radius: 3px;        /* Optional: Add rounded corners */
   font-weight: bold;         /* Optional: Make text bold */
 }
 
@@ -79,7 +79,7 @@ code.sourceCode.r {
   background-color: #F7F8F9; /* Specific color for line 1 */
   color: #212529;            /* Text color */
   padding: 2px 4px;          /* Optional: Add padding */
-  border-radius: 3px;        /* Optional: Add rounded corners */
+ // border-radius: 3px;        /* Optional: Add rounded corners */
   font-weight: bold;         /* Optional: Make text bold */
 }
 
