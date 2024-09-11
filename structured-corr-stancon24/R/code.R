@@ -141,8 +141,8 @@ res_id <- unlist(block_dt[, res_id])
 lb <- rep(-1, 15)
 ub <- rep(1, 15)
 
- lb[5] <- -0.1
- ub[5] <- 0.1
+ lb[3] <- -0.8
+ ub[3] <- 0
  
  lb[7] <- 0.3
  ub[7] <- 0.7
