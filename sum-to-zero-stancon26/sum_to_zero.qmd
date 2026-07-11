@@ -1,6 +1,6 @@
 ---
 title: "Structured Correlation Matrices in Stan"
-subtitle: "StanCon 2024"
+subtitle: "StanCon 2026"
 format: clean-revealjs
 filters:
   - naquiz
@@ -13,7 +13,7 @@ author:
  - name: "Sean Pinkney"
    email: sean.pinkney@gmail.com
    affiliations: 
-    - name: Managing Director at Omnicom Media Group
+    - name: SVP Measurement Analytics at Publicis Groupe
     - name: Stan Developer
 highlight-style: "nord"
 bibliography: refs.bib
