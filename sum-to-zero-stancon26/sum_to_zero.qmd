@@ -1,5 +1,5 @@
 ---
-title: "Structured Correlation Matrices in Stan"
+title: "Population Effect Estimation in Bayesian Hierarchical Models Using<br>Sum-to-Zero Constraints"
 subtitle: "StanCon 2026"
 format: clean-revealjs
 filters:
@@ -23,29 +23,274 @@ bibliography: refs.bib
 cmdstanr::register_knitr_engine(override = TRUE)
 options(mc.cores = parallel::detectCores())
 
-Sys.setenv(LIBGS ="/opt/homebrew/Cellar/ghostscript/10.03.1/lib/libgs.dylib")
+Sys.setenv(LIBGS = "/opt/homebrew/opt/ghostscript/lib/libgs.dylib")
+Sys.setenv(PATH = paste(file.path(tinytex::tinytex_root(), "bin", "universal-darwin"), Sys.getenv("PATH"), sep = ":"))
 ```
 
-## What is a correlation matrix?
+## Slides and code at
 
--   Symmetric
--   1s along the diagonal
--   Off diagonal elements between \[-1, 1\]
--   Positive semi-definite
+![](images/repo_qr.png){fig-align="center" width="380"}
 
-That last requirement is the tough one.
+<p style="text-align: center;">[github.com/spinkney/open-talks](https://github.com/spinkney/open-talks)</p>
 
-An $n \times n$ matrix $\Sigma$ is p.s.d iff
+## Agenda
+
+-   Preliminaries
+-   What is a sum-to-zero constraint?
+-   Hierarchical models between frequentist and bayesian approaches
+-   How is it possible to translate between them?
+-   Implications
+
+
+## Preliminaries: Distributions
+
+ We will restrict ourselves to elliptically symmetric distributions for hierarchical models, i.e.,
+$$
+\begin{align*}
+&f(x) = c \, g(x^\top \Sigma_x^{-1}x), \\
+&\int_{\mathbb{R}^d} f(x) \, dx = 1
+\end{align*}
+$$
+where^[@delmas_2024]
+
+-   the generator $g(\cdot): \mathbb{R}^+ \rightarrow \mathbb{R}^+$
+-   the normalizing constant $c$ ensures $f(x)$ integrates to 1
+
+## Preliminaries: Distributions
 
 $$
-\mathbf{x}^\top \, \Sigma \, \mathbf{x} \ge 0 \quad \forall \, \mathbf{x} \in \mathbb{R}^n
+\begin{align*}
+&f(x) = c \, g(x^\top \Sigma_x^{-1}x), \\
+&\int_{\mathbb{R}^d} f(x) \, dx = 1
+\end{align*}
 $$
 
-## Why is positive semi-definite tough?
+The choice of $g$ controls the tail behavior, allowing both light- and heavy-tailed priors within the same family:
 
-Things get really, really constrained as the dimension of $n$ increases
+-   Normal: $g(t) \propto e^{-t/2}$
+-   Student-$t_\nu$ (Cauchy at $\nu = 1$): $g(t) \propto \left(1 + t/\nu\right)^{-(\nu + d)/2}$
+-   Logistic: $g(t) \propto e^{-t} / \left(1 + e^{-t}\right)^2$
+-   Laplace: $g(t) \propto e^{-\sqrt{t}}$
 
-![](images/003_rot.gif){fig-align="center"}
+## Preliminaries: Background on Bayesian hierarchical models
+
+::::: columns
+::: {.column style="width: 50%;"}
+```{r, engine = 'tikz', fig.ext = "svg"}
+\usetikzlibrary{arrows, shapes, positioning, fit, calc}
+
+\definecolor{black}{HTML}{000000}
+\definecolor{orange}{HTML}{E69F00}
+\definecolor{skyblue}{HTML}{56B4E9}
+\definecolor{green}{HTML}{009E73}
+\definecolor{yellow}{HTML}{F0E442}
+\definecolor{blue}{HTML}{0072B2}
+\definecolor{red}{HTML}{D55E00}
+\definecolor{pink}{HTML}{CC79A7}
+\definecolor{grey}{HTML}{999999}
+
+\definecolor{darkblue}{RGB}{33, 64, 154}
+\definecolor{midblue}{RGB}{66, 110, 190}
+\definecolor{lightblue}{RGB}{144, 185, 255}
+
+\begin{tikzpicture}[
+    node distance=1.5cm and 1.5cm,
+    every node/.style={rectangle, draw=darkblue, text=black, rounded corners, minimum size=1.2cm},
+    every path/.style={<->, thick, >=stealth, color=darkblue}]
+
+\node (phi) {$\Phi$};
+\node[below left=of phi] (theta1) {$\theta_1$};
+\node (theta2) [below=of phi] {$\theta_n$};
+\node (theta3) [below right=of phi] {$\theta_N$};
+\node (y1) [below=of theta1] {$y_1$};
+\node (y2) [below=of theta2] {$y_n$};
+\node (y3) [below=of theta3] {$y_N$};
+
+\draw (phi) -- (theta1);
+\draw (phi) -- (theta2);
+\draw (phi) -- (theta3);
+\draw (theta1) -- (y1);
+\draw (theta2) -- (y2);
+\draw (theta3) -- (y3);
+
+\path (theta1) -- (theta2) node[midway, sloped] {$\dots$};
+\path (theta2) -- (theta3) node[midway, sloped] {$\dots$};
+\path (y1) -- (y2) node[midway, sloped] {$\dots$};
+\path (y2) -- (y3) node[midway, sloped] {$\dots$};
+
+\end{tikzpicture}
+```
+:::
+
+::: {.column style="width: 50%; font-size: 75%;"}
+Sharing of information happens
+
+-   $\Phi$ population distribution
+-   Globally
+-   Bi-directionally
+-   AKA [partial pooling]{.emphasis}
+
+When the evidence or data for a parameter are
+
+-   low
+    -   estimate is closer to prior
+-   large
+    -   data swamps prior
+    -   prior pull is weak
+:::
+:::::
+
+## Preliminaries: Background on frequentist hierarchical models
+
+::::: columns
+::: {.column style="width: 50%;"}
+```{r, engine = 'tikz', fig.ext = "svg"}
+\usetikzlibrary{arrows, shapes, positioning, fit, calc}
+
+\definecolor{black}{HTML}{000000}
+\definecolor{orange}{HTML}{E69F00}
+\definecolor{skyblue}{HTML}{56B4E9}
+\definecolor{green}{HTML}{009E73}
+\definecolor{yellow}{HTML}{F0E442}
+\definecolor{blue}{HTML}{0072B2}
+\definecolor{red}{HTML}{D55E00}
+\definecolor{pink}{HTML}{CC79A7}
+\definecolor{grey}{HTML}{999999}
+
+\definecolor{darkblue}{RGB}{33, 64, 154}
+\definecolor{midblue}{RGB}{66, 110, 190}
+\definecolor{lightblue}{RGB}{144, 185, 255}
+
+\begin{tikzpicture}[
+    node distance=1.5cm and 1.5cm,
+    every node/.style={rectangle, draw=darkblue, text=black, rounded corners, minimum size=1.2cm},
+    every path/.style={->, thick, >=stealth, color=darkblue}]
+
+\node[dashed] (constraint) {$\Sigma_j\, \theta_j = 0$};
+\node[below left=of constraint] (theta1) {$\theta_1$};
+\node (theta2) [below=of constraint] {$\theta_n$};
+\node (theta3) [below right=of constraint] {$\theta_N$};
+\node (y1) [below=of theta1] {$y_1$};
+\node (y2) [below=of theta2] {$y_n$};
+\node (y3) [below=of theta3] {$y_N$};
+
+\draw[dashed, -] (constraint) -- (theta1);
+\draw[dashed, -] (constraint) -- (theta2);
+\draw[dashed, -] (constraint) -- (theta3);
+\draw (theta1) -- (y1);
+\draw (theta2) -- (y2);
+\draw (theta3) -- (y3);
+
+\path (theta1) -- (theta2) node[midway, sloped] {$\dots$};
+\path (theta2) -- (theta3) node[midway, sloped] {$\dots$};
+\path (y1) -- (y2) node[midway, sloped] {$\dots$};
+\path (y2) -- (y3) node[midway, sloped] {$\dots$};
+
+\end{tikzpicture}
+```
+:::
+
+::: {.column style="width: 50%; font-size: 75%;"}
+No population distribution $\Phi$
+
+-   the $\theta_j$ are **fixed unknowns**, not draws
+-   no pooling: each $\theta_j$ is estimated from group $j$'s data alone
+-   information flows one way, $\theta_j \rightarrow y_j$
+
+Groups are tied together only by a *hard* constraint
+
+-   e.g. effects coding $\textstyle\sum_j \theta_j = 0$
+-   identifies the grand mean instead of a population parameter
+:::
+:::::
+
+## What is the population effect?
+
+Let's take a 2-level, varying slopes, varying intercept model with $i$ units and $j$ groups
+
+```{r, engine = 'tikz', fig.ext = "svg", fig.align = "center", out.width = "44%", engine.opts = list(dvisvgm.opts = "--font-format=woff")}
+\usetikzlibrary{arrows, positioning, calc, decorations.pathreplacing}
+
+\definecolor{darkblue}{RGB}{33, 64, 154}
+
+\begin{tikzpicture}[every node/.style={inner sep=1pt, anchor=base}]
+
+\node (t0) {$y_{ij} = {}$};
+\node (a1) [base right=0pt of t0] {$\alpha$};
+\node (a2) [base right=0pt of a1] {${} + a_j$};
+\node (m)  [base right=12pt of a2] {${} + X\,($};
+\node (b1) [base right=0pt of m] {$\beta$};
+\node (b2) [base right=0pt of b1] {${} + b_j$};
+\node (cp) [base right=0pt of b2] {$)$};
+\node (e)  [base right=12pt of cp] {${} + \epsilon_{ij}$};
+
+\node (pop) at ($(a1.north)!0.5!(b1.north) + (0, 0.85)$) {population parameters};
+\draw[->, thick, >=stealth, color=darkblue] (pop.south) -- (a1.north);
+\draw[->, thick, >=stealth, color=darkblue] (pop.south) -- (b1.north);
+
+\draw[decorate, decoration={brace, mirror, amplitude=4pt}, thick, color=darkblue]
+  ($(a1.west |- a2.south) + (0, -2pt)$) -- ($(a2.south east) + (0, -2pt)$)
+  node[midway, below=7pt] {\scriptsize varying intercept};
+\draw[decorate, decoration={brace, mirror, amplitude=4pt}, thick, color=darkblue]
+  ($(b1.west |- b2.south) + (0, -2pt)$) -- ($(b2.south east) + (0, -2pt)$)
+  node[midway, below=7pt] {\scriptsize varying slope};
+
+\end{tikzpicture}
+```
+
+::: {style="font-size: 80%;"}
+**Group-level (conditional):** $E(y_{ij} \mid X, j) = \alpha + a_j + X (\beta + b_j)$
+
+**Population-level (marginal):** $E(y_{ij} \mid X) = \alpha + X \beta$\
+when $E(a_j) = E(b_j) = 0$
+:::
+
+::: aside
+Assuming linear link functions. Under a nonlinear link $E(y \mid X) \neq g^{-1}(\alpha + X\beta)$.
+:::
+
+::: notes
+The marginal estimand only exists in the random-effects world — there's no distribution over groups to marginalize against otherwise. The E(a_j) = 0 condition is an identification convention, not a substantive assumption: any nonzero mean would just be absorbed into alpha.
+
+In the fixed-effects world the analogue is the average over the observed groups, alpha + a-bar + X(beta + b-bar), and the hard constraint sum a_j = 0 is what makes alpha the grand mean.
+
+One-line summary of the talk: the sum-to-zero constraint imposes on the realized draws what the prior only imposes on the distribution.
+:::
+
+
+## Different populations
+
+The data inform the group coefficients $\alpha_j$ and $\beta_j$ whereas the population $\alpha$ and $\beta$ sit one level up.
+
+::::: columns
+::: {.column style="width: 50%; font-size: 75%; border-right: 1px solid #d0d0d0; padding-right: 1.5em; box-sizing: border-box;"}
+[Bayesian hierarchical model]{.emphasis2}
+
+$\alpha$ and $\beta$ are *population* parameters and the observed groups are **draws from** that population
+
+$$
+a_j \sim N(\alpha, \sigma_a), \quad b_j \sim N(\beta, \sigma_b)
+$$
+
+A benefit is that new groups may still be infered from the population distribution as any finite draw of $J$ groups has
+
+$$
+\bar{\alpha} = \tfrac{1}{J}\textstyle\sum_j \alpha_j \neq \alpha
+$$
+:::
+
+::: {.column style="width: 50%; font-size: 75%; padding-left: 1.5em; box-sizing: border-box;"}
+[Frequentist effects coding]{.emphasis}
+
+No population to draw from — the $J$ observed groups **are** the population
+
+The "population" parameter is the finite-population grand mean
+
+$$
+\alpha = \tfrac{1}{J}\textstyle\sum_j \left( \alpha + a_j \right) \iff \sum_j a_j = 0
+$$
+:::
+:::::
 
 ## What is a structured correlation matrix?
 
@@ -483,3 +728,12 @@ Look-ahead given bound constraints and known values to ensure the impossible bou
 Explore new priors for correlation matrices that exploit structure
 
 References:
+
+::: {#refs}
+:::
+
+## Slides and code
+
+![](images/repo_qr.png){fig-align="center" width="380"}
+
+<p style="text-align: center;">[github.com/spinkney/open-talks](https://github.com/spinkney/open-talks)</p>
