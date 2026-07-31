@@ -72,11 +72,248 @@ The choice of $g$ controls the tail behavior, allowing both light- and heavy-tai
 -   Logistic: $g(t) \propto e^{-t} / \left(1 + e^{-t}\right)^2$
 -   Laplace: $g(t) \propto e^{-\sqrt{t}}$
 
+
+## What is a sum-to-zero constraint?
+
+It's simply
+$$
+\sum_j^n a_j = 0
+$$
+To construct one might randomly draw i.i.d. $n - 1$ values $y$ and
+
+$$
+\begin{align}
+y_n & \overset{\text{set}}= -\sum_i^{n - 1} y_i \\
+\bm z &= \left[ y_1 \; y_2 \; \ldots \; y_{n- 1} \; y_n\right]  \\
+& \sum_i^n z = 0
+\end{align}
+$$
+This works and is a valid construction. The problem is that it induces strong prior assumptions about the relationships across $\bm z$.
+
+## What is a sum-to-zero constraint?
+
+Since only $z_n$ is a function of $y$ the marginal density will be the density of the sum of $z_{i:n - 1}$. Most modelers would not want this!
+
+```{r}
+#| label: density-overlay
+#| echo: false
+#| fig-align: center
+#| fig-width: 10
+#| fig-height: 5.2
+#| dev: svglite
+#| dev-args:
+#|   bg: transparent
+#| fig-bg: transparent
+#| out-width: 90%
+
+a <- 1
+
+d_uniform <- function(x, a = 1) {
+  ifelse(abs(x) <= a, 1 / (2 * a), 0)
+}
+
+# Density of -(x1 + x2 + x3). Symmetry makes this equal to the
+# density of x1 + x2 + x3 for iid Uniform(-a, a) variables.
+d_sum <- function(x, a = 1) {
+  t <- (x + 3 * a) / (2 * a)
+  density <- numeric(length(x))
+
+  left   <- t >= 0 & t < 1
+  middle <- t >= 1 & t < 2
+  right  <- t >= 2 & t <= 3
+
+  density[left]   <- 0.5 * t[left]^2
+  density[middle] <- 0.5 * (-2 * t[middle]^2 + 6 * t[middle] - 3)
+  density[right]  <- 0.5 * (3 - t[right])^2
+
+  density / (2 * a)
+}
+
+x <- seq(-3.25 * a, 3.25 * a, length.out = 1200)
+uniform_density <- d_uniform(x, a)
+sum_density <- d_sum(x, a)
+
+darkblue <- "#21409A"
+orange <- "#E69F00"
+
+op <- par(
+  mar = c(4.2, 4.6, 1.2, 1),
+  las = 1,
+  bty = "n",
+  bg = NA,
+  family = "Spectral",
+  col.axis = "#333333",
+  col.lab = "#333333"
+)
+
+plot(
+  x, sum_density,
+  type = "n",
+  xlab = "Value",
+  ylab = "Density",
+  xlim = c(-3.25 * a, 3.25 * a),
+  ylim = c(0, 0.56 / a),
+  xaxt = "n",
+  yaxt = "n"
+)
+axis(1, at = (-3:3) * a, labels = -3:3, col = "#999999")
+axis(2, at = seq(0, 0.5 / a, by = 0.1 / a), col = "#999999")
+abline(h = 0, col = "#999999")
+
+polygon(
+  c(x, rev(x)),
+  c(sum_density, rep(0, length(x))),
+  col = NA,
+  border = NA
+)
+polygon(
+  c(x, rev(x)),
+  c(uniform_density, rep(0, length(x))),
+  col = NA,
+  border = NA
+)
+lines(x, sum_density, col = orange, lwd = 4)
+lines(x, uniform_density, col = darkblue, lwd = 4)
+
+legend(
+  "topright",
+  legend = c(
+    expression(x[i] %~% U(-a, a)),
+    expression(z_4 == -(x_1 + x_2 + x_3))
+  ),
+  col = c(darkblue, orange),
+  lwd = 4,
+  bty = "n",
+  cex = 1.15
+)
+
+par(op)
+```
+
+The implicit prior on the last element is clearly different. Furthermore, the covariance of the final element is coupled strongly with the other elements.
+
+## What is a sum-to-zero constraint?
+
+We can balance the density across the values by using an orthonormal basis for the zero-sum subspace, $QQ^\top=P_0=I_n-\frac1n\mathbf 1_n\mathbf 1_n^\top$.
+
+```{r}
+#| label: zero-sum-basis-map
+#| echo: false
+#| fig-align: center
+#| fig-width: 11
+#| fig-height: 4.8
+#| dev: svglite
+#| dev-args:
+#|   bg: transparent
+#| fig-bg: transparent
+#| out-width: 95%
+
+darkblue <- "#21409A"
+midblue <- "#426EBE"
+lightblue <- "#90B9FF"
+orange <- "#E69F00"
+grey <- "#777777"
+
+# n = 3: an orthonormal basis for {z in R^3 : z1 + z2 + z3 = 0}.
+Q <- cbind(
+  c(1, -1, 0) / sqrt(2),
+  c(1, 1, -2) / sqrt(6)
+)
+
+set.seed(123)
+y <- matrix(rnorm(36, sd = 0.85), ncol = 2)
+z <- y %*% t(Q)
+
+# Oblique projection from R^3 onto the drawing canvas.
+view3 <- function(x) {
+  cbind(x[, 1] + 0.58 * x[, 2], x[, 3] + 0.32 * x[, 2])
+}
+to_right <- function(x) {
+  p <- view3(x)
+  cbind(8.3 + 1.05 * p[, 1], 2.55 + 1.05 * p[, 2])
+}
+
+op <- par(mar = rep(0.15, 4), xpd = NA, bg = NA, family = "Spectral")
+plot(
+  NA,
+  xlim = c(0, 11.8), ylim = c(0, 5.2),
+  axes = FALSE, xlab = "", ylab = "", asp = 1
+)
+
+# The n - 1 iid coordinates.
+domain <- rbind(c(0.65, 1.0), c(4.15, 1.0), c(4.15, 4.5), c(0.65, 4.5))
+polygon(
+  domain,
+  col = NA,
+  border = midblue,
+  lwd = 2.5
+)
+arrows(0.95, 1.35, 3.85, 1.35, length = 0.1, lwd = 1.5, col = grey)
+arrows(1.05, 1.25, 1.05, 4.2, length = 0.1, lwd = 1.5, col = grey)
+text(3.95, 1.12, expression(y[1]), col = grey, cex = 1.05)
+text(0.78, 4.28, expression(y[2]), col = grey, cex = 1.05)
+
+y_left <- cbind(2.4 + y[, 1], 2.75 + y[, 2])
+points(
+  y_left,
+  pch = 21,
+  bg = adjustcolor(darkblue, alpha.f = 0.72),
+  col = darkblue,
+  cex = 1.15
+)
+text(2.4, 0.58, expression(bold(y) %~% N(0, I[2])), cex = 1.15, col = darkblue)
+
+# The zero-sum plane in R^3.
+plane_uv <- rbind(c(-2.2, -2.0), c(2.2, -2.0), c(2.2, 2.0), c(-2.2, 2.0))
+plane_xyz <- plane_uv %*% t(Q)
+plane_draw <- to_right(plane_xyz)
+polygon(
+  plane_draw,
+  col = NA,
+  border = orange,
+  lwd = 2.5
+)
+
+# The linear map Q.
+arrows(4.65, 2.75, 6.05, 2.75, length = 0.14, lwd = 3, col = grey)
+text(5.35, 3.12, expression(bold(z) == Q * bold(y)), col = orange, cex = 1.2)
+
+origin <- to_right(matrix(c(0, 0, 0), nrow = 1))
+axes_draw <- to_right(1.65 * diag(3))
+for (j in 1:3) {
+  arrows(
+    origin[1, 1], origin[1, 2],
+    axes_draw[j, 1], axes_draw[j, 2],
+    length = 0.09, lwd = 1.4, col = grey
+  )
+}
+text(axes_draw[1, 1] + 0.18, axes_draw[1, 2], expression(z[1]), col = grey)
+text(axes_draw[2, 1] + 0.15, axes_draw[2, 2], expression(z[2]), col = grey)
+text(axes_draw[3, 1], axes_draw[3, 2] + 0.18, expression(z[3]), col = grey)
+
+z_draw <- to_right(z)
+points(
+  z_draw,
+  pch = 21,
+  bg = adjustcolor(orange, alpha.f = 0.78),
+  col = orange,
+  cex = 1.15
+)
+points(origin, pch = 4, lwd = 2, cex = 1.15, col = darkblue)
+
+text(8.3, 0.45, expression(z[1] + z[2] + z[3] == 0), col = orange, cex = 1.2)
+text(8.3, 4.9, expression(plain("2D subspace in ") * R^3), col = darkblue, cex = 1.15)
+
+par(op)
+```
+
+All the values are now isotropic and as "uninformed" as can be given the constraint.
+
 ## Preliminaries: Background on Bayesian hierarchical models
 
 ::::: columns
 ::: {.column style="width: 50%;"}
-```{r, engine = 'tikz', fig.ext = "svg"}
+```{tikz, label = "bayesian-hierarchy", fig.ext = "svg", eval = FALSE, echo = FALSE}
 \usetikzlibrary{arrows, shapes, positioning, fit, calc}
 
 \definecolor{black}{HTML}{000000}
@@ -120,6 +357,9 @@ The choice of $g$ controls the tail behavior, allowing both light- and heavy-tai
 
 \end{tikzpicture}
 ```
+
+![](sum_to_zero_files/figure-revealjs/bayesian-hierarchy-1.svg){width="960"}
+
 :::
 
 ::: {.column style="width: 50%; font-size: 75%;"}
@@ -144,7 +384,7 @@ When the evidence or data for a parameter are
 
 ::::: columns
 ::: {.column style="width: 50%;"}
-```{r, engine = 'tikz', fig.ext = "svg"}
+```{tikz, label = "frequentist-hierarchy", fig.ext = "svg", eval = FALSE, echo = FALSE}
 \usetikzlibrary{arrows, shapes, positioning, fit, calc}
 
 \definecolor{black}{HTML}{000000}
@@ -188,6 +428,9 @@ When the evidence or data for a parameter are
 
 \end{tikzpicture}
 ```
+
+![](sum_to_zero_files/figure-revealjs/frequentist-hierarchy-1.svg){width="960"}
+
 :::
 
 ::: {.column style="width: 50%; font-size: 75%;"}
@@ -208,7 +451,7 @@ Groups are tied together only by a *hard* constraint
 
 Let's take a 2-level, varying slopes, varying intercept model with $i$ units and $j$ groups
 
-```{r, engine = 'tikz', fig.ext = "svg", fig.align = "center", out.width = "44%", engine.opts = list(dvisvgm.opts = "--font-format=woff")}
+```{tikz, label = "varying-effects-equation", fig.ext = "svg", eval = FALSE, echo = FALSE}
 \usetikzlibrary{arrows, positioning, calc, decorations.pathreplacing}
 
 \definecolor{darkblue}{RGB}{33, 64, 154}
@@ -238,6 +481,8 @@ Let's take a 2-level, varying slopes, varying intercept model with $i$ units and
 \end{tikzpicture}
 ```
 
+![](sum_to_zero_files/figure-revealjs/varying-effects-equation-1.svg){fig-align="center" width="44%"}
+
 ::: {style="font-size: 80%;"}
 **Group-level (conditional):** $E(y_{ij} \mid X, j) = \alpha + a_j + X (\beta + b_j)$
 
@@ -253,8 +498,6 @@ Assuming linear link functions. Under a nonlinear link $E(y \mid X) \neq g^{-1}(
 The marginal estimand only exists in the random-effects world — there's no distribution over groups to marginalize against otherwise. The E(a_j) = 0 condition is an identification convention, not a substantive assumption: any nonzero mean would just be absorbed into alpha.
 
 In the fixed-effects world the analogue is the average over the observed groups, alpha + a-bar + X(beta + b-bar), and the hard constraint sum a_j = 0 is what makes alpha the grand mean.
-
-One-line summary of the talk: the sum-to-zero constraint imposes on the realized draws what the prior only imposes on the distribution.
 :::
 
 
@@ -269,13 +512,13 @@ The data inform the group coefficients $\alpha_j$ and $\beta_j$ whereas the popu
 $\alpha$ and $\beta$ are *population* parameters and the observed groups are **draws from** that population
 
 $$
-a_j \sim N(\alpha, \sigma_a), \quad b_j \sim N(\beta, \sigma_b)
+a_j \sim \mathcal{N}(\alpha, \sigma_a), \quad b_j \sim \mathcal{N}(\beta, \sigma_b)
 $$
 
 A benefit is that new groups may still be infered from the population distribution as any finite draw of $J$ groups has
 
 $$
-\bar{\alpha} = \tfrac{1}{J}\textstyle\sum_j \alpha_j \neq \alpha
+\bar{a} = \tfrac{1}{J}\textstyle\sum_j a_j \neq \alpha
 $$
 :::
 
@@ -292,448 +535,532 @@ $$
 :::
 :::::
 
-## What is a structured correlation matrix?
+## Is there an equivalence?
 
-Anything with structure.
-
-> "So any help you could give us would be most...helpful." - Monthy Python
-
-## Types of structure
-
--   Known values
--   Block structure
--   Bounds on correlation values
-
-## Cholesky factors
-
-A positive definite matrix, $\Sigma$, can be factored into a lower triangular matrix, $\mathbf{L}$ such that $$
-\Sigma = \mathbf{LL}^\top
-$$
-
-Bonus:
-
-A positive definite matrix, $\Sigma$, can also be factored into a strictly lower triangular matrix, $\mathbf{L_*}$ and diagonal matrix, $\mathbf{D}$ such that
+Suppose we restrict to varying intercepts
 
 $$
-\Sigma = \mathbf{L_* D L_*}^\top
+x_i \sim \mathcal{N}(\alpha + a_j, \sigma_x)
 $$
-
-## Stan's current Cholesky factor of correlation matrix transform
-
-``` {.stan code-line-numbers="true" include="./stan/stan_cholesky.stan"}
-```
-
-## Motivating Example
-
-Constrain the `y` "raw" parameters to be positive. This should make the correlation matrix all positive.
-
-``` {.stan code-line-numbers="false"}
-...
-  vector[K_choose_2] z = inv_logit(y); // z is between 0 and 1
-  log_det_jacobian += sum(log_inv_logit(y) + log1m_inv_logit(y));
-...
-```
-
-## Let's first see how rejection sampling handles this
 
 ::::: columns
-::: {.column style="width: 60%; font-size: 70%;"}
-Sample a bunch and if **all** are positive then keep
+::: {.column style="width: 50%; font-size: 75%; border-right: 1px solid #d0d0d0; padding-right: 1.5em; box-sizing: border-box;"}
+[Bayesian hierarchical model]{.emphasis2}
 
-``` {.julia code-line-numbers="false"}
-using ArviZ, 
-      Distributions, 
-      PrettyTables
- 
-xs = Matrix[];
+$$
+a^{\text{bayes}}_j \sim \mathcal{N}(0, \sigma_a)
+$$
+$$
+\bar{a} =\frac{1}{J} \sum_j a^{\text{bayes}}_j \sim \mathcal{N}\left(0, \frac{\sigma_a^2}{J} \right)
+$$
 
-while length(xs) < 10000
-    X = rand(LKJ(5, 4))
-    if all(≥(0), X)
-        push!(xs, X)
-    end
-end
-```
 :::
 
-::: {.column style="width: 40%; font-size: 70%;"}
-Mean should be about 0.28 and std 0.18
+::: {.column style="width: 50%; font-size: 75%; padding-left: 1.5em; box-sizing: border-box;"}
+[Frequentist effects coding]{.emphasis}
 
-``` {.julia code-line-numbers="false"}
-───────────┬─────────┬─────────┬──────────┬───────────┐
-│ parameter │    mean │     std │ hdi_2.5% │ hdi_97.5% │
-│    String │ Float64 │ Float64 │  Float64 │   Float64 │
-├───────────┼─────────┼─────────┼──────────┼───────────┤
-│    x[1,1] │     1.0 │     0.0 │      1.0 │       1.0 │
-│    x[2,1] │   0.282 │   0.181 │      0.0 │     0.611 │
-│    x[3,1] │  0.2806 │  0.1783 │   0.0001 │    0.6035 │
-│    x[4,1] │  0.2809 │  0.1815 │      0.0 │    0.6098 │
-│    x[5,1] │  0.2801 │  0.1808 │   0.0001 │    0.6115 │
-│    x[1,2] │   0.282 │   0.181 │      0.0 │     0.611 │
-│    x[2,2] │     1.0 │     0.0 │      1.0 │       1.0 │
-│    x[3,2] │  0.2819 │  0.1816 │      0.0 │    0.6119 │
-│    x[4,2] │  0.2787 │  0.1792 │      0.0 │    0.6091 │
-│    x[5,2] │  0.2827 │  0.1808 │      0.0 │    0.6109 │
-│    x[1,3] │  0.2806 │  0.1783 │   0.0001 │    0.6035 │
-│    x[2,3] │  0.2819 │  0.1816 │      0.0 │    0.6119 │
-│    x[3,3] │     1.0 │     0.0 │      1.0 │       1.0 │
-│    x[4,3] │   0.277 │  0.1799 │   0.0001 │    0.6068 │
-│    x[5,3] │  0.2792 │  0.1801 │   0.0004 │    0.6065 │
-│    x[1,4] │  0.2809 │  0.1815 │      0.0 │    0.6098 │
-│    x[2,4] │  0.2787 │  0.1792 │      0.0 │    0.6091 │
-│    x[3,4] │   0.277 │  0.1799 │   0.0001 │    0.6068 │
-│    x[4,4] │     1.0 │     0.0 │      1.0 │       1.0 │
-│    x[5,4] │  0.2778 │  0.1791 │   0.0003 │    0.6003 │
-│    x[1,5] │  0.2801 │  0.1808 │   0.0001 │    0.6115 │
-│    x[2,5] │  0.2827 │  0.1808 │      0.0 │    0.6109 │
-│    x[3,5] │  0.2792 │  0.1801 │   0.0004 │    0.6065 │
-│    x[4,5] │  0.2778 │  0.1791 │   0.0003 │    0.6003 │
-│    x[5,5] │     1.0 │     0.0 │      1.0 │       1.0 
-```
+$$
+\alpha = \tfrac{1}{J}\textstyle\sum_j \left( \alpha + a^{\text{s2z}}_j \right) \iff \sum_j a^{\text{s2z}}_j = 0
+$$
 :::
 :::::
 
-## Output in Stan
+Take
+$$
+\begin{aligned}
+\alpha_{\text{s2z}} &\overset{\text{set}} = \alpha_{\text{bayes}} + \bar{a} \\
+a_j^{\text{s2z}}  &\overset{\text{set}} = a_j^{\text{bayes}} - \bar{a} \\
+\sum a_j^{\text{s2z}} &= 0
+\end{aligned}
+$$
 
-``` r
-# A tibble: 25 × 10
-   variable    mean median    sd   mad     q5   q95  rhat ess_bulk ess_tail
-   <chr>      <dbl>  <dbl> <dbl> <dbl>  <dbl> <dbl> <dbl>    <dbl>    <dbl>
- 1 Omega[1,1] 1      1     0     0     1      1     NA         NA       NA 
- 2 Omega[2,1] 0.235  0.206 0.167 0.175 0.0195 0.549  1.00   44411.   20215.
- 3 Omega[3,1] 0.235  0.205 0.168 0.177 0.0195 0.555  1.00   51831.   22326.
- 4 Omega[4,1] 0.235  0.206 0.167 0.177 0.0200 0.555  1.00   46224.   21451.
- 5 Omega[5,1] 0.235  0.206 0.166 0.175 0.0198 0.551  1.00   50078.   21105.
- 6 Omega[1,2] 0.235  0.206 0.167 0.175 0.0195 0.549  1.00   44411.   20215.
- 7 Omega[2,2] 1      1     0     0     1      1     NA         NA       NA 
- 8 Omega[3,2] 0.280  0.257 0.165 0.176 0.0510 0.587  1.00   53901.   27702.
- 9 Omega[4,2] 0.280  0.258 0.167 0.178 0.0497 0.588  1.00   45097.   25476.
-10 Omega[5,2] 0.280  0.258 0.166 0.175 0.0498 0.588  1.00   47192.   24449.
-11 Omega[1,3] 0.235  0.205 0.168 0.177 0.0195 0.555  1.00   51831.   22326.
-12 Omega[2,3] 0.280  0.257 0.165 0.176 0.0510 0.587  1.00   53901.   27702.
-13 Omega[3,3] 1      1     0     0     1      1     NA         NA       NA 
-14 Omega[4,3] 0.325  0.307 0.165 0.176 0.0870 0.624  1.00   51438.   29513.
-15 Omega[5,3] 0.324  0.307 0.164 0.175 0.0870 0.621  1.00   48371.   28163.
-16 Omega[1,4] 0.235  0.206 0.167 0.177 0.0200 0.555  1.00   46224.   21451.
-17 Omega[2,4] 0.280  0.258 0.167 0.178 0.0497 0.588  1.00   45097.   25476.
-18 Omega[3,4] 0.325  0.307 0.165 0.176 0.0870 0.624  1.00   51438.   29513.
-19 Omega[4,4] 1      1     0     0     1      1     NA         NA       NA 
-20 Omega[5,4] 0.368  0.355 0.163 0.175 0.122  0.657  1.00   50304.   30427.
-21 Omega[1,5] 0.235  0.206 0.166 0.175 0.0198 0.551  1.00   50078.   21105.
-22 Omega[2,5] 0.280  0.258 0.166 0.175 0.0498 0.588  1.00   47192.   24449.
-23 Omega[3,5] 0.324  0.307 0.164 0.175 0.0870 0.621  1.00   48371.   28163.
-24 Omega[4,5] 0.368  0.355 0.163 0.175 0.122  0.657  1.00   50304.   30427.
-25 Omega[5,5] 1      1     0     0     1      1     NA         NA       NA 
+## Does it work?
+
+```{r}
+#| label: fit-varying-intercept-models
+#| include: false
+
+set.seed(51)
+
+J <- 6L
+group_sizes <- c(8L, 13L, 21L, 34L, 55L, 89L)
+alpha_true <- 5
+tau_true <- 2.5
+sigma_x_true <- 1
+
+a_bayes_true <- rnorm(J, 0, tau_true)
+group <- rep(seq_len(J), group_sizes)
+x <- rnorm(
+  sum(group_sizes),
+  alpha_true + a_bayes_true[group],
+  sigma_x_true
+)
+
+a_s2z_true <- a_bayes_true - mean(a_bayes_true)
+alpha_s2z_true <- alpha_true + mean(a_bayes_true)
+
+stan_data <- list(
+  N = length(x),
+  J = J,
+  group = group,
+  x = x,
+  alpha_prior_sd = 10
+)
+
+bayes_model <- cmdstanr::cmdstan_model(
+  "stan/varying_intercept_bayes.stan"
+)
+s2z_model <- cmdstanr::cmdstan_model(
+  "stan/varying_intercept_s2z.stan"
+)
+
+sample_args <- list(
+  data = stan_data,
+  seed = 260731,
+  chains = 4,
+  parallel_chains = 4,
+  iter_warmup = 4000,
+  iter_sampling = 10000,
+  refresh = 0
+)
+
+fit_bayes <- do.call(bayes_model$sample, sample_args)
+fit_s2z <- do.call(s2z_model$sample, sample_args)
+
+bayes_diagnostics <- fit_bayes$diagnostic_summary()
+s2z_diagnostics <- fit_s2z$diagnostic_summary()
+stopifnot(
+  sum(bayes_diagnostics$num_divergent) == 0,
+  sum(s2z_diagnostics$num_divergent) == 0,
+  sum(bayes_diagnostics$num_max_treedepth) == 0,
+  sum(s2z_diagnostics$num_max_treedepth) == 0,
+  min(bayes_diagnostics$ebfmi) > 0.3,
+  min(s2z_diagnostics$ebfmi) > 0.3
+)
+
+comparison_variables <- c("alpha_s2z", "a_s2z", "tau", "sigma_x")
+summarize_comparison <- function(fit, variables) {
+  draws <- fit$draws(variables, format = "matrix")
+  data.frame(
+    variable = colnames(draws),
+    mean = colMeans(draws),
+    q5 = apply(draws, 2, quantile, probs = 0.05),
+    q95 = apply(draws, 2, quantile, probs = 0.95),
+    mcse = apply(draws, 2, posterior::mcse_mean),
+    row.names = NULL
+  )
+}
+
+bayes_summary <- summarize_comparison(fit_bayes, comparison_variables)
+s2z_summary <- summarize_comparison(fit_s2z, comparison_variables)
+
+comparison <- merge(
+  bayes_summary[c("variable", "mean", "q5", "q95", "mcse")],
+  s2z_summary[c("variable", "mean", "q5", "q95", "mcse")],
+  by = "variable",
+  suffixes = c("_bayes", "_s2z"),
+  sort = FALSE
+)
+
+parameter_order <- c(
+  "alpha_s2z",
+  paste0("a_s2z[", seq_len(J), "]"),
+  "tau",
+  "sigma_x"
+)
+comparison <- comparison[match(parameter_order, comparison$variable), ]
+comparison$truth <- c(
+  alpha_s2z_true,
+  a_s2z_true,
+  tau_true,
+  sigma_x_true
+)
+
+s2z_estimand <- comparison$variable %in% c(
+  "alpha_s2z",
+  paste0("a_s2z[", seq_len(J), "]")
+)
+max_s2z_mean_difference <- max(abs(
+  comparison$mean_bayes[s2z_estimand] -
+    comparison$mean_s2z[s2z_estimand]
+))
+max_all_mean_difference <- max(abs(
+  comparison$mean_bayes - comparison$mean_s2z
+))
+
+bayes_parameter_variables <- c(
+  "alpha_bayes",
+  "a_bayes",
+  "tau",
+  "sigma_x"
+)
+full_bayes_summary <- summarize_comparison(
+  fit_bayes,
+  bayes_parameter_variables
+)
+s2z_gq_summary <- summarize_comparison(
+  fit_s2z,
+  bayes_parameter_variables
+)
+
+reverse_comparison <- merge(
+  full_bayes_summary[c("variable", "mean", "q5", "q95", "mcse")],
+  s2z_gq_summary[c("variable", "mean", "q5", "q95", "mcse")],
+  by = "variable",
+  suffixes = c("_full_bayes", "_s2z_gq"),
+  sort = FALSE
+)
+
+bayes_parameter_order <- c(
+  "alpha_bayes",
+  paste0("a_bayes[", seq_len(J), "]"),
+  "tau",
+  "sigma_x"
+)
+reverse_comparison <- reverse_comparison[
+  match(bayes_parameter_order, reverse_comparison$variable),
+]
+reverse_comparison$truth <- c(
+  alpha_true,
+  a_bayes_true,
+  tau_true,
+  sigma_x_true
+)
+
+bayes_estimand <- reverse_comparison$variable %in% c(
+  "alpha_bayes",
+  paste0("a_bayes[", seq_len(J), "]")
+)
+max_reverse_estimand_difference <- max(abs(
+  reverse_comparison$mean_full_bayes[bayes_estimand] -
+    reverse_comparison$mean_s2z_gq[bayes_estimand]
+))
+max_reverse_all_difference <- max(abs(
+  reverse_comparison$mean_full_bayes -
+    reverse_comparison$mean_s2z_gq
+))
+max_reverse_mcse_ratio <- max(
+  abs(
+    reverse_comparison$mean_full_bayes -
+      reverse_comparison$mean_s2z_gq
+  ) / sqrt(
+    reverse_comparison$mcse_full_bayes^2 +
+      reverse_comparison$mcse_s2z_gq^2
+  )
+)
+stopifnot(max_reverse_mcse_ratio < 4)
 ```
 
-## Wtf?
-
-???
-
-::: fragment
-A foray into Cholesky factors
-:::
-
-::: fragment
-Andre Cholesky ![](images/clipboard-3375023326.png)
-:::
-
-## Cholesky factors
-
-The value $C_{i,j} \in \mathbf{C}$ is a correlation value that is between $-1, 1$
-
-::: small-math
+Let's simulate six deliberately unbalanced groups from
 $$
-\begin{align*}
-\mathbf{L} =
-\begin{pmatrix}
-1 &  0 & 0  & \cdots & 0 \\
-C_{2,1} & \sqrt{1 - L_{2,1}^2} & 0 & \cdots & 0 \\
-C_{3,1} &  \left( C_{3,2} - L_{3,1}L_{2,1} \right) /L_{2,2}  &\sqrt{1 - L_{3,1}^2 - L_{3,2}^2} & \cdots & 0 \\
-\vdots & \vdots & \vdots & \cdots & \vdots \\
-C_{n,1} & \left( C_{n,2} - L_{n,1}L_{2,1} \right) / L_{2,2} & \left( C_{n, 3} - L_{n,1} L_{2,1} - L_{n,2} L_{3,2} \right) / L_{3,3} & \cdots & \sqrt{1 - \sum_{k=1}^{n-1} L^2_{n,k}}
-\end{pmatrix}
-\end{align*}
+x_i \sim \mathcal{N}(\alpha + a_{g[i]}, \sigma_x), \qquad
+a_g \sim \mathcal{N}(0, \tau^2),
 $$
-:::
-
-## Let's try something
-
-::: small-math
-Let's condense it into an equation $$
-\begin{align*}
-L_{j,j} &= \sqrt{1 - \sum_{k=1}^{j-1} L^2_{j,k}} \\
-L_{i,j} &= \frac{1}{L_{j,j}} \left( C_{i,j} - \sum_{k=1}^{j-1} L_{i,k}L_{j,k} \right) \quad \text{for } i>j
-\end{align*}
-$$
-
-Re-arrange and add in user specified [lower]{.emphasis3} and [upper]{.emphasis3} bounds
+with
+```
+alpha = 5
+tau = 2.5
+sigma_x = 1
+n_g = (`r paste(group_sizes, collapse = ", ")`)
+```
+For this finite draw,
 
 $$
--L_{j,j} + \sum_{k=1}^{j-1} L_{i,k}L_{j,k} \le \color{#21409A}a_{i,j}\color{black} < C_{i,j} < \color{#21409A}b_{i,j}\color{black} \le L_{j,j} + \sum_{k=1}^{j-1} L_{i,k}L_{j,k}
+\bar a = `r round(mean(a_bayes_true), 2)`, \qquad
+\alpha_{\mathrm{s2z}} = `r round(alpha_s2z_true, 2)`.
 $$
+
+Sampling 10k iterations over 4 chains. The first Stan program samples unconstrained Bayesian varying effects; the
+second samples a `sum_to_zero_vector` directly.
+
+## Bayesian specification and conversion
+
+```{.stan code-line-numbers="true" include="./stan/varying_intercept_bayes.stan"}
+```
+
+## Full sum-to-zero specification
+
+```{.stan code-line-numbers="true" include="./stan/varying_intercept_s2z.stan"}
+```
+
+::: notes
+Centering J independent normal effects induces covariance
+$\tau^2 (I - \mathbf{1}\mathbf{1}^\top / J)$ on the zero-sum subspace. The
+direct model therefore uses the same subspace scale tau.
+
+The `target += log(tau)` term restores the missing scale factor because the
+constrained vector has J - 1 degrees of freedom while the vectorized normal
+density supplies J normalizing terms.
+
+Conditional on tau, mean(a_bayes) has standard deviation tau / sqrt(J).
+Convolving it with the alpha_bayes prior gives the induced alpha_s2z prior in
+the direct program.
 :::
 
-## Continuing
+## The two fits agree
 
-::: small-math
+```{r}
+#| label: compare-varying-intercept-fits
+#| echo: false
+#| fig-align: center
+#| fig-width: 10
+#| fig-height: 5.2
+#| dev: svglite
+#| dev-args:
+#|   bg: transparent
+#| fig-bg: transparent
+#| out-width: 92%
+
+darkblue <- "#21409A"
+orange <- "#E69F00"
+grey <- "#777777"
+
+y_at <- rev(seq_len(nrow(comparison)))
+offset <- 0.10
+
+op <- par(
+  mar = c(4.2, 7.0, 0.8, 1.0),
+  bty = "n",
+  las = 1,
+  bg = NA,
+  family = "Spectral"
+)
+
+plot(
+  NA,
+  xlim = range(c(comparison$q5_bayes, comparison$q95_bayes,
+                 comparison$q5_s2z, comparison$q95_s2z,
+                 comparison$truth)),
+  ylim = c(0.5, nrow(comparison) + 0.5),
+  xlab = "Posterior mean and 90% interval",
+  ylab = "",
+  yaxt = "n"
+)
+axis(
+  2,
+  at = y_at,
+  labels = c(expression(alpha[s2z]),
+             expression(a[1]^s2z), expression(a[2]^s2z),
+             expression(a[3]^s2z), expression(a[4]^s2z),
+             expression(a[5]^s2z), expression(a[6]^s2z),
+             expression(tau), expression(sigma[x])),
+  tick = FALSE
+)
+abline(h = y_at, col = adjustcolor(grey, alpha.f = 0.18))
+
+segments(
+  comparison$q5_bayes, y_at + offset,
+  comparison$q95_bayes, y_at + offset,
+  col = darkblue, lwd = 3
+)
+points(comparison$mean_bayes, y_at + offset, pch = 16, col = darkblue)
+
+segments(
+  comparison$q5_s2z, y_at - offset,
+  comparison$q95_s2z, y_at - offset,
+  col = orange, lwd = 3
+)
+points(comparison$mean_s2z, y_at - offset, pch = 17, col = orange)
+
+points(comparison$truth, y_at, pch = 4, lwd = 2, cex = 1.15, col = grey)
+
+legend(
+  "bottomleft",
+  legend = c(
+    "Bayes, transformed in GQ",
+    "Direct sum-to-zero",
+    "Truth"
+  ),
+  col = c(darkblue, orange, grey),
+  pch = c(16, 17, 4),
+  lwd = c(3, 3, NA),
+  bty = "n"
+)
+
+par(op)
+```
+
+::: {style="font-size: 70%;"}
+Across $\alpha_{\mathrm{s2z}}$ and the six $a_g^{\mathrm{s2z}}$, the largest
+posterior-mean difference is
+`r sprintf("%.3f", max_s2z_mean_difference)`. Across every plotted parameter,
+the largest difference is `r sprintf("%.3f", max_all_mean_difference)`: Monte
+Carlo error at the scale of the plot.
+:::
+
+## What about going from sum-to-zero to population models?
+
+Let $s_\alpha$ denote the prior SD of $\alpha_{\text{bayes}}$ and set
+$v_m = \tau^2/J$. Because
+$\alpha_{\text{s2z}} = \alpha_{\text{bayes}} + \bar a$,
+
 $$
-\begin{align*} 
--\sqrt{1 - \sum_{k=1}^{j-1} L^2_{i,k}} \; \le \; \frac{\color{#21409A}a_{i,j}\color{black} - \sum\limits_{k=1}^{j-1} L_{i,k}L_{j,k}}{L_{j,j}} < \; & L_{i,j} \;  < \frac{\color{#21409A}b_{i,j}\color{black} - \sum\limits_{k=1}^{j-1} L_{i,k}L_{j,k}}{L_{j,j}} \; \le \;\sqrt{1 - \sum_{k=1}^{j-1} L^2_{i,k}} \\
-\max\left\{ -\sqrt{1 - \sum_{k=1}^{j-1} L^2_{j,k}} ,\; \frac{\color{#21409A}a_{i,j}\color{black} - \sum\limits_{k=1}^{j-1} L_{i,k}L_{j,k} }{L_{j,j}} \right\} < &\; L_{i,j} \; < \min\left\{\sqrt{1 - \sum_{k=1}^{j-1} L^2_{j,k}}, \; \frac{\color{#21409A}b_{i,j}\color{black} - \sum\limits_{k=1}^{j-1} L_{i,k}L_{j,k}}{L_{j,j}} \right\}
-\end{align*}
+\begin{align}
+  w &= \frac{v_m}{s_\alpha^2 + v_m}, \\
+  v_c &= \frac{s_\alpha^2 v_m}{s_\alpha^2 + v_m}, \\
+  \bar a \mid \alpha_{\text{s2z}},\tau
+    &\sim \mathcal N\!\left(w\,\alpha_{\text{s2z}},\,v_c\right).
+\end{align}
 $$
-:::
+For every sum-to-zero posterior draw:
 
-This gives us bounds but we need to be really careful
+1. Sample $m \sim \mathcal N(w\,\alpha_{\text{s2z}},v_c)$, using
+   (mean, variance) notation.
+2. Set $\alpha_{\text{bayes}} = \alpha_{\text{s2z}} - m$ and
+   $a_g^{\text{bayes}} = a_g^{\text{s2z}} + m$.
 
-The Jacobian is "easy"
+## Sum-to-zero specification and conversion
 
-## Extra Care
-
-Assume we have $3 \times 3$ matrix that we wish to constrain all correlation values to be negative.
-
-Let us choose $C_{2, 1} = C_{3,1} = \frac{-1}{\sqrt{2}}$ and solve for the bounds of $C_{3,2}$:
-
-::: small-math
-\begin{align*}
-\max\left\{-1, -\sqrt{1 - C_{3,1}^2} \right\} &< \frac{B - C_{2,1} C_{3,1}}{L_{2, 2}} < \min\left\{0, \sqrt{1 - C_{3,1}^2} \right\} \\
--\sqrt{0.5} &< \frac{B - 0.5}{\sqrt{0.5}} < 0 \\
-\implies 0 &< B < 0.5
-\end{align*}
-:::
-
-::: callout-note
-This is all in @pinkney2024
-:::
-
-## The Stan code
-
-::::: columns
-::: {.column style="width: 80%; font-size: 60%;"}
 ``` stan
-matrix cholesky_corr_constrain_lp (vector col_one_raw, vector off_raw,
-                                           real lb, real ub) {
-    int K = num_elements(col_one_raw) + 1;
-    matrix[K, K] L = rep_matrix(0, K, K);
-    L[1, 1] = 1;
-    L[2, 1] = lb_ub_lp(col_one_raw[1], lb, ub);
-    L[2, 2] = sqrt(1 - L[2, 1]^2);
+generated quantities {
+  real mean_a_bayes;
+  real alpha_bayes;
+  vector[J] a_bayes;
+  {
+    real var_mean_a = square(tau) / J;
+    real var_alpha = square(alpha_prior_sd);
+    real weight = var_mean_a / (var_alpha + var_mean_a);
+    real conditional_sd = sqrt(
+      var_alpha * var_mean_a / (var_alpha + var_mean_a)
+    );
 
-    int cnt = 1;
-
-    for (i in 3:K) {
-       L[i, 1] = lb_ub_lp(col_one_raw[2:K - 1], lb,  ub);
-       real l_ij_old = log1m(L[i, 1]^2);
-      for (j in 2:i - 1) {
-         real b1 = dot_product(L[j, 1:(j - 1)], L[i, 1:(j - 1)]);
-         real stick_length = exp(0.5 * l_ij_old);
-         real low = max({-stick_length, (lb - b1) / L[j, j]});
-         real up = min({stick_length, (ub - b1) /  L[j, j] });
-         L[i, j] = lb_ub_lp(off_raw[cnt], low, up);
-         l_ij_old = log_diff_exp(l_ij_old, 2 * log(abs(L[i, j])));
-         cnt += 1;
-        }
-         L[i, i] = exp(0.5 * l_ij_old);
-      }
-    return L;
+    mean_a_bayes = normal_rng(weight * alpha_s2z, conditional_sd);
   }
-```
-:::
-
-::: {.column style="width: 20%; font-size: 50%;"}
-This is a bit more stable than what's in the paper but also more opaque.
-
-The exp()'s here are just calculating stuff on the log-scale.
-
-Line 13 I take the log and try to stick with this as much as possible.
-:::
-:::::
-
-## Back to the motivating example
-
-The new method that gives the right answer!
-
-``` r
-# A tibble: 25 × 10
-   variable    mean median    sd   mad     q5   q95  rhat ess_bulk ess_tail
-   <chr>      <dbl>  <dbl> <dbl> <dbl>  <dbl> <dbl> <dbl>    <dbl>    <dbl>
- 1 Omega[1,1] 1      1     0     0     1      1     NA         NA       NA 
- 2 Omega[2,1] 0.278  0.256 0.179 0.198 0.0281 0.607  1.00   29806.   17895.
- 3 Omega[3,1] 0.279  0.258 0.180 0.200 0.0273 0.609  1.00   34574.   18758.
- 4 Omega[4,1] 0.279  0.258 0.180 0.199 0.0276 0.607  1.00   29344.   16380.
- 5 Omega[5,1] 0.281  0.259 0.181 0.201 0.0291 0.610  1.00   36064.   18496.
- 6 Omega[1,2] 0.278  0.256 0.179 0.198 0.0281 0.607  1.00   29806.   17895.
- 7 Omega[2,2] 1      1     0     0     1      1     NA         NA       NA 
- 8 Omega[3,2] 0.279  0.258 0.179 0.200 0.0283 0.605  1.00   37118.   21150.
-...
+  alpha_bayes = alpha_s2z - mean_a_bayes;
+  a_bayes = a_s2z + mean_a_bayes;
+}
 ```
 
-## What else can this do?
+## Back to Bayesian: the two fits agree
 
--   Known values
--   Specific bounds on certain values
--   Block structure
+```{r}
+#| label: compare-reconstructed-bayes-fits
+#| echo: false
+#| fig-align: center
+#| fig-width: 10
+#| fig-height: 5.2
+#| dev: svglite
+#| dev-args:
+#|   bg: transparent
+#| fig-bg: transparent
+#| out-width: 92%
 
-Let's do a really motivating example
+y_at <- rev(seq_len(nrow(reverse_comparison)))
+offset <- 0.10
 
-## An even more motivating example
+op <- par(
+  mar = c(4.2, 7.0, 0.8, 1.0),
+  bty = "n",
+  las = 1,
+  bg = NA,
+  family = "Spectral"
+)
 
-We want a 6 x 6 correlation matrix $\Sigma$ where
+plot(
+  NA,
+  xlim = range(c(reverse_comparison$q5_full_bayes,
+                 reverse_comparison$q95_full_bayes,
+                 reverse_comparison$q5_s2z_gq,
+                 reverse_comparison$q95_s2z_gq,
+                 reverse_comparison$truth)),
+  ylim = c(0.5, nrow(reverse_comparison) + 0.5),
+  xlab = "Posterior mean and 90% interval",
+  ylab = "",
+  yaxt = "n"
+)
+axis(
+  2,
+  at = y_at,
+  labels = c(expression(alpha[bayes]),
+             expression(a[1]^bayes), expression(a[2]^bayes),
+             expression(a[3]^bayes), expression(a[4]^bayes),
+             expression(a[5]^bayes), expression(a[6]^bayes),
+             expression(tau), expression(sigma[x])),
+  tick = FALSE
+)
+abline(h = y_at, col = adjustcolor(grey, alpha.f = 0.18))
 
+segments(
+  reverse_comparison$q5_full_bayes, y_at + offset,
+  reverse_comparison$q95_full_bayes, y_at + offset,
+  col = darkblue, lwd = 3
+)
+points(
+  reverse_comparison$mean_full_bayes, y_at + offset,
+  pch = 16, col = darkblue
+)
+
+segments(
+  reverse_comparison$q5_s2z_gq, y_at - offset,
+  reverse_comparison$q95_s2z_gq, y_at - offset,
+  col = orange, lwd = 3
+)
+points(
+  reverse_comparison$mean_s2z_gq, y_at - offset,
+  pch = 17, col = orange
+)
+
+points(
+  reverse_comparison$truth, y_at,
+  pch = 4, lwd = 2, cex = 1.15, col = grey
+)
+
+legend(
+  "bottomleft",
+  legend = c(
+    "Full Bayesian fit",
+    "S2Z, reconstructed in GQ",
+    "Truth"
+  ),
+  col = c(darkblue, orange, grey),
+  pch = c(16, 17, 4),
+  lwd = c(3, 3, NA),
+  bty = "n"
+)
+
+par(op)
+```
+
+::: {style="font-size: 70%;"}
+Across $\alpha_{\text{bayes}}$ and the six $a_g^{\text{bayes}}$, the largest
+posterior-mean difference is
+`r sprintf("%.3f", max_reverse_estimand_difference)`. Across every plotted
+parameter, the largest difference is
+`r sprintf("%.3f", max_reverse_all_difference)`. The largest standardized gap
+is `r sprintf("%.1f", max_reverse_mcse_ratio)` combined Monte Carlo SEs.
+:::
+
+## On the difference between two posterior means
+
+For each parameter, we calculate
 $$
-\begin{align*}
-\sigma_{2,1} = 0, &\; \sigma_{4, 3} = 0 \\
-\sigma_{4,1} \in (-0.8, 0), &\; \sigma_{5, 3} \in (0.3, 0.7)
-\end{align*}
+z=
+\frac{|\hat\mu_{\text{Bayes}}-\hat\mu_{\text{S2Z}}|}
+{\sqrt{\operatorname{MCSE}_{\text{Bayes}}^2+
+       \operatorname{MCSE}_{\text{S2Z}}^2}}.
 $$
 
-``` r
-   --        
-    0.       --   
-   NA        NA   --        
-   (-0.8, 0) NA    0         --   
-   NA        NA   (0.3, 0.7) NA   --   
-   NA        NA   NA         NA   NA   --
-```
+The largest value was 1.6. So the worst observed difference was only 1.6 times the noise expected from running two independent finite MCMC simulations. A standard-normal fluctuation exceeds 1.6 in absolute value about 11% of the time.
 
-## Output
+## Take-away
 
-``` r
-variable    mean  median     sd    mad      q5     q95    rhat  ess_bulk  ess_tail
-<chr>       <dbl>   <dbl>  <dbl>  <dbl>   <dbl>   <dbl>   <dbl>     <dbl>     <dbl>
-Omega[1,1]  1.0000  1.0000 0.0000 0.0000  1.0000  1.0000 NA        NA        NA     
-Omega[2,1]  0.0000  0.0000 0.0000 0.0000  0.0000  0.0000 NA        NA        NA     
-Omega[3,1] -0.0056 -0.0101 0.2484 0.2559 -0.4211  0.4068  0.9999 4410.0862 3220.8831
-Omega[4,1] -0.2124 -0.1881 0.1512 0.1579 -0.5044 -0.0173  1.0003 4729.1236 2149.4316
-Omega[5,1] -0.0057 -0.0065 0.2621 0.2772 -0.4435  0.4217  1.0000 4657.2520 3017.0624
-Omega[6,1] -0.0018 -0.0002 0.2553 0.2599 -0.4284  0.4143  1.0013 4674.8017 2903.7293
+Our Bayesian hierarchical models are doing something special. 
 
-Omega[2,2]  1.0000  1.0000 0.0000 0.0000  1.0000  1.0000 NA        NA        NA     
-Omega[3,2] -0.0043 -0.0078 0.2499 0.2636 -0.4178  0.4093  1.0001 4023.8517 2705.3045
-Omega[4,2]  0.0043  0.0027 0.2594 0.2767 -0.4159  0.4328  1.0007 5443.1496 3098.8828
-Omega[5,2]  0.0014  0.0093 0.2575 0.2682 -0.4298  0.4201  1.0017 4128.4046 2987.4422
-Omega[6,2]  0.0058  0.0064 0.2538 0.2693 -0.4197  0.4224  1.0006 4736.2346 2668.6795
+Treating the varying effects as random variables allows specifying a distribution. For elliptical distributions we can convert across the two parameterizations!
 
-Omega[3,3]  1.0000  1.0000 0.0000 0.0000  1.0000  1.0000 NA        NA        NA     
-Omega[4,3] -0.0000  0.0000 0.0000 0.0000  0.0000  0.0000  1.0014 4280.0269   NA     
-Omega[5,3]  0.4128  0.3934 0.0882 0.0884  0.3072  0.5888  1.0012 4809.9923 2377.6445
-Omega[6,3] -0.0032 -0.0064 0.2624 0.2747 -0.4394  0.4265  1.0022 4673.5773 3037.9778
+Don't be afraid to use sum-to-zero constraints in your models.
 
-Omega[4,4]  1.0000  1.0000 0.0000 0.0000  1.0000  1.0000 NA        NA        NA     
-Omega[5,4]  0.0024  0.0020 0.2371 0.2475 -0.3873  0.3970  1.0002 3895.9938 2933.7159
-Omega[6,4] -0.0004 -0.0033 0.2576 0.2659 -0.4183  0.4327  1.0019 4303.5343 2949.4916
+More to come in the paper
 
-Omega[5,5]  1.0000  1.0000 0.0000 0.0000  1.0000  1.0000 NA        NA        NA     
-Omega[6,5]  0.0009 -0.0018 0.2533 0.2675 -0.4113  0.4213  1.0002 4139.6808 2995.0615
-```
+-   Multiple sets of varying effects
+-   Varying slopes conversions
 
-## Do you want to see the Stan code for this?
-
-``` stan
-  matrix cholesky_corr_constrain_lp(int K, vector raw, int N_blocks,
-                                    array[,] int res_index,
-                                    array[] int res_id,
-                                    array[,] int known_index,
-                                    vector known_vals,
-                                    vector lb, vector ub) {
-    matrix[K, K] L = rep_matrix(0, K, K);
-    int cnt = 1;
-    int N_res = num_elements(res_id);
-    int N_known = size(known_vals);
-    vector[N_blocks] x_cache;
-    array[N_blocks] int res_id_cnt = ones_int_array(N_blocks);
-    int res_row = 1;
-    int known_row = 1;
-    
-    L[1, 1] = 1;
-    if (known_index[known_row, 1] == 2) {
-      L[2, 1] = known_vals[1];
-      known_row += 1;
-    } else {
-      L[2, 1] = lb_ub_lp(raw[cnt], lb[cnt], ub[cnt]);
-      if (res_index[res_row, 1] == 2) {
-        x_cache[res_id[res_row]] = L[2, 1];
-        res_id_cnt[res_id[res_row]] += 1;
-        res_row += 1;
-      } 
-      cnt += 1;
-    }
-    
-    L[2, 2] = sqrt(1 - L[2, 1] ^ 2);
-    
-    for (i in 3 : K) {
-      if (res_index[res_row, 1] == i && res_index[res_row, 2] == 1) {
-     // restricted case
-        if (res_id_cnt[res_id[res_row]] == 1) {
-          L[i, 1] = lb_ub_lp(raw[cnt], lb[cnt], ub[cnt]);
-          x_cache[res_id[res_row]] = L[i, 1];
-          res_id_cnt[res_id[res_row]] += 1;
-          cnt += 1;
-        } else {
-          L[i, 1] = x_cache[res_id[res_row]];
-        }
-        res_row += 1;
-      } 
-      else if (known_index[known_row, 1] == i && known_index[known_row, 2] == 1) {
-        // known case 
-          L[i, 1] = known_vals[known_row];
-         known_row += 1;
-      } else {
-        // base case
-        L[i, 1] = lb_ub_lp(raw[cnt], lb[cnt], ub[cnt]);
-        cnt += 1;
-      } 
-      
-      L[i, 2] = sqrt(1 - L[i, 1] ^ 2);
-      real l_ij_old = log1m(L[i, 1] ^ 2);
-      for (j in 2 : i - 1) {
-        real b1 = dot_product(L[j, 1 : (j - 1)], L[i, 1 : (j - 1)]);
-        real stick_length = exp(0.5 * l_ij_old);
-        real low = max({-stick_length, (lb[cnt] - b1) / L[j, j]});
-        real up = min({stick_length, (ub[cnt] - b1) / L[j, j]});
-        
-        if (known_index[known_row, 1] == i && known_index[known_row, 2] == j) {
-          L[i, j] = (known_vals[known_row] - b1) / L[j, j];
-          known_row = known_row == N_known ? N_known : known_row + 1;
-        } else if (res_index[res_row, 1] == i && res_index[res_row, 2] == j) {
-          if (res_id_cnt[res_id[res_row]] == 1) {
-            L[i, j] = lb_ub_lp(raw[cnt], low, up);
-            x_cache[res_id[res_row]] = L[i, j] * L[j, j] + b1;
-            res_id_cnt[res_id[res_row]] += 1;
-            cnt += 1;
-          } else {
-            L[i, j] = (x_cache[res_id[res_row]] - b1) / L[j, j];
-            target += -log(L[j, j]);
-          }
-          res_row = res_row == N_res ? N_res : res_row + 1;
-        } else {
-          L[i, j] = lb_ub_lp(raw[cnt], low, up);
-          cnt += 1;
-        }
-        l_ij_old = log_diff_exp(l_ij_old, 2 * log(abs(L[i, j])));
-      }
-      L[i, i] = exp(0.5 * l_ij_old);
-    }
-    return L;
-  }
-```
-
-## The Future
-
-LDL parameterization is done. It's even more stable.
-
-Look-ahead given bound constraints and known values to ensure the impossible bounds don't hit
-
-Explore new priors for correlation matrices that exploit structure
-
-References:
-
-::: {#refs}
-:::
-
-## Slides and code
+## Thank you!
 
 ![](images/repo_qr.png){fig-align="center" width="380"}
 
 <p style="text-align: center;">[github.com/spinkney/open-talks](https://github.com/spinkney/open-talks)</p>
+
+::: {#refs}
+:::
+

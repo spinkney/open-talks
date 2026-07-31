@@ -6,9 +6,9 @@
 <script src="sum_to_zero_files/libs/quarto-html/tippy.umd.min.js"></script>
 <link href="sum_to_zero_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="sum_to_zero_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<link href="sum_to_zero_files/libs/quarto-html/quarto-syntax-highlighting-aa0bfeffdde32bb1c7607de7a91446fc.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="sum_to_zero_files/libs/quarto-html/quarto-syntax-highlighting-3a307c3d481e20695a1fb528b2a75670.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <link href="sum_to_zero_files/libs/quarto-contrib/alpine-3.12/buttons.css" rel="stylesheet"><meta charset="utf-8">
-  <meta name="generator" content="quarto-1.8.27">
+  <meta name="generator" content="quarto-1.9.38">
 
   <meta name="author" content="Sean Pinkney">
   <title>Population Effect Estimation in Bayesian Hierarchical Models Using Sum-to-Zero Constraints</title>
@@ -18,6 +18,9 @@
   <link rel="stylesheet" href="sum_to_zero_files/libs/revealjs/dist/reset.css">
   <link rel="stylesheet" href="sum_to_zero_files/libs/revealjs/dist/reveal.css">
   <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
     div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -99,7 +102,6 @@
     div.csl-bib-body { }
     div.csl-entry {
       clear: both;
-      margin-bottom: 0em;
     }
     .hanging-indent div.csl-entry {
       margin-left:2em;
@@ -116,7 +118,7 @@
     div.csl-indent {
       margin-left: 2em;
     }  </style>
-  <link rel="stylesheet" href="sum_to_zero_files/libs/revealjs/dist/theme/quarto-48620ee4811eece0313b2ba3d6b03046.css">
+  <link rel="stylesheet" href="sum_to_zero_files/libs/revealjs/dist/theme/quarto-a7c210c2c36bbe979e8d915dfd2ba7a5.css">
   <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
   <script>document.addEventListener("DOMContentLoaded", function () {
  var mathElements = document.getElementsByClassName("math");
@@ -280,7 +282,7 @@ Sean Pinkney
 <li>the generator <span class="math inline">g(\cdot): \mathbb{R}^+ \rightarrow \mathbb{R}^+</span></li>
 <li>the normalizing constant <span class="math inline">c</span> ensures <span class="math inline">f(x)</span> integrates to 1</li>
 </ul>
-<aside><ol class="aside-footnotes"><li id="fn1"><p><span class="citation" data-cites="delmas_2024">Delmas (<a href="#/the-future" role="doc-biblioref" onclick="">2024</a>)</span></p></li></ol></aside></section>
+<aside><ol class="aside-footnotes"><li id="fn1"><p><span class="citation" data-cites="delmas_2024">Delmas (<a href="#/thank-you" role="doc-biblioref" onclick="">2024</a>)</span></p></li></ol></aside></section>
 <section id="preliminaries-distributions-1" class="slide level2">
 <h2>Preliminaries: Distributions</h2>
 <p><span class="math display">
@@ -297,19 +299,36 @@ Sean Pinkney
 <li>Laplace: <span class="math inline">g(t) \propto e^{-\sqrt{t}}</span></li>
 </ul>
 </section>
+<section id="what-is-a-sum-to-zero-constraint" class="slide level2">
+<h2>What is a sum-to-zero constraint?</h2>
+<p>It’s simply <span class="math display">
+\sum_j^n a_j = 0
+</span> To construct one might randomly draw i.i.d. <span class="math inline">n - 1</span> values <span class="math inline">y</span> and</p>
+<p><span class="math display">
+\begin{align}
+y_n &amp; \overset{\text{set}}= -\sum_i^{n - 1} y_i \\
+\bm z &amp;= \left[ y_1 \; y_2 \; \ldots \; y_{n- 1} \; y_n\right]  \\
+&amp; \sum_i^n z = 0
+\end{align}
+</span> This works and is a valid construction. The problem is that it induces strong prior assumptions about the relationships across <span class="math inline">\bm z</span>.</p>
+</section>
+<section id="what-is-a-sum-to-zero-constraint-1" class="slide level2">
+<h2>What is a sum-to-zero constraint?</h2>
+<p>Since only <span class="math inline">z_n</span> is a function of <span class="math inline">y</span> the marginal density will be the density of the sum of <span class="math inline">z_{i:n - 1}</span>. Most modelers would not want this!</p>
+
+<img data-src="sum_to_zero_files/figure-revealjs/density-overlay-1.svg" class="quarto-figure quarto-figure-center r-stretch" style="width:90.0%"><p>The implicit prior on the last element is clearly different. Furthermore, the covariance of the final element is coupled strongly with the other elements.</p>
+</section>
+<section id="what-is-a-sum-to-zero-constraint-2" class="slide level2">
+<h2>What is a sum-to-zero constraint?</h2>
+<p>We can balance the density across the values by using an orthonormal basis for the zero-sum subspace, <span class="math inline">QQ^\top=P_0=I_n-\frac1n\mathbf 1_n\mathbf 1_n^\top</span>.</p>
+
+<img data-src="sum_to_zero_files/figure-revealjs/zero-sum-basis-map-1.svg" class="quarto-figure quarto-figure-center r-stretch" style="width:95.0%"><p>All the values are now isotropic and as “uninformed” as can be given the constraint.</p>
+</section>
 <section id="preliminaries-background-on-bayesian-hierarchical-models" class="slide level2">
 <h2>Preliminaries: Background on Bayesian hierarchical models</h2>
 <div class="columns">
 <div class="column" style="width: 50%;">
-<div class="cell">
-<div class="cell-output-display">
-<div>
-<figure>
-<p><img data-src="sum_to_zero_files/figure-revealjs/unnamed-chunk-2-1.svg" width="960"></p>
-</figure>
-</div>
-</div>
-</div>
+<p><img data-src="sum_to_zero_files/figure-revealjs/bayesian-hierarchy-1.svg" width="960"></p>
 </div><div class="column" style="width: 50%; font-size: 75%;">
 <p>Sharing of information happens</p>
 <ul>
@@ -336,15 +355,7 @@ Sean Pinkney
 <h2>Preliminaries: Background on frequentist hierarchical models</h2>
 <div class="columns">
 <div class="column" style="width: 50%;">
-<div class="cell">
-<div class="cell-output-display">
-<div>
-<figure>
-<p><img data-src="sum_to_zero_files/figure-revealjs/unnamed-chunk-3-1.svg" width="960"></p>
-</figure>
-</div>
-</div>
-</div>
+<p><img data-src="sum_to_zero_files/figure-revealjs/frequentist-hierarchy-1.svg" width="960"></p>
 </div><div class="column" style="width: 50%; font-size: 75%;">
 <p>No population distribution <span class="math inline">\Phi</span></p>
 <ul>
@@ -362,14 +373,10 @@ Sean Pinkney
 <section id="what-is-the-population-effect" class="slide level2">
 <h2>What is the population effect?</h2>
 <p>Let’s take a 2-level, varying slopes, varying intercept model with <span class="math inline">i</span> units and <span class="math inline">j</span> groups</p>
-<div class="cell" data-layout-align="center">
-<div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="sum_to_zero_files/figure-revealjs/unnamed-chunk-4-1.svg" class="quarto-figure quarto-figure-center" style="width:44.0%"></p>
+<p><img data-src="sum_to_zero_files/figure-revealjs/varying-effects-equation-1.svg" class="quarto-figure quarto-figure-center" style="width:44.0%"></p>
 </figure>
-</div>
-</div>
 </div>
 <div style="font-size: 80%;">
 <p><strong>Group-level (conditional):</strong> <span class="math inline">E(y_{ij} \mid X, j) = \alpha + a_j + X (\beta + b_j)</span></p>
@@ -380,7 +387,6 @@ when <span class="math inline">E(a_j) = E(b_j) = 0</span></p>
 <aside class="notes">
 <p>The marginal estimand only exists in the random-effects world — there’s no distribution over groups to marginalize against otherwise. The E(a_j) = 0 condition is an identification convention, not a substantive assumption: any nonzero mean would just be absorbed into alpha.</p>
 <p>In the fixed-effects world the analogue is the average over the observed groups, alpha + a-bar + X(beta + b-bar), and the hard constraint sum a_j = 0 is what makes alpha the grand mean.</p>
-<p>One-line summary of the talk: the sum-to-zero constraint imposes on the realized draws what the prior only imposes on the distribution.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -403,11 +409,11 @@ when <span class="math inline">E(a_j) = E(b_j) = 0</span></p>
 <p><span class="emphasis2">Bayesian hierarchical model</span></p>
 <p><span class="math inline">\alpha</span> and <span class="math inline">\beta</span> are <em>population</em> parameters and the observed groups are <strong>draws from</strong> that population</p>
 <p><span class="math display">
-a_j \sim N(\alpha, \sigma_a), \quad b_j \sim N(\beta, \sigma_b)
+a_j \sim \mathcal{N}(\alpha, \sigma_a), \quad b_j \sim \mathcal{N}(\beta, \sigma_b)
 </span></p>
 <p>A benefit is that new groups may still be infered from the population distribution as any finite draw of <span class="math inline">J</span> groups has</p>
 <p><span class="math display">
-\bar{\alpha} = \tfrac{1}{J}\textstyle\sum_j \alpha_j \neq \alpha
+\bar{a} = \tfrac{1}{J}\textstyle\sum_j a_j \neq \alpha
 </span></p>
 </div><div class="column" style="width: 50%; font-size: 75%; padding-left: 1.5em; box-sizing: border-box;">
 <p><span class="emphasis">Frequentist effects coding</span></p>
@@ -418,455 +424,223 @@ a_j \sim N(\alpha, \sigma_a), \quad b_j \sim N(\beta, \sigma_b)
 </span></p>
 </div></div>
 </section>
-<section id="what-is-a-structured-correlation-matrix" class="slide level2">
-<h2>What is a structured correlation matrix?</h2>
-<p>Anything with structure.</p>
-<blockquote>
-<p>“So any help you could give us would be most…helpful.” - Monthy Python</p>
-</blockquote>
+<section id="is-there-an-equivalence" class="slide level2">
+<h2>Is there an equivalence?</h2>
+<p>Suppose we restrict to varying intercepts</p>
+<p><span class="math display">
+x_i \sim \mathcal{N}(\alpha + a_j, \sigma_x)
+</span></p>
+<div class="columns">
+<div class="column" style="width: 50%; font-size: 75%; border-right: 1px solid #d0d0d0; padding-right: 1.5em; box-sizing: border-box;">
+<p><span class="emphasis2">Bayesian hierarchical model</span></p>
+<p><span class="math display">
+a^{\text{bayes}}_j \sim \mathcal{N}(0, \sigma_a)
+</span> <span class="math display">
+\bar{a} =\frac{1}{J} \sum_j a^{\text{bayes}}_j \sim \mathcal{N}\left(0, \frac{\sigma_a^2}{J} \right)
+</span></p>
+</div><div class="column" style="width: 50%; font-size: 75%; padding-left: 1.5em; box-sizing: border-box;">
+<p><span class="emphasis">Frequentist effects coding</span></p>
+<p><span class="math display">
+\alpha = \tfrac{1}{J}\textstyle\sum_j \left( \alpha + a^{\text{s2z}}_j \right) \iff \sum_j a^{\text{s2z}}_j = 0
+</span></p>
+</div></div>
+<p>Take <span class="math display">
+\begin{aligned}
+\alpha_{\text{s2z}} &amp;\overset{\text{set}} = \alpha_{\text{bayes}} + \bar{a} \\
+a_j^{\text{s2z}}  &amp;\overset{\text{set}} = a_j^{\text{bayes}} - \bar{a} \\
+\sum a_j^{\text{s2z}} &amp;= 0
+\end{aligned}
+</span></p>
 </section>
-<section id="types-of-structure" class="slide level2">
-<h2>Types of structure</h2>
+<section id="does-it-work" class="slide level2">
+<h2>Does it work?</h2>
+<p>Let’s simulate six deliberately unbalanced groups from <span class="math display">
+x_i \sim \mathcal{N}(\alpha + a_{g[i]}, \sigma_x), \qquad
+a_g \sim \mathcal{N}(0, \tau^2),
+</span> with</p>
+<pre><code>alpha = 5
+tau = 2.5
+sigma_x = 1
+n_g = (8, 13, 21, 34, 55, 89)</code></pre>
+<p>For this finite draw,</p>
+<p><span class="math display">
+\bar a = 0.85, \qquad
+\alpha_{\mathrm{s2z}} = 5.85.
+</span></p>
+<p>Sampling 10k iterations over 4 chains. The first Stan program samples unconstrained Bayesian varying effects; the second samples a <code>sum_to_zero_vector</code> directly.</p>
+</section>
+<section id="bayesian-specification-and-conversion" class="slide level2">
+<h2>Bayesian specification and conversion</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb2-1"><a href=""></a><span class="kw">data</span> {</span>
+<span id="cb2-2"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>&gt; N;</span>
+<span id="cb2-3"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">2</span>&gt; J;</span>
+<span id="cb2-4"><a href=""></a>  <span class="dt">array</span>[N] <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>, <span class="kw">upper</span>=J&gt; group;</span>
+<span id="cb2-5"><a href=""></a>  <span class="dt">vector</span>[N] x;</span>
+<span id="cb2-6"><a href=""></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; alpha_prior_sd;</span>
+<span id="cb2-7"><a href=""></a>}</span>
+<span id="cb2-8"><a href=""></a><span class="kw">parameters</span> {</span>
+<span id="cb2-9"><a href=""></a>  <span class="dt">real</span> alpha_bayes;</span>
+<span id="cb2-10"><a href=""></a>  <span class="dt">vector</span>[J] a_bayes;</span>
+<span id="cb2-11"><a href=""></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; tau;</span>
+<span id="cb2-12"><a href=""></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; sigma_x;</span>
+<span id="cb2-13"><a href=""></a>}</span>
+<span id="cb2-14"><a href=""></a><span class="kw">model</span> {</span>
+<span id="cb2-15"><a href=""></a>  alpha_bayes ~ normal(<span class="dv">0</span>, alpha_prior_sd);</span>
+<span id="cb2-16"><a href=""></a>  a_bayes ~ normal(<span class="dv">0</span>, tau);</span>
+<span id="cb2-17"><a href=""></a>  tau ~ normal(<span class="dv">0</span>, <span class="dv">5</span>);</span>
+<span id="cb2-18"><a href=""></a>  sigma_x ~ normal(<span class="dv">0</span>, <span class="dv">2</span>);</span>
+<span id="cb2-19"><a href=""></a>  x ~ normal(alpha_bayes + a_bayes[group], sigma_x);</span>
+<span id="cb2-20"><a href=""></a>}</span>
+<span id="cb2-21"><a href=""></a><span class="kw">generated quantities</span> {</span>
+<span id="cb2-22"><a href=""></a>  <span class="dt">real</span> mean_a = mean(a_bayes);</span>
+<span id="cb2-23"><a href=""></a>  <span class="dt">real</span> alpha_s2z = alpha_bayes + mean_a;</span>
+<span id="cb2-24"><a href=""></a>  <span class="dt">vector</span>[J] a_s2z = a_bayes - mean_a;</span>
+<span id="cb2-25"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="full-sum-to-zero-specification" class="slide level2">
+<h2>Full sum-to-zero specification</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb3-1"><a href=""></a><span class="kw">data</span> {</span>
+<span id="cb3-2"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>&gt; N;</span>
+<span id="cb3-3"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">2</span>&gt; J;</span>
+<span id="cb3-4"><a href=""></a>  <span class="dt">array</span>[N] <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>, <span class="kw">upper</span>=J&gt; group;</span>
+<span id="cb3-5"><a href=""></a>  <span class="dt">vector</span>[N] x;</span>
+<span id="cb3-6"><a href=""></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; alpha_prior_sd;</span>
+<span id="cb3-7"><a href=""></a>}</span>
+<span id="cb3-8"><a href=""></a><span class="kw">parameters</span> {</span>
+<span id="cb3-9"><a href=""></a>  <span class="dt">real</span> alpha_s2z;</span>
+<span id="cb3-10"><a href=""></a>  <span class="dt">sum_to_zero_vector</span>[J] a_s2z;</span>
+<span id="cb3-11"><a href=""></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; tau;</span>
+<span id="cb3-12"><a href=""></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; sigma_x;</span>
+<span id="cb3-13"><a href=""></a>}</span>
+<span id="cb3-14"><a href=""></a><span class="kw">model</span> {</span>
+<span id="cb3-15"><a href=""></a>  tau ~ normal(<span class="dv">0</span>, <span class="dv">5</span>);</span>
+<span id="cb3-16"><a href=""></a>  sigma_x ~ normal(<span class="dv">0</span>, <span class="dv">2</span>);</span>
+<span id="cb3-17"><a href=""></a>  alpha_s2z ~ normal(<span class="dv">0</span>, hypot(alpha_prior_sd, tau / sqrt(J)));</span>
+<span id="cb3-18"><a href=""></a>  a_s2z ~ normal(<span class="dv">0</span>, tau);</span>
+<span id="cb3-19"><a href=""></a>  <span class="co">// a_s2z lives in J - 1 subspace</span></span>
+<span id="cb3-20"><a href=""></a>  <span class="co">// but the normal divides by J instead of J-1</span></span>
+<span id="cb3-21"><a href=""></a>  <span class="co">// add back one log(tau)</span></span>
+<span id="cb3-22"><a href=""></a>  <span class="kw">target +=</span> log(tau);</span>
+<span id="cb3-23"><a href=""></a>  x ~ normal(alpha_s2z + a_s2z[group], sigma_x);</span>
+<span id="cb3-24"><a href=""></a>}</span>
+<span id="cb3-25"><a href=""></a><span class="kw">generated quantities</span> {</span>
+<span id="cb3-26"><a href=""></a>  <span class="dt">real</span> mean_a_bayes;</span>
+<span id="cb3-27"><a href=""></a>  <span class="dt">real</span> alpha_bayes;</span>
+<span id="cb3-28"><a href=""></a>  <span class="dt">vector</span>[J] a_bayes;</span>
+<span id="cb3-29"><a href=""></a>  {</span>
+<span id="cb3-30"><a href=""></a>    <span class="dt">real</span> var_mean_a = square(tau) / J;</span>
+<span id="cb3-31"><a href=""></a>    <span class="dt">real</span> var_alpha = square(alpha_prior_sd);</span>
+<span id="cb3-32"><a href=""></a>    <span class="dt">real</span> conditional_weight = var_mean_a / (var_alpha + var_mean_a);</span>
+<span id="cb3-33"><a href=""></a>    <span class="dt">real</span> conditional_sd = sqrt(</span>
+<span id="cb3-34"><a href=""></a>      var_alpha * var_mean_a / (var_alpha + var_mean_a)</span>
+<span id="cb3-35"><a href=""></a>    );</span>
+<span id="cb3-36"><a href=""></a></span>
+<span id="cb3-37"><a href=""></a>    mean_a_bayes = normal_rng(</span>
+<span id="cb3-38"><a href=""></a>      conditional_weight * alpha_s2z,</span>
+<span id="cb3-39"><a href=""></a>      conditional_sd</span>
+<span id="cb3-40"><a href=""></a>    );</span>
+<span id="cb3-41"><a href=""></a>  }</span>
+<span id="cb3-42"><a href=""></a>  alpha_bayes = alpha_s2z - mean_a_bayes;</span>
+<span id="cb3-43"><a href=""></a>  a_bayes = a_s2z + mean_a_bayes;</span>
+<span id="cb3-44"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<aside class="notes">
+<p>Centering J independent normal effects induces covariance <span class="math inline">\tau^2 (I - \mathbf{1}\mathbf{1}^\top / J)</span> on the zero-sum subspace. The direct model therefore uses the same subspace scale tau.</p>
+<p>The <code>target += log(tau)</code> term restores the missing scale factor because the constrained vector has J - 1 degrees of freedom while the vectorized normal density supplies J normalizing terms.</p>
+<p>Conditional on tau, mean(a_bayes) has standard deviation tau / sqrt(J). Convolving it with the alpha_bayes prior gives the induced alpha_s2z prior in the direct program.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="the-two-fits-agree" class="slide level2">
+<h2>The two fits agree</h2>
+
+<img data-src="sum_to_zero_files/figure-revealjs/compare-varying-intercept-fits-1.svg" class="quarto-figure quarto-figure-center r-stretch" style="width:92.0%"><div style="font-size: 70%;">
+<p>Across <span class="math inline">\alpha_{\mathrm{s2z}}</span> and the six <span class="math inline">a_g^{\mathrm{s2z}}</span>, the largest posterior-mean difference is 0.002. Across every plotted parameter, the largest difference is 0.003: Monte Carlo error at the scale of the plot.</p>
+</div>
+</section>
+<section id="what-about-going-from-sum-to-zero-to-population-models" class="slide level2">
+<h2>What about going from sum-to-zero to population models?</h2>
+<p>Let <span class="math inline">s_\alpha</span> denote the prior SD of <span class="math inline">\alpha_{\text{bayes}}</span> and set <span class="math inline">v_m = \tau^2/J</span>. Because <span class="math inline">\alpha_{\text{s2z}} = \alpha_{\text{bayes}} + \bar a</span>,</p>
+<p><span class="math display">
+\begin{align}
+  w &amp;= \frac{v_m}{s_\alpha^2 + v_m}, \\
+  v_c &amp;= \frac{s_\alpha^2 v_m}{s_\alpha^2 + v_m}, \\
+  \bar a \mid \alpha_{\text{s2z}},\tau
+    &amp;\sim \mathcal N\!\left(w\,\alpha_{\text{s2z}},\,v_c\right).
+\end{align}
+</span> For every sum-to-zero posterior draw:</p>
+<ol type="1">
+<li>Sample <span class="math inline">m \sim \mathcal N(w\,\alpha_{\text{s2z}},v_c)</span>, using (mean, variance) notation.</li>
+<li>Set <span class="math inline">\alpha_{\text{bayes}} = \alpha_{\text{s2z}} - m</span> and <span class="math inline">a_g^{\text{bayes}} = a_g^{\text{s2z}} + m</span>.</li>
+</ol>
+</section>
+<section id="sum-to-zero-specification-and-conversion" class="slide level2">
+<h2>Sum-to-zero specification and conversion</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb4-1"><a href=""></a><span class="kw">generated quantities</span> {</span>
+<span id="cb4-2"><a href=""></a>  <span class="dt">real</span> mean_a_bayes;</span>
+<span id="cb4-3"><a href=""></a>  <span class="dt">real</span> alpha_bayes;</span>
+<span id="cb4-4"><a href=""></a>  <span class="dt">vector</span>[J] a_bayes;</span>
+<span id="cb4-5"><a href=""></a>  {</span>
+<span id="cb4-6"><a href=""></a>    <span class="dt">real</span> var_mean_a = square(tau) / J;</span>
+<span id="cb4-7"><a href=""></a>    <span class="dt">real</span> var_alpha = square(alpha_prior_sd);</span>
+<span id="cb4-8"><a href=""></a>    <span class="dt">real</span> weight = var_mean_a / (var_alpha + var_mean_a);</span>
+<span id="cb4-9"><a href=""></a>    <span class="dt">real</span> conditional_sd = sqrt(</span>
+<span id="cb4-10"><a href=""></a>      var_alpha * var_mean_a / (var_alpha + var_mean_a)</span>
+<span id="cb4-11"><a href=""></a>    );</span>
+<span id="cb4-12"><a href=""></a></span>
+<span id="cb4-13"><a href=""></a>    mean_a_bayes = normal_rng(weight * alpha_s2z, conditional_sd);</span>
+<span id="cb4-14"><a href=""></a>  }</span>
+<span id="cb4-15"><a href=""></a>  alpha_bayes = alpha_s2z - mean_a_bayes;</span>
+<span id="cb4-16"><a href=""></a>  a_bayes = a_s2z + mean_a_bayes;</span>
+<span id="cb4-17"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="back-to-bayesian-the-two-fits-agree" class="slide level2">
+<h2>Back to Bayesian: the two fits agree</h2>
+
+<img data-src="sum_to_zero_files/figure-revealjs/compare-reconstructed-bayes-fits-1.svg" class="quarto-figure quarto-figure-center r-stretch" style="width:92.0%"><div style="font-size: 70%;">
+<p>Across <span class="math inline">\alpha_{\text{bayes}}</span> and the six <span class="math inline">a_g^{\text{bayes}}</span>, the largest posterior-mean difference is 0.032. Across every plotted parameter, the largest difference is 0.032. The largest standardized gap is 1.6 combined Monte Carlo SEs.</p>
+</div>
+</section>
+<section id="on-the-difference-between-two-posterior-means" class="slide level2">
+<h2>On the difference between two posterior means</h2>
+<p>For each parameter, we calculate <span class="math display">
+z=
+\frac{|\hat\mu_{\text{Bayes}}-\hat\mu_{\text{S2Z}}|}
+{\sqrt{\operatorname{MCSE}_{\text{Bayes}}^2+
+       \operatorname{MCSE}_{\text{S2Z}}^2}}.
+</span></p>
+<p>The largest value was 1.6. So the worst observed difference was only 1.6 times the noise expected from running two independent finite MCMC simulations. A standard-normal fluctuation exceeds 1.6 in absolute value about 11% of the time.</p>
+</section>
+<section id="take-away" class="slide level2">
+<h2>Take-away</h2>
+<p>Our Bayesian hierarchical models are doing something special.</p>
+<p>Treating the varying effects as random variables allows specifying a distribution. For elliptical distributions we can convert across the two parameterizations!</p>
+<p>Don’t be afraid to use sum-to-zero constraints in your models.</p>
+<p>More to come in the paper</p>
 <ul>
-<li>Known values</li>
-<li>Block structure</li>
-<li>Bounds on correlation values</li>
+<li>Multiple sets of varying effects</li>
+<li>Varying slopes conversions</li>
 </ul>
 </section>
-<section id="cholesky-factors" class="slide level2">
-<h2>Cholesky factors</h2>
-<p>A positive definite matrix, <span class="math inline">\Sigma</span>, can be factored into a lower triangular matrix, <span class="math inline">\mathbf{L}</span> such that <span class="math display">
-\Sigma = \mathbf{LL}^\top
-</span></p>
-<p>Bonus:</p>
-<p>A positive definite matrix, <span class="math inline">\Sigma</span>, can also be factored into a strictly lower triangular matrix, <span class="math inline">\mathbf{L_*}</span> and diagonal matrix, <span class="math inline">\mathbf{D}</span> such that</p>
-<p><span class="math display">
-\Sigma = \mathbf{L_* D L_*}^\top
-</span></p>
-</section>
-<section id="stans-current-cholesky-factor-of-correlation-matrix-transform" class="slide level2">
-<h2>Stan’s current Cholesky factor of correlation matrix transform</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb1-1"><a href=""></a><span class="kw">data</span> {</span>
-<span id="cb1-2"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; K;</span>
-<span id="cb1-3"><a href=""></a>}</span>
-<span id="cb1-4"><a href=""></a><span class="kw">transformed data</span> {</span>
-<span id="cb1-5"><a href=""></a> <span class="dt">int</span> K_choose_2 = choose(K, <span class="dv">2</span>);</span>
-<span id="cb1-6"><a href=""></a>}</span>
-<span id="cb1-7"><a href=""></a><span class="kw">parameters</span> {</span>
-<span id="cb1-8"><a href=""></a>  <span class="co">// y is a vector K-choose-2 unconstrained parameters</span></span>
-<span id="cb1-9"><a href=""></a>  <span class="dt">vector</span>[K_choose_2] y;</span>
-<span id="cb1-10"><a href=""></a>}</span>
-<span id="cb1-11"><a href=""></a><span class="kw">transformed parameters</span> {</span>
-<span id="cb1-12"><a href=""></a>  <span class="co">// L is a Cholesky factor of a K x K correlation matrix</span></span>
-<span id="cb1-13"><a href=""></a>  <span class="dt">cholesky_factor_corr</span>[K] L = identity_matrix(K);</span>
-<span id="cb1-14"><a href=""></a>  <span class="dt">real</span> log_det_jacobian = <span class="dv">0</span>;</span>
-<span id="cb1-15"><a href=""></a>  {</span>
-<span id="cb1-16"><a href=""></a>    <span class="dt">int</span> counter = <span class="dv">1</span>;</span>
-<span id="cb1-17"><a href=""></a>    <span class="dt">real</span> sum_sqs;</span>
-<span id="cb1-18"><a href=""></a>    <span class="dt">vector</span>[K_choose_2] z = tanh(y);</span>
-<span id="cb1-19"><a href=""></a>    log_det_jacobian += sum(log1m(square(z)));</span>
-<span id="cb1-20"><a href=""></a>    </span>
-<span id="cb1-21"><a href=""></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">2</span> : K) {</span>
-<span id="cb1-22"><a href=""></a>      L[i, <span class="dv">1</span>] = z[counter];</span>
-<span id="cb1-23"><a href=""></a>      counter += <span class="dv">1</span>;</span>
-<span id="cb1-24"><a href=""></a>      sum_sqs = square(L[i, <span class="dv">1</span>]);</span>
-<span id="cb1-25"><a href=""></a>      <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">2</span> : (i - <span class="dv">1</span>)) {</span>
-<span id="cb1-26"><a href=""></a>        log_det_jacobian += <span class="fl">0.5</span> * log1m(sum_sqs);</span>
-<span id="cb1-27"><a href=""></a>        L[i, j] = z[counter] * sqrt(<span class="dv">1</span> - sum_sqs);</span>
-<span id="cb1-28"><a href=""></a>        counter += <span class="dv">1</span>;</span>
-<span id="cb1-29"><a href=""></a>        sum_sqs = sum_sqs + square(L[i, j]);</span>
-<span id="cb1-30"><a href=""></a>      }</span>
-<span id="cb1-31"><a href=""></a>      L[i, i] = sqrt(<span class="dv">1</span> - sum_sqs);</span>
-<span id="cb1-32"><a href=""></a>    }</span>
-<span id="cb1-33"><a href=""></a>  }</span>
-<span id="cb1-34"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
-<section id="motivating-example" class="slide level2">
-<h2>Motivating Example</h2>
-<p>Constrain the <code>y</code> “raw” parameters to be positive. This should make the correlation matrix all positive.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode stan code-with-copy"><code class="sourceCode stan"><span id="cb2-1"><a href="" aria-hidden="true" tabindex="-1"></a>...</span>
-<span id="cb2-2"><a href="" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[K_choose_2] z = inv_logit(y); <span class="co">// z is between 0 and 1</span></span>
-<span id="cb2-3"><a href="" aria-hidden="true" tabindex="-1"></a>  log_det_jacobian += sum(log_inv_logit(y) + log1m_inv_logit(y));</span>
-<span id="cb2-4"><a href="" aria-hidden="true" tabindex="-1"></a>...</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
-<section id="lets-first-see-how-rejection-sampling-handles-this" class="slide level2">
-<h2>Let’s first see how rejection sampling handles this</h2>
-<div class="columns">
-<div class="column" style="width: 60%; font-size: 70%;">
-<p>Sample a bunch and if <strong>all</strong> are positive then keep</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">ArviZ</span>, </span>
-<span id="cb3-2"><a href="" aria-hidden="true" tabindex="-1"></a>      <span class="bu">Distributions</span>, </span>
-<span id="cb3-3"><a href="" aria-hidden="true" tabindex="-1"></a>      <span class="bu">PrettyTables</span></span>
-<span id="cb3-4"><a href="" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb3-5"><a href="" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> <span class="dt">Matrix</span>[];</span>
-<span id="cb3-6"><a href="" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-7"><a href="" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> <span class="fu">length</span>(xs) <span class="op">&lt;</span> <span class="fl">10000</span></span>
-<span id="cb3-8"><a href="" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> <span class="fu">rand</span>(<span class="fu">LKJ</span>(<span class="fl">5</span>, <span class="fl">4</span>))</span>
-<span id="cb3-9"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="fu">all</span>(<span class="fu">≥</span>(<span class="fl">0</span>), X)</span>
-<span id="cb3-10"><a href="" aria-hidden="true" tabindex="-1"></a>        <span class="fu">push!</span>(xs, X)</span>
-<span id="cb3-11"><a href="" aria-hidden="true" tabindex="-1"></a>    <span class="cf">end</span></span>
-<span id="cb3-12"><a href="" aria-hidden="true" tabindex="-1"></a><span class="cf">end</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div><div class="column" style="width: 40%; font-size: 70%;">
-<p>Mean should be about 0.28 and std 0.18</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="" aria-hidden="true" tabindex="-1"></a>───────────┬─────────┬─────────┬──────────┬───────────┐</span>
-<span id="cb4-2"><a href="" aria-hidden="true" tabindex="-1"></a>│ parameter │    mean │     std │ hdi_2<span class="fl">.5</span><span class="op">%</span> │ hdi_97<span class="fl">.5</span><span class="op">%</span> │</span>
-<span id="cb4-3"><a href="" aria-hidden="true" tabindex="-1"></a>│    <span class="dt">String</span> │ <span class="dt">Float64</span> │ <span class="dt">Float64</span> │  <span class="dt">Float64</span> │   <span class="dt">Float64</span> │</span>
-<span id="cb4-4"><a href="" aria-hidden="true" tabindex="-1"></a>├───────────┼─────────┼─────────┼──────────┼───────────┤</span>
-<span id="cb4-5"><a href="" aria-hidden="true" tabindex="-1"></a>│    x[<span class="fl">1</span>,<span class="fl">1</span>] │     <span class="fl">1.0</span> │     <span class="fl">0.0</span> │      <span class="fl">1.0</span> │       <span class="fl">1.0</span> │</span>
-<span id="cb4-6"><a href="" aria-hidden="true" tabindex="-1"></a>│    x[<span class="fl">2</span>,<span class="fl">1</span>] │   <span class="fl">0.282</span> │   <span class="fl">0.181</span> │      <span class="fl">0.0</span> │     <span class="fl">0.611</span> │</span>
-<span id="cb4-7"><a href="" aria-hidden="true" tabindex="-1"></a>│    x[<span class="fl">3</span>,<span class="fl">1</span>] │  <span class="fl">0.2806</span> │  <span class="fl">0.1783</span> │   <span class="fl">0.0001</span> │    <span class="fl">0.6035</span> │</span>
-<span id="cb4-8"><a href="" aria-hidden="true" tabindex="-1"></a>│    x[<span class="fl">4</span>,<span class="fl">1</span>] │  <span class="fl">0.2809</span> │  <span class="fl">0.1815</span> │      <span class="fl">0.0</span> │    <span class="fl">0.6098</span> │</span>
-<span id="cb4-9"><a href="" aria-hidden="true" tabindex="-1"></a>│    x[<span class="fl">5</span>,<span class="fl">1</span>] │  <span class="fl">0.2801</span> │  <span class="fl">0.1808</span> │   <span class="fl">0.0001</span> │    <span class="fl">0.6115</span> │</span>
-<span id="cb4-10"><a href="" aria-hidden="true" tabindex="-1"></a>│    x[<span class="fl">1</span>,<span class="fl">2</span>] │   <span class="fl">0.282</span> │   <span class="fl">0.181</span> │      <span class="fl">0.0</span> │     <span class="fl">0.611</span> │</span>
-<span id="cb4-11"><a href="" aria-hidden="true" tabindex="-1"></a>│    x[<span class="fl">2</span>,<span class="fl">2</span>] │     <span class="fl">1.0</span> │     <span class="fl">0.0</span> │      <span class="fl">1.0</span> │       <span class="fl">1.0</span> │</span>
-<span id="cb4-12"><a href="" aria-hidden="true" tabindex="-1"></a>│    x[<span class="fl">3</span>,<span class="fl">2</span>] │  <span class="fl">0.2819</span> │  <span class="fl">0.1816</span> │      <span class="fl">0.0</span> │    <span class="fl">0.6119</span> │</span>
-<span id="cb4-13"><a href="" aria-hidden="true" tabindex="-1"></a>│    x[<span class="fl">4</span>,<span class="fl">2</span>] │  <span class="fl">0.2787</span> │  <span class="fl">0.1792</span> │      <span class="fl">0.0</span> │    <span class="fl">0.6091</span> │</span>
-<span id="cb4-14"><a href="" aria-hidden="true" tabindex="-1"></a>│    x[<span class="fl">5</span>,<span class="fl">2</span>] │  <span class="fl">0.2827</span> │  <span class="fl">0.1808</span> │      <span class="fl">0.0</span> │    <span class="fl">0.6109</span> │</span>
-<span id="cb4-15"><a href="" aria-hidden="true" tabindex="-1"></a>│    x[<span class="fl">1</span>,<span class="fl">3</span>] │  <span class="fl">0.2806</span> │  <span class="fl">0.1783</span> │   <span class="fl">0.0001</span> │    <span class="fl">0.6035</span> │</span>
-<span id="cb4-16"><a href="" aria-hidden="true" tabindex="-1"></a>│    x[<span class="fl">2</span>,<span class="fl">3</span>] │  <span class="fl">0.2819</span> │  <span class="fl">0.1816</span> │      <span class="fl">0.0</span> │    <span class="fl">0.6119</span> │</span>
-<span id="cb4-17"><a href="" aria-hidden="true" tabindex="-1"></a>│    x[<span class="fl">3</span>,<span class="fl">3</span>] │     <span class="fl">1.0</span> │     <span class="fl">0.0</span> │      <span class="fl">1.0</span> │       <span class="fl">1.0</span> │</span>
-<span id="cb4-18"><a href="" aria-hidden="true" tabindex="-1"></a>│    x[<span class="fl">4</span>,<span class="fl">3</span>] │   <span class="fl">0.277</span> │  <span class="fl">0.1799</span> │   <span class="fl">0.0001</span> │    <span class="fl">0.6068</span> │</span>
-<span id="cb4-19"><a href="" aria-hidden="true" tabindex="-1"></a>│    x[<span class="fl">5</span>,<span class="fl">3</span>] │  <span class="fl">0.2792</span> │  <span class="fl">0.1801</span> │   <span class="fl">0.0004</span> │    <span class="fl">0.6065</span> │</span>
-<span id="cb4-20"><a href="" aria-hidden="true" tabindex="-1"></a>│    x[<span class="fl">1</span>,<span class="fl">4</span>] │  <span class="fl">0.2809</span> │  <span class="fl">0.1815</span> │      <span class="fl">0.0</span> │    <span class="fl">0.6098</span> │</span>
-<span id="cb4-21"><a href="" aria-hidden="true" tabindex="-1"></a>│    x[<span class="fl">2</span>,<span class="fl">4</span>] │  <span class="fl">0.2787</span> │  <span class="fl">0.1792</span> │      <span class="fl">0.0</span> │    <span class="fl">0.6091</span> │</span>
-<span id="cb4-22"><a href="" aria-hidden="true" tabindex="-1"></a>│    x[<span class="fl">3</span>,<span class="fl">4</span>] │   <span class="fl">0.277</span> │  <span class="fl">0.1799</span> │   <span class="fl">0.0001</span> │    <span class="fl">0.6068</span> │</span>
-<span id="cb4-23"><a href="" aria-hidden="true" tabindex="-1"></a>│    x[<span class="fl">4</span>,<span class="fl">4</span>] │     <span class="fl">1.0</span> │     <span class="fl">0.0</span> │      <span class="fl">1.0</span> │       <span class="fl">1.0</span> │</span>
-<span id="cb4-24"><a href="" aria-hidden="true" tabindex="-1"></a>│    x[<span class="fl">5</span>,<span class="fl">4</span>] │  <span class="fl">0.2778</span> │  <span class="fl">0.1791</span> │   <span class="fl">0.0003</span> │    <span class="fl">0.6003</span> │</span>
-<span id="cb4-25"><a href="" aria-hidden="true" tabindex="-1"></a>│    x[<span class="fl">1</span>,<span class="fl">5</span>] │  <span class="fl">0.2801</span> │  <span class="fl">0.1808</span> │   <span class="fl">0.0001</span> │    <span class="fl">0.6115</span> │</span>
-<span id="cb4-26"><a href="" aria-hidden="true" tabindex="-1"></a>│    x[<span class="fl">2</span>,<span class="fl">5</span>] │  <span class="fl">0.2827</span> │  <span class="fl">0.1808</span> │      <span class="fl">0.0</span> │    <span class="fl">0.6109</span> │</span>
-<span id="cb4-27"><a href="" aria-hidden="true" tabindex="-1"></a>│    x[<span class="fl">3</span>,<span class="fl">5</span>] │  <span class="fl">0.2792</span> │  <span class="fl">0.1801</span> │   <span class="fl">0.0004</span> │    <span class="fl">0.6065</span> │</span>
-<span id="cb4-28"><a href="" aria-hidden="true" tabindex="-1"></a>│    x[<span class="fl">4</span>,<span class="fl">5</span>] │  <span class="fl">0.2778</span> │  <span class="fl">0.1791</span> │   <span class="fl">0.0003</span> │    <span class="fl">0.6003</span> │</span>
-<span id="cb4-29"><a href="" aria-hidden="true" tabindex="-1"></a>│    x[<span class="fl">5</span>,<span class="fl">5</span>] │     <span class="fl">1.0</span> │     <span class="fl">0.0</span> │      <span class="fl">1.0</span> │       <span class="fl">1.0</span> </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div></div>
-</section>
-<section id="output-in-stan" class="slide level2">
-<h2>Output in Stan</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href=""></a><span class="co"># A tibble: 25 × 10</span></span>
-<span id="cb5-2"><a href=""></a>   variable    mean median    sd   mad     q5   q95  rhat ess_bulk ess_tail</span>
-<span id="cb5-3"><a href=""></a>   <span class="sc">&lt;</span>chr<span class="sc">&gt;</span>      <span class="er">&lt;</span>dbl<span class="sc">&gt;</span>  <span class="er">&lt;</span>dbl<span class="sc">&gt;</span> <span class="er">&lt;</span>dbl<span class="sc">&gt;</span> <span class="er">&lt;</span>dbl<span class="sc">&gt;</span>  <span class="er">&lt;</span>dbl<span class="sc">&gt;</span> <span class="er">&lt;</span>dbl<span class="sc">&gt;</span> <span class="er">&lt;</span>dbl<span class="sc">&gt;</span>    <span class="er">&lt;</span>dbl<span class="sc">&gt;</span>    <span class="er">&lt;</span>dbl<span class="sc">&gt;</span></span>
-<span id="cb5-4"><a href=""></a> <span class="dv">1</span> Omega[<span class="dv">1</span>,<span class="dv">1</span>] <span class="dv">1</span>      <span class="dv">1</span>     <span class="dv">0</span>     <span class="dv">0</span>     <span class="dv">1</span>      <span class="dv">1</span>     <span class="cn">NA</span>         <span class="cn">NA</span>       <span class="cn">NA</span> </span>
-<span id="cb5-5"><a href=""></a> <span class="dv">2</span> Omega[<span class="dv">2</span>,<span class="dv">1</span>] <span class="fl">0.235</span>  <span class="fl">0.206</span> <span class="fl">0.167</span> <span class="fl">0.175</span> <span class="fl">0.0195</span> <span class="fl">0.549</span>  <span class="fl">1.00</span>   <span class="fl">44411.</span>   <span class="fl">20215.</span></span>
-<span id="cb5-6"><a href=""></a> <span class="dv">3</span> Omega[<span class="dv">3</span>,<span class="dv">1</span>] <span class="fl">0.235</span>  <span class="fl">0.205</span> <span class="fl">0.168</span> <span class="fl">0.177</span> <span class="fl">0.0195</span> <span class="fl">0.555</span>  <span class="fl">1.00</span>   <span class="fl">51831.</span>   <span class="fl">22326.</span></span>
-<span id="cb5-7"><a href=""></a> <span class="dv">4</span> Omega[<span class="dv">4</span>,<span class="dv">1</span>] <span class="fl">0.235</span>  <span class="fl">0.206</span> <span class="fl">0.167</span> <span class="fl">0.177</span> <span class="fl">0.0200</span> <span class="fl">0.555</span>  <span class="fl">1.00</span>   <span class="fl">46224.</span>   <span class="fl">21451.</span></span>
-<span id="cb5-8"><a href=""></a> <span class="dv">5</span> Omega[<span class="dv">5</span>,<span class="dv">1</span>] <span class="fl">0.235</span>  <span class="fl">0.206</span> <span class="fl">0.166</span> <span class="fl">0.175</span> <span class="fl">0.0198</span> <span class="fl">0.551</span>  <span class="fl">1.00</span>   <span class="fl">50078.</span>   <span class="fl">21105.</span></span>
-<span id="cb5-9"><a href=""></a> <span class="dv">6</span> Omega[<span class="dv">1</span>,<span class="dv">2</span>] <span class="fl">0.235</span>  <span class="fl">0.206</span> <span class="fl">0.167</span> <span class="fl">0.175</span> <span class="fl">0.0195</span> <span class="fl">0.549</span>  <span class="fl">1.00</span>   <span class="fl">44411.</span>   <span class="fl">20215.</span></span>
-<span id="cb5-10"><a href=""></a> <span class="dv">7</span> Omega[<span class="dv">2</span>,<span class="dv">2</span>] <span class="dv">1</span>      <span class="dv">1</span>     <span class="dv">0</span>     <span class="dv">0</span>     <span class="dv">1</span>      <span class="dv">1</span>     <span class="cn">NA</span>         <span class="cn">NA</span>       <span class="cn">NA</span> </span>
-<span id="cb5-11"><a href=""></a> <span class="dv">8</span> Omega[<span class="dv">3</span>,<span class="dv">2</span>] <span class="fl">0.280</span>  <span class="fl">0.257</span> <span class="fl">0.165</span> <span class="fl">0.176</span> <span class="fl">0.0510</span> <span class="fl">0.587</span>  <span class="fl">1.00</span>   <span class="fl">53901.</span>   <span class="fl">27702.</span></span>
-<span id="cb5-12"><a href=""></a> <span class="dv">9</span> Omega[<span class="dv">4</span>,<span class="dv">2</span>] <span class="fl">0.280</span>  <span class="fl">0.258</span> <span class="fl">0.167</span> <span class="fl">0.178</span> <span class="fl">0.0497</span> <span class="fl">0.588</span>  <span class="fl">1.00</span>   <span class="fl">45097.</span>   <span class="fl">25476.</span></span>
-<span id="cb5-13"><a href=""></a><span class="dv">10</span> Omega[<span class="dv">5</span>,<span class="dv">2</span>] <span class="fl">0.280</span>  <span class="fl">0.258</span> <span class="fl">0.166</span> <span class="fl">0.175</span> <span class="fl">0.0498</span> <span class="fl">0.588</span>  <span class="fl">1.00</span>   <span class="fl">47192.</span>   <span class="fl">24449.</span></span>
-<span id="cb5-14"><a href=""></a><span class="dv">11</span> Omega[<span class="dv">1</span>,<span class="dv">3</span>] <span class="fl">0.235</span>  <span class="fl">0.205</span> <span class="fl">0.168</span> <span class="fl">0.177</span> <span class="fl">0.0195</span> <span class="fl">0.555</span>  <span class="fl">1.00</span>   <span class="fl">51831.</span>   <span class="fl">22326.</span></span>
-<span id="cb5-15"><a href=""></a><span class="dv">12</span> Omega[<span class="dv">2</span>,<span class="dv">3</span>] <span class="fl">0.280</span>  <span class="fl">0.257</span> <span class="fl">0.165</span> <span class="fl">0.176</span> <span class="fl">0.0510</span> <span class="fl">0.587</span>  <span class="fl">1.00</span>   <span class="fl">53901.</span>   <span class="fl">27702.</span></span>
-<span id="cb5-16"><a href=""></a><span class="dv">13</span> Omega[<span class="dv">3</span>,<span class="dv">3</span>] <span class="dv">1</span>      <span class="dv">1</span>     <span class="dv">0</span>     <span class="dv">0</span>     <span class="dv">1</span>      <span class="dv">1</span>     <span class="cn">NA</span>         <span class="cn">NA</span>       <span class="cn">NA</span> </span>
-<span id="cb5-17"><a href=""></a><span class="dv">14</span> Omega[<span class="dv">4</span>,<span class="dv">3</span>] <span class="fl">0.325</span>  <span class="fl">0.307</span> <span class="fl">0.165</span> <span class="fl">0.176</span> <span class="fl">0.0870</span> <span class="fl">0.624</span>  <span class="fl">1.00</span>   <span class="fl">51438.</span>   <span class="fl">29513.</span></span>
-<span id="cb5-18"><a href=""></a><span class="dv">15</span> Omega[<span class="dv">5</span>,<span class="dv">3</span>] <span class="fl">0.324</span>  <span class="fl">0.307</span> <span class="fl">0.164</span> <span class="fl">0.175</span> <span class="fl">0.0870</span> <span class="fl">0.621</span>  <span class="fl">1.00</span>   <span class="fl">48371.</span>   <span class="fl">28163.</span></span>
-<span id="cb5-19"><a href=""></a><span class="dv">16</span> Omega[<span class="dv">1</span>,<span class="dv">4</span>] <span class="fl">0.235</span>  <span class="fl">0.206</span> <span class="fl">0.167</span> <span class="fl">0.177</span> <span class="fl">0.0200</span> <span class="fl">0.555</span>  <span class="fl">1.00</span>   <span class="fl">46224.</span>   <span class="fl">21451.</span></span>
-<span id="cb5-20"><a href=""></a><span class="dv">17</span> Omega[<span class="dv">2</span>,<span class="dv">4</span>] <span class="fl">0.280</span>  <span class="fl">0.258</span> <span class="fl">0.167</span> <span class="fl">0.178</span> <span class="fl">0.0497</span> <span class="fl">0.588</span>  <span class="fl">1.00</span>   <span class="fl">45097.</span>   <span class="fl">25476.</span></span>
-<span id="cb5-21"><a href=""></a><span class="dv">18</span> Omega[<span class="dv">3</span>,<span class="dv">4</span>] <span class="fl">0.325</span>  <span class="fl">0.307</span> <span class="fl">0.165</span> <span class="fl">0.176</span> <span class="fl">0.0870</span> <span class="fl">0.624</span>  <span class="fl">1.00</span>   <span class="fl">51438.</span>   <span class="fl">29513.</span></span>
-<span id="cb5-22"><a href=""></a><span class="dv">19</span> Omega[<span class="dv">4</span>,<span class="dv">4</span>] <span class="dv">1</span>      <span class="dv">1</span>     <span class="dv">0</span>     <span class="dv">0</span>     <span class="dv">1</span>      <span class="dv">1</span>     <span class="cn">NA</span>         <span class="cn">NA</span>       <span class="cn">NA</span> </span>
-<span id="cb5-23"><a href=""></a><span class="dv">20</span> Omega[<span class="dv">5</span>,<span class="dv">4</span>] <span class="fl">0.368</span>  <span class="fl">0.355</span> <span class="fl">0.163</span> <span class="fl">0.175</span> <span class="fl">0.122</span>  <span class="fl">0.657</span>  <span class="fl">1.00</span>   <span class="fl">50304.</span>   <span class="fl">30427.</span></span>
-<span id="cb5-24"><a href=""></a><span class="dv">21</span> Omega[<span class="dv">1</span>,<span class="dv">5</span>] <span class="fl">0.235</span>  <span class="fl">0.206</span> <span class="fl">0.166</span> <span class="fl">0.175</span> <span class="fl">0.0198</span> <span class="fl">0.551</span>  <span class="fl">1.00</span>   <span class="fl">50078.</span>   <span class="fl">21105.</span></span>
-<span id="cb5-25"><a href=""></a><span class="dv">22</span> Omega[<span class="dv">2</span>,<span class="dv">5</span>] <span class="fl">0.280</span>  <span class="fl">0.258</span> <span class="fl">0.166</span> <span class="fl">0.175</span> <span class="fl">0.0498</span> <span class="fl">0.588</span>  <span class="fl">1.00</span>   <span class="fl">47192.</span>   <span class="fl">24449.</span></span>
-<span id="cb5-26"><a href=""></a><span class="dv">23</span> Omega[<span class="dv">3</span>,<span class="dv">5</span>] <span class="fl">0.324</span>  <span class="fl">0.307</span> <span class="fl">0.164</span> <span class="fl">0.175</span> <span class="fl">0.0870</span> <span class="fl">0.621</span>  <span class="fl">1.00</span>   <span class="fl">48371.</span>   <span class="fl">28163.</span></span>
-<span id="cb5-27"><a href=""></a><span class="dv">24</span> Omega[<span class="dv">4</span>,<span class="dv">5</span>] <span class="fl">0.368</span>  <span class="fl">0.355</span> <span class="fl">0.163</span> <span class="fl">0.175</span> <span class="fl">0.122</span>  <span class="fl">0.657</span>  <span class="fl">1.00</span>   <span class="fl">50304.</span>   <span class="fl">30427.</span></span>
-<span id="cb5-28"><a href=""></a><span class="dv">25</span> Omega[<span class="dv">5</span>,<span class="dv">5</span>] <span class="dv">1</span>      <span class="dv">1</span>     <span class="dv">0</span>     <span class="dv">0</span>     <span class="dv">1</span>      <span class="dv">1</span>     <span class="cn">NA</span>         <span class="cn">NA</span>       <span class="cn">NA</span> </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
-<section id="wtf" class="slide level2">
-<h2>Wtf?</h2>
-<p>???</p>
-<div class="fragment">
-<p>A foray into Cholesky factors</p>
-</div>
-<div class="fragment">
-<p>Andre Cholesky <img data-src="images/clipboard-3375023326.png"></p>
-</div>
-</section>
-<section id="cholesky-factors-1" class="slide level2">
-<h2>Cholesky factors</h2>
-<p>The value <span class="math inline">C_{i,j} \in \mathbf{C}</span> is a correlation value that is between <span class="math inline">-1, 1</span></p>
-<div class="small-math">
-<p><span class="math display">
-\begin{align*}
-\mathbf{L} =
-\begin{pmatrix}
-1 &amp;  0 &amp; 0  &amp; \cdots &amp; 0 \\
-C_{2,1} &amp; \sqrt{1 - L_{2,1}^2} &amp; 0 &amp; \cdots &amp; 0 \\
-C_{3,1} &amp;  \left( C_{3,2} - L_{3,1}L_{2,1} \right) /L_{2,2}  &amp;\sqrt{1 - L_{3,1}^2 - L_{3,2}^2} &amp; \cdots &amp; 0 \\
-\vdots &amp; \vdots &amp; \vdots &amp; \cdots &amp; \vdots \\
-C_{n,1} &amp; \left( C_{n,2} - L_{n,1}L_{2,1} \right) / L_{2,2} &amp; \left( C_{n, 3} - L_{n,1} L_{2,1} - L_{n,2} L_{3,2} \right) / L_{3,3} &amp; \cdots &amp; \sqrt{1 - \sum_{k=1}^{n-1} L^2_{n,k}}
-\end{pmatrix}
-\end{align*}
-</span></p>
-</div>
-</section>
-<section id="lets-try-something" class="slide level2">
-<h2>Let’s try something</h2>
-<div class="small-math">
-<p>Let’s condense it into an equation <span class="math display">
-\begin{align*}
-L_{j,j} &amp;= \sqrt{1 - \sum_{k=1}^{j-1} L^2_{j,k}} \\
-L_{i,j} &amp;= \frac{1}{L_{j,j}} \left( C_{i,j} - \sum_{k=1}^{j-1} L_{i,k}L_{j,k} \right) \quad \text{for } i&gt;j
-\end{align*}
-</span></p>
-<p>Re-arrange and add in user specified <span class="emphasis3">lower</span> and <span class="emphasis3">upper</span> bounds</p>
-<p><span class="math display">
--L_{j,j} + \sum_{k=1}^{j-1} L_{i,k}L_{j,k} \le \color{#21409A}a_{i,j}\color{black} &lt; C_{i,j} &lt; \color{#21409A}b_{i,j}\color{black} \le L_{j,j} + \sum_{k=1}^{j-1} L_{i,k}L_{j,k}
-</span></p>
-</div>
-</section>
-<section id="continuing" class="slide level2">
-<h2>Continuing</h2>
-<div class="small-math">
-<p><span class="math display">
-\begin{align*}
--\sqrt{1 - \sum_{k=1}^{j-1} L^2_{i,k}} \; \le \; \frac{\color{#21409A}a_{i,j}\color{black} - \sum\limits_{k=1}^{j-1} L_{i,k}L_{j,k}}{L_{j,j}} &lt; \; &amp; L_{i,j} \;  &lt; \frac{\color{#21409A}b_{i,j}\color{black} - \sum\limits_{k=1}^{j-1} L_{i,k}L_{j,k}}{L_{j,j}} \; \le \;\sqrt{1 - \sum_{k=1}^{j-1} L^2_{i,k}} \\
-\max\left\{ -\sqrt{1 - \sum_{k=1}^{j-1} L^2_{j,k}} ,\; \frac{\color{#21409A}a_{i,j}\color{black} - \sum\limits_{k=1}^{j-1} L_{i,k}L_{j,k} }{L_{j,j}} \right\} &lt; &amp;\; L_{i,j} \; &lt; \min\left\{\sqrt{1 - \sum_{k=1}^{j-1} L^2_{j,k}}, \; \frac{\color{#21409A}b_{i,j}\color{black} - \sum\limits_{k=1}^{j-1} L_{i,k}L_{j,k}}{L_{j,j}} \right\}
-\end{align*}
-</span></p>
-</div>
-<p>This gives us bounds but we need to be really careful</p>
-<p>The Jacobian is “easy”</p>
-</section>
-<section id="extra-care" class="slide level2">
-<h2>Extra Care</h2>
-<p>Assume we have <span class="math inline">3 \times 3</span> matrix that we wish to constrain all correlation values to be negative.</p>
-<p>Let us choose <span class="math inline">C_{2, 1} = C_{3,1} = \frac{-1}{\sqrt{2}}</span> and solve for the bounds of <span class="math inline">C_{3,2}</span>:</p>
-<div class="small-math">
-<p><span class="math display">\begin{align*}
-\max\left\{-1, -\sqrt{1 - C_{3,1}^2} \right\} &amp;&lt; \frac{B - C_{2,1} C_{3,1}}{L_{2, 2}} &lt; \min\left\{0, \sqrt{1 - C_{3,1}^2} \right\} \\
--\sqrt{0.5} &amp;&lt; \frac{B - 0.5}{\sqrt{0.5}} &lt; 0 \\
-\implies 0 &amp;&lt; B &lt; 0.5
-\end{align*}</span></p>
-</div>
-<div class="callout callout-note callout-titled callout-style-default">
-<div class="callout-body">
-<div class="callout-title">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<p><strong>Note</strong></p>
-</div>
-<div class="callout-content">
-<p>This is all in <span class="citation" data-cites="pinkney2024">Pinkney (<a href="#/the-future" role="doc-biblioref" onclick="">2024</a>)</span></p>
-</div>
-</div>
-</div>
-</section>
-<section id="the-stan-code" class="slide level2">
-<h2>The Stan code</h2>
-<div class="columns">
-<div class="column" style="width: 80%; font-size: 60%;">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb6-1"><a href=""></a><span class="dt">matrix</span> cholesky_corr_constrain_lp (<span class="dt">vector</span> col_one_raw, <span class="dt">vector</span> off_raw,</span>
-<span id="cb6-2"><a href=""></a>                                           <span class="dt">real</span> lb, <span class="dt">real</span> ub) {</span>
-<span id="cb6-3"><a href=""></a>    <span class="dt">int</span> K = num_elements(col_one_raw) + <span class="dv">1</span>;</span>
-<span id="cb6-4"><a href=""></a>    <span class="dt">matrix</span>[K, K] L = rep_matrix(<span class="dv">0</span>, K, K);</span>
-<span id="cb6-5"><a href=""></a>    L[<span class="dv">1</span>, <span class="dv">1</span>] = <span class="dv">1</span>;</span>
-<span id="cb6-6"><a href=""></a>    L[<span class="dv">2</span>, <span class="dv">1</span>] = lb_ub_lp(col_one_raw[<span class="dv">1</span>], lb, ub);</span>
-<span id="cb6-7"><a href=""></a>    L[<span class="dv">2</span>, <span class="dv">2</span>] = sqrt(<span class="dv">1</span> - L[<span class="dv">2</span>, <span class="dv">1</span>]^<span class="dv">2</span>);</span>
-<span id="cb6-8"><a href=""></a></span>
-<span id="cb6-9"><a href=""></a>    <span class="dt">int</span> cnt = <span class="dv">1</span>;</span>
-<span id="cb6-10"><a href=""></a></span>
-<span id="cb6-11"><a href=""></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">3</span>:K) {</span>
-<span id="cb6-12"><a href=""></a>       L[i, <span class="dv">1</span>] = lb_ub_lp(col_one_raw[<span class="dv">2</span>:K - <span class="dv">1</span>], lb,  ub);</span>
-<span id="cb6-13"><a href=""></a>       <span class="dt">real</span> l_ij_old = log1m(L[i, <span class="dv">1</span>]^<span class="dv">2</span>);</span>
-<span id="cb6-14"><a href=""></a>      <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">2</span>:i - <span class="dv">1</span>) {</span>
-<span id="cb6-15"><a href=""></a>         <span class="dt">real</span> b1 = dot_product(L[j, <span class="dv">1</span>:(j - <span class="dv">1</span>)], L[i, <span class="dv">1</span>:(j - <span class="dv">1</span>)]);</span>
-<span id="cb6-16"><a href=""></a>         <span class="dt">real</span> stick_length = exp(<span class="fl">0.5</span> * l_ij_old);</span>
-<span id="cb6-17"><a href=""></a>         <span class="dt">real</span> low = max({-stick_length, (lb - b1) / L[j, j]});</span>
-<span id="cb6-18"><a href=""></a>         <span class="dt">real</span> up = min({stick_length, (ub - b1) /  L[j, j] });</span>
-<span id="cb6-19"><a href=""></a>         L[i, j] = lb_ub_lp(off_raw[cnt], low, up);</span>
-<span id="cb6-20"><a href=""></a>         l_ij_old = log_diff_exp(l_ij_old, <span class="dv">2</span> * log(abs(L[i, j])));</span>
-<span id="cb6-21"><a href=""></a>         cnt += <span class="dv">1</span>;</span>
-<span id="cb6-22"><a href=""></a>        }</span>
-<span id="cb6-23"><a href=""></a>         L[i, i] = exp(<span class="fl">0.5</span> * l_ij_old);</span>
-<span id="cb6-24"><a href=""></a>      }</span>
-<span id="cb6-25"><a href=""></a>    <span class="cf">return</span> L;</span>
-<span id="cb6-26"><a href=""></a>  }</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div><div class="column" style="width: 20%; font-size: 50%;">
-<p>This is a bit more stable than what’s in the paper but also more opaque.</p>
-<p>The exp()’s here are just calculating stuff on the log-scale.</p>
-<p>Line 13 I take the log and try to stick with this as much as possible.</p>
-</div></div>
-</section>
-<section id="back-to-the-motivating-example" class="slide level2">
-<h2>Back to the motivating example</h2>
-<p>The new method that gives the right answer!</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href=""></a><span class="co"># A tibble: 25 × 10</span></span>
-<span id="cb7-2"><a href=""></a>   variable    mean median    sd   mad     q5   q95  rhat ess_bulk ess_tail</span>
-<span id="cb7-3"><a href=""></a>   <span class="sc">&lt;</span>chr<span class="sc">&gt;</span>      <span class="er">&lt;</span>dbl<span class="sc">&gt;</span>  <span class="er">&lt;</span>dbl<span class="sc">&gt;</span> <span class="er">&lt;</span>dbl<span class="sc">&gt;</span> <span class="er">&lt;</span>dbl<span class="sc">&gt;</span>  <span class="er">&lt;</span>dbl<span class="sc">&gt;</span> <span class="er">&lt;</span>dbl<span class="sc">&gt;</span> <span class="er">&lt;</span>dbl<span class="sc">&gt;</span>    <span class="er">&lt;</span>dbl<span class="sc">&gt;</span>    <span class="er">&lt;</span>dbl<span class="sc">&gt;</span></span>
-<span id="cb7-4"><a href=""></a> <span class="dv">1</span> Omega[<span class="dv">1</span>,<span class="dv">1</span>] <span class="dv">1</span>      <span class="dv">1</span>     <span class="dv">0</span>     <span class="dv">0</span>     <span class="dv">1</span>      <span class="dv">1</span>     <span class="cn">NA</span>         <span class="cn">NA</span>       <span class="cn">NA</span> </span>
-<span id="cb7-5"><a href=""></a> <span class="dv">2</span> Omega[<span class="dv">2</span>,<span class="dv">1</span>] <span class="fl">0.278</span>  <span class="fl">0.256</span> <span class="fl">0.179</span> <span class="fl">0.198</span> <span class="fl">0.0281</span> <span class="fl">0.607</span>  <span class="fl">1.00</span>   <span class="fl">29806.</span>   <span class="fl">17895.</span></span>
-<span id="cb7-6"><a href=""></a> <span class="dv">3</span> Omega[<span class="dv">3</span>,<span class="dv">1</span>] <span class="fl">0.279</span>  <span class="fl">0.258</span> <span class="fl">0.180</span> <span class="fl">0.200</span> <span class="fl">0.0273</span> <span class="fl">0.609</span>  <span class="fl">1.00</span>   <span class="fl">34574.</span>   <span class="fl">18758.</span></span>
-<span id="cb7-7"><a href=""></a> <span class="dv">4</span> Omega[<span class="dv">4</span>,<span class="dv">1</span>] <span class="fl">0.279</span>  <span class="fl">0.258</span> <span class="fl">0.180</span> <span class="fl">0.199</span> <span class="fl">0.0276</span> <span class="fl">0.607</span>  <span class="fl">1.00</span>   <span class="fl">29344.</span>   <span class="fl">16380.</span></span>
-<span id="cb7-8"><a href=""></a> <span class="dv">5</span> Omega[<span class="dv">5</span>,<span class="dv">1</span>] <span class="fl">0.281</span>  <span class="fl">0.259</span> <span class="fl">0.181</span> <span class="fl">0.201</span> <span class="fl">0.0291</span> <span class="fl">0.610</span>  <span class="fl">1.00</span>   <span class="fl">36064.</span>   <span class="fl">18496.</span></span>
-<span id="cb7-9"><a href=""></a> <span class="dv">6</span> Omega[<span class="dv">1</span>,<span class="dv">2</span>] <span class="fl">0.278</span>  <span class="fl">0.256</span> <span class="fl">0.179</span> <span class="fl">0.198</span> <span class="fl">0.0281</span> <span class="fl">0.607</span>  <span class="fl">1.00</span>   <span class="fl">29806.</span>   <span class="fl">17895.</span></span>
-<span id="cb7-10"><a href=""></a> <span class="dv">7</span> Omega[<span class="dv">2</span>,<span class="dv">2</span>] <span class="dv">1</span>      <span class="dv">1</span>     <span class="dv">0</span>     <span class="dv">0</span>     <span class="dv">1</span>      <span class="dv">1</span>     <span class="cn">NA</span>         <span class="cn">NA</span>       <span class="cn">NA</span> </span>
-<span id="cb7-11"><a href=""></a> <span class="dv">8</span> Omega[<span class="dv">3</span>,<span class="dv">2</span>] <span class="fl">0.279</span>  <span class="fl">0.258</span> <span class="fl">0.179</span> <span class="fl">0.200</span> <span class="fl">0.0283</span> <span class="fl">0.605</span>  <span class="fl">1.00</span>   <span class="fl">37118.</span>   <span class="fl">21150.</span></span>
-<span id="cb7-12"><a href=""></a>...</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
-<section id="what-else-can-this-do" class="slide level2">
-<h2>What else can this do?</h2>
-<ul>
-<li>Known values</li>
-<li>Specific bounds on certain values</li>
-<li>Block structure</li>
-</ul>
-<p>Let’s do a really motivating example</p>
-</section>
-<section id="an-even-more-motivating-example" class="slide level2">
-<h2>An even more motivating example</h2>
-<p>We want a 6 x 6 correlation matrix <span class="math inline">\Sigma</span> where</p>
-<p><span class="math display">
-\begin{align*}
-\sigma_{2,1} = 0, &amp;\; \sigma_{4, 3} = 0 \\
-\sigma_{4,1} \in (-0.8, 0), &amp;\; \sigma_{5, 3} \in (0.3, 0.7)
-\end{align*}
-</span></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href=""></a>   <span class="sc">--</span>        </span>
-<span id="cb8-2"><a href=""></a>    <span class="fl">0.</span>       <span class="sc">--</span>   </span>
-<span id="cb8-3"><a href=""></a>   <span class="cn">NA</span>        <span class="cn">NA</span>   <span class="sc">--</span>        </span>
-<span id="cb8-4"><a href=""></a>   (<span class="sc">-</span><span class="fl">0.8</span>, <span class="dv">0</span>) <span class="cn">NA</span>    <span class="dv">0</span>         <span class="sc">--</span>   </span>
-<span id="cb8-5"><a href=""></a>   <span class="cn">NA</span>        <span class="cn">NA</span>   (<span class="fl">0.3</span>, <span class="fl">0.7</span>) <span class="cn">NA</span>   <span class="sc">--</span>   </span>
-<span id="cb8-6"><a href=""></a>   <span class="cn">NA</span>        <span class="cn">NA</span>   <span class="cn">NA</span>         <span class="cn">NA</span>   <span class="cn">NA</span>   <span class="sc">--</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
-<section id="output" class="slide level2">
-<h2>Output</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href=""></a>variable    mean  median     sd    mad      q5     q95    rhat  ess_bulk  ess_tail</span>
-<span id="cb9-2"><a href=""></a><span class="sc">&lt;</span>chr<span class="sc">&gt;</span>       <span class="er">&lt;</span>dbl<span class="sc">&gt;</span>   <span class="er">&lt;</span>dbl<span class="sc">&gt;</span>  <span class="er">&lt;</span>dbl<span class="sc">&gt;</span>  <span class="er">&lt;</span>dbl<span class="sc">&gt;</span>   <span class="er">&lt;</span>dbl<span class="sc">&gt;</span>   <span class="er">&lt;</span>dbl<span class="sc">&gt;</span>   <span class="er">&lt;</span>dbl<span class="sc">&gt;</span>     <span class="er">&lt;</span>dbl<span class="sc">&gt;</span>     <span class="er">&lt;</span>dbl<span class="sc">&gt;</span></span>
-<span id="cb9-3"><a href=""></a>Omega[<span class="dv">1</span>,<span class="dv">1</span>]  <span class="fl">1.0000</span>  <span class="fl">1.0000</span> <span class="fl">0.0000</span> <span class="fl">0.0000</span>  <span class="fl">1.0000</span>  <span class="fl">1.0000</span> <span class="cn">NA</span>        <span class="cn">NA</span>        <span class="cn">NA</span>     </span>
-<span id="cb9-4"><a href=""></a>Omega[<span class="dv">2</span>,<span class="dv">1</span>]  <span class="fl">0.0000</span>  <span class="fl">0.0000</span> <span class="fl">0.0000</span> <span class="fl">0.0000</span>  <span class="fl">0.0000</span>  <span class="fl">0.0000</span> <span class="cn">NA</span>        <span class="cn">NA</span>        <span class="cn">NA</span>     </span>
-<span id="cb9-5"><a href=""></a>Omega[<span class="dv">3</span>,<span class="dv">1</span>] <span class="sc">-</span><span class="fl">0.0056</span> <span class="sc">-</span><span class="fl">0.0101</span> <span class="fl">0.2484</span> <span class="fl">0.2559</span> <span class="sc">-</span><span class="fl">0.4211</span>  <span class="fl">0.4068</span>  <span class="fl">0.9999</span> <span class="fl">4410.0862</span> <span class="fl">3220.8831</span></span>
-<span id="cb9-6"><a href=""></a>Omega[<span class="dv">4</span>,<span class="dv">1</span>] <span class="sc">-</span><span class="fl">0.2124</span> <span class="sc">-</span><span class="fl">0.1881</span> <span class="fl">0.1512</span> <span class="fl">0.1579</span> <span class="sc">-</span><span class="fl">0.5044</span> <span class="sc">-</span><span class="fl">0.0173</span>  <span class="fl">1.0003</span> <span class="fl">4729.1236</span> <span class="fl">2149.4316</span></span>
-<span id="cb9-7"><a href=""></a>Omega[<span class="dv">5</span>,<span class="dv">1</span>] <span class="sc">-</span><span class="fl">0.0057</span> <span class="sc">-</span><span class="fl">0.0065</span> <span class="fl">0.2621</span> <span class="fl">0.2772</span> <span class="sc">-</span><span class="fl">0.4435</span>  <span class="fl">0.4217</span>  <span class="fl">1.0000</span> <span class="fl">4657.2520</span> <span class="fl">3017.0624</span></span>
-<span id="cb9-8"><a href=""></a>Omega[<span class="dv">6</span>,<span class="dv">1</span>] <span class="sc">-</span><span class="fl">0.0018</span> <span class="sc">-</span><span class="fl">0.0002</span> <span class="fl">0.2553</span> <span class="fl">0.2599</span> <span class="sc">-</span><span class="fl">0.4284</span>  <span class="fl">0.4143</span>  <span class="fl">1.0013</span> <span class="fl">4674.8017</span> <span class="fl">2903.7293</span></span>
-<span id="cb9-9"><a href=""></a></span>
-<span id="cb9-10"><a href=""></a>Omega[<span class="dv">2</span>,<span class="dv">2</span>]  <span class="fl">1.0000</span>  <span class="fl">1.0000</span> <span class="fl">0.0000</span> <span class="fl">0.0000</span>  <span class="fl">1.0000</span>  <span class="fl">1.0000</span> <span class="cn">NA</span>        <span class="cn">NA</span>        <span class="cn">NA</span>     </span>
-<span id="cb9-11"><a href=""></a>Omega[<span class="dv">3</span>,<span class="dv">2</span>] <span class="sc">-</span><span class="fl">0.0043</span> <span class="sc">-</span><span class="fl">0.0078</span> <span class="fl">0.2499</span> <span class="fl">0.2636</span> <span class="sc">-</span><span class="fl">0.4178</span>  <span class="fl">0.4093</span>  <span class="fl">1.0001</span> <span class="fl">4023.8517</span> <span class="fl">2705.3045</span></span>
-<span id="cb9-12"><a href=""></a>Omega[<span class="dv">4</span>,<span class="dv">2</span>]  <span class="fl">0.0043</span>  <span class="fl">0.0027</span> <span class="fl">0.2594</span> <span class="fl">0.2767</span> <span class="sc">-</span><span class="fl">0.4159</span>  <span class="fl">0.4328</span>  <span class="fl">1.0007</span> <span class="fl">5443.1496</span> <span class="fl">3098.8828</span></span>
-<span id="cb9-13"><a href=""></a>Omega[<span class="dv">5</span>,<span class="dv">2</span>]  <span class="fl">0.0014</span>  <span class="fl">0.0093</span> <span class="fl">0.2575</span> <span class="fl">0.2682</span> <span class="sc">-</span><span class="fl">0.4298</span>  <span class="fl">0.4201</span>  <span class="fl">1.0017</span> <span class="fl">4128.4046</span> <span class="fl">2987.4422</span></span>
-<span id="cb9-14"><a href=""></a>Omega[<span class="dv">6</span>,<span class="dv">2</span>]  <span class="fl">0.0058</span>  <span class="fl">0.0064</span> <span class="fl">0.2538</span> <span class="fl">0.2693</span> <span class="sc">-</span><span class="fl">0.4197</span>  <span class="fl">0.4224</span>  <span class="fl">1.0006</span> <span class="fl">4736.2346</span> <span class="fl">2668.6795</span></span>
-<span id="cb9-15"><a href=""></a></span>
-<span id="cb9-16"><a href=""></a>Omega[<span class="dv">3</span>,<span class="dv">3</span>]  <span class="fl">1.0000</span>  <span class="fl">1.0000</span> <span class="fl">0.0000</span> <span class="fl">0.0000</span>  <span class="fl">1.0000</span>  <span class="fl">1.0000</span> <span class="cn">NA</span>        <span class="cn">NA</span>        <span class="cn">NA</span>     </span>
-<span id="cb9-17"><a href=""></a>Omega[<span class="dv">4</span>,<span class="dv">3</span>] <span class="sc">-</span><span class="fl">0.0000</span>  <span class="fl">0.0000</span> <span class="fl">0.0000</span> <span class="fl">0.0000</span>  <span class="fl">0.0000</span>  <span class="fl">0.0000</span>  <span class="fl">1.0014</span> <span class="fl">4280.0269</span>   <span class="cn">NA</span>     </span>
-<span id="cb9-18"><a href=""></a>Omega[<span class="dv">5</span>,<span class="dv">3</span>]  <span class="fl">0.4128</span>  <span class="fl">0.3934</span> <span class="fl">0.0882</span> <span class="fl">0.0884</span>  <span class="fl">0.3072</span>  <span class="fl">0.5888</span>  <span class="fl">1.0012</span> <span class="fl">4809.9923</span> <span class="fl">2377.6445</span></span>
-<span id="cb9-19"><a href=""></a>Omega[<span class="dv">6</span>,<span class="dv">3</span>] <span class="sc">-</span><span class="fl">0.0032</span> <span class="sc">-</span><span class="fl">0.0064</span> <span class="fl">0.2624</span> <span class="fl">0.2747</span> <span class="sc">-</span><span class="fl">0.4394</span>  <span class="fl">0.4265</span>  <span class="fl">1.0022</span> <span class="fl">4673.5773</span> <span class="fl">3037.9778</span></span>
-<span id="cb9-20"><a href=""></a></span>
-<span id="cb9-21"><a href=""></a>Omega[<span class="dv">4</span>,<span class="dv">4</span>]  <span class="fl">1.0000</span>  <span class="fl">1.0000</span> <span class="fl">0.0000</span> <span class="fl">0.0000</span>  <span class="fl">1.0000</span>  <span class="fl">1.0000</span> <span class="cn">NA</span>        <span class="cn">NA</span>        <span class="cn">NA</span>     </span>
-<span id="cb9-22"><a href=""></a>Omega[<span class="dv">5</span>,<span class="dv">4</span>]  <span class="fl">0.0024</span>  <span class="fl">0.0020</span> <span class="fl">0.2371</span> <span class="fl">0.2475</span> <span class="sc">-</span><span class="fl">0.3873</span>  <span class="fl">0.3970</span>  <span class="fl">1.0002</span> <span class="fl">3895.9938</span> <span class="fl">2933.7159</span></span>
-<span id="cb9-23"><a href=""></a>Omega[<span class="dv">6</span>,<span class="dv">4</span>] <span class="sc">-</span><span class="fl">0.0004</span> <span class="sc">-</span><span class="fl">0.0033</span> <span class="fl">0.2576</span> <span class="fl">0.2659</span> <span class="sc">-</span><span class="fl">0.4183</span>  <span class="fl">0.4327</span>  <span class="fl">1.0019</span> <span class="fl">4303.5343</span> <span class="fl">2949.4916</span></span>
-<span id="cb9-24"><a href=""></a></span>
-<span id="cb9-25"><a href=""></a>Omega[<span class="dv">5</span>,<span class="dv">5</span>]  <span class="fl">1.0000</span>  <span class="fl">1.0000</span> <span class="fl">0.0000</span> <span class="fl">0.0000</span>  <span class="fl">1.0000</span>  <span class="fl">1.0000</span> <span class="cn">NA</span>        <span class="cn">NA</span>        <span class="cn">NA</span>     </span>
-<span id="cb9-26"><a href=""></a>Omega[<span class="dv">6</span>,<span class="dv">5</span>]  <span class="fl">0.0009</span> <span class="sc">-</span><span class="fl">0.0018</span> <span class="fl">0.2533</span> <span class="fl">0.2675</span> <span class="sc">-</span><span class="fl">0.4113</span>  <span class="fl">0.4213</span>  <span class="fl">1.0002</span> <span class="fl">4139.6808</span> <span class="fl">2995.0615</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
-<section id="do-you-want-to-see-the-stan-code-for-this" class="slide level2">
-<h2>Do you want to see the Stan code for this?</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb10-1"><a href=""></a>  <span class="dt">matrix</span> cholesky_corr_constrain_lp(<span class="dt">int</span> K, <span class="dt">vector</span> raw, <span class="dt">int</span> N_blocks,</span>
-<span id="cb10-2"><a href=""></a>                                    <span class="dt">array</span>[,] <span class="dt">int</span> res_index,</span>
-<span id="cb10-3"><a href=""></a>                                    <span class="dt">array</span>[] <span class="dt">int</span> res_id,</span>
-<span id="cb10-4"><a href=""></a>                                    <span class="dt">array</span>[,] <span class="dt">int</span> known_index,</span>
-<span id="cb10-5"><a href=""></a>                                    <span class="dt">vector</span> known_vals,</span>
-<span id="cb10-6"><a href=""></a>                                    <span class="dt">vector</span> lb, <span class="dt">vector</span> ub) {</span>
-<span id="cb10-7"><a href=""></a>    <span class="dt">matrix</span>[K, K] L = rep_matrix(<span class="dv">0</span>, K, K);</span>
-<span id="cb10-8"><a href=""></a>    <span class="dt">int</span> cnt = <span class="dv">1</span>;</span>
-<span id="cb10-9"><a href=""></a>    <span class="dt">int</span> N_res = num_elements(res_id);</span>
-<span id="cb10-10"><a href=""></a>    <span class="dt">int</span> N_known = size(known_vals);</span>
-<span id="cb10-11"><a href=""></a>    <span class="dt">vector</span>[N_blocks] x_cache;</span>
-<span id="cb10-12"><a href=""></a>    <span class="dt">array</span>[N_blocks] <span class="dt">int</span> res_id_cnt = ones_int_array(N_blocks);</span>
-<span id="cb10-13"><a href=""></a>    <span class="dt">int</span> res_row = <span class="dv">1</span>;</span>
-<span id="cb10-14"><a href=""></a>    <span class="dt">int</span> known_row = <span class="dv">1</span>;</span>
-<span id="cb10-15"><a href=""></a>    </span>
-<span id="cb10-16"><a href=""></a>    L[<span class="dv">1</span>, <span class="dv">1</span>] = <span class="dv">1</span>;</span>
-<span id="cb10-17"><a href=""></a>    <span class="cf">if</span> (known_index[known_row, <span class="dv">1</span>] == <span class="dv">2</span>) {</span>
-<span id="cb10-18"><a href=""></a>      L[<span class="dv">2</span>, <span class="dv">1</span>] = known_vals[<span class="dv">1</span>];</span>
-<span id="cb10-19"><a href=""></a>      known_row += <span class="dv">1</span>;</span>
-<span id="cb10-20"><a href=""></a>    } <span class="cf">else</span> {</span>
-<span id="cb10-21"><a href=""></a>      L[<span class="dv">2</span>, <span class="dv">1</span>] = lb_ub_lp(raw[cnt], lb[cnt], ub[cnt]);</span>
-<span id="cb10-22"><a href=""></a>      <span class="cf">if</span> (res_index[res_row, <span class="dv">1</span>] == <span class="dv">2</span>) {</span>
-<span id="cb10-23"><a href=""></a>        x_cache[res_id[res_row]] = L[<span class="dv">2</span>, <span class="dv">1</span>];</span>
-<span id="cb10-24"><a href=""></a>        res_id_cnt[res_id[res_row]] += <span class="dv">1</span>;</span>
-<span id="cb10-25"><a href=""></a>        res_row += <span class="dv">1</span>;</span>
-<span id="cb10-26"><a href=""></a>      } </span>
-<span id="cb10-27"><a href=""></a>      cnt += <span class="dv">1</span>;</span>
-<span id="cb10-28"><a href=""></a>    }</span>
-<span id="cb10-29"><a href=""></a>    </span>
-<span id="cb10-30"><a href=""></a>    L[<span class="dv">2</span>, <span class="dv">2</span>] = sqrt(<span class="dv">1</span> - L[<span class="dv">2</span>, <span class="dv">1</span>] ^ <span class="dv">2</span>);</span>
-<span id="cb10-31"><a href=""></a>    </span>
-<span id="cb10-32"><a href=""></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">3</span> : K) {</span>
-<span id="cb10-33"><a href=""></a>      <span class="cf">if</span> (res_index[res_row, <span class="dv">1</span>] == i &amp;&amp; res_index[res_row, <span class="dv">2</span>] == <span class="dv">1</span>) {</span>
-<span id="cb10-34"><a href=""></a>     <span class="co">// restricted case</span></span>
-<span id="cb10-35"><a href=""></a>        <span class="cf">if</span> (res_id_cnt[res_id[res_row]] == <span class="dv">1</span>) {</span>
-<span id="cb10-36"><a href=""></a>          L[i, <span class="dv">1</span>] = lb_ub_lp(raw[cnt], lb[cnt], ub[cnt]);</span>
-<span id="cb10-37"><a href=""></a>          x_cache[res_id[res_row]] = L[i, <span class="dv">1</span>];</span>
-<span id="cb10-38"><a href=""></a>          res_id_cnt[res_id[res_row]] += <span class="dv">1</span>;</span>
-<span id="cb10-39"><a href=""></a>          cnt += <span class="dv">1</span>;</span>
-<span id="cb10-40"><a href=""></a>        } <span class="cf">else</span> {</span>
-<span id="cb10-41"><a href=""></a>          L[i, <span class="dv">1</span>] = x_cache[res_id[res_row]];</span>
-<span id="cb10-42"><a href=""></a>        }</span>
-<span id="cb10-43"><a href=""></a>        res_row += <span class="dv">1</span>;</span>
-<span id="cb10-44"><a href=""></a>      } </span>
-<span id="cb10-45"><a href=""></a>      <span class="cf">else</span> <span class="cf">if</span> (known_index[known_row, <span class="dv">1</span>] == i &amp;&amp; known_index[known_row, <span class="dv">2</span>] == <span class="dv">1</span>) {</span>
-<span id="cb10-46"><a href=""></a>        <span class="co">// known case </span></span>
-<span id="cb10-47"><a href=""></a>          L[i, <span class="dv">1</span>] = known_vals[known_row];</span>
-<span id="cb10-48"><a href=""></a>         known_row += <span class="dv">1</span>;</span>
-<span id="cb10-49"><a href=""></a>      } <span class="cf">else</span> {</span>
-<span id="cb10-50"><a href=""></a>        <span class="co">// base case</span></span>
-<span id="cb10-51"><a href=""></a>        L[i, <span class="dv">1</span>] = lb_ub_lp(raw[cnt], lb[cnt], ub[cnt]);</span>
-<span id="cb10-52"><a href=""></a>        cnt += <span class="dv">1</span>;</span>
-<span id="cb10-53"><a href=""></a>      } </span>
-<span id="cb10-54"><a href=""></a>      </span>
-<span id="cb10-55"><a href=""></a>      L[i, <span class="dv">2</span>] = sqrt(<span class="dv">1</span> - L[i, <span class="dv">1</span>] ^ <span class="dv">2</span>);</span>
-<span id="cb10-56"><a href=""></a>      <span class="dt">real</span> l_ij_old = log1m(L[i, <span class="dv">1</span>] ^ <span class="dv">2</span>);</span>
-<span id="cb10-57"><a href=""></a>      <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">2</span> : i - <span class="dv">1</span>) {</span>
-<span id="cb10-58"><a href=""></a>        <span class="dt">real</span> b1 = dot_product(L[j, <span class="dv">1</span> : (j - <span class="dv">1</span>)], L[i, <span class="dv">1</span> : (j - <span class="dv">1</span>)]);</span>
-<span id="cb10-59"><a href=""></a>        <span class="dt">real</span> stick_length = exp(<span class="fl">0.5</span> * l_ij_old);</span>
-<span id="cb10-60"><a href=""></a>        <span class="dt">real</span> low = max({-stick_length, (lb[cnt] - b1) / L[j, j]});</span>
-<span id="cb10-61"><a href=""></a>        <span class="dt">real</span> up = min({stick_length, (ub[cnt] - b1) / L[j, j]});</span>
-<span id="cb10-62"><a href=""></a>        </span>
-<span id="cb10-63"><a href=""></a>        <span class="cf">if</span> (known_index[known_row, <span class="dv">1</span>] == i &amp;&amp; known_index[known_row, <span class="dv">2</span>] == j) {</span>
-<span id="cb10-64"><a href=""></a>          L[i, j] = (known_vals[known_row] - b1) / L[j, j];</span>
-<span id="cb10-65"><a href=""></a>          known_row = known_row == N_known ? N_known : known_row + <span class="dv">1</span>;</span>
-<span id="cb10-66"><a href=""></a>        } <span class="cf">else</span> <span class="cf">if</span> (res_index[res_row, <span class="dv">1</span>] == i &amp;&amp; res_index[res_row, <span class="dv">2</span>] == j) {</span>
-<span id="cb10-67"><a href=""></a>          <span class="cf">if</span> (res_id_cnt[res_id[res_row]] == <span class="dv">1</span>) {</span>
-<span id="cb10-68"><a href=""></a>            L[i, j] = lb_ub_lp(raw[cnt], low, up);</span>
-<span id="cb10-69"><a href=""></a>            x_cache[res_id[res_row]] = L[i, j] * L[j, j] + b1;</span>
-<span id="cb10-70"><a href=""></a>            res_id_cnt[res_id[res_row]] += <span class="dv">1</span>;</span>
-<span id="cb10-71"><a href=""></a>            cnt += <span class="dv">1</span>;</span>
-<span id="cb10-72"><a href=""></a>          } <span class="cf">else</span> {</span>
-<span id="cb10-73"><a href=""></a>            L[i, j] = (x_cache[res_id[res_row]] - b1) / L[j, j];</span>
-<span id="cb10-74"><a href=""></a>            <span class="kw">target +=</span> -log(L[j, j]);</span>
-<span id="cb10-75"><a href=""></a>          }</span>
-<span id="cb10-76"><a href=""></a>          res_row = res_row == N_res ? N_res : res_row + <span class="dv">1</span>;</span>
-<span id="cb10-77"><a href=""></a>        } <span class="cf">else</span> {</span>
-<span id="cb10-78"><a href=""></a>          L[i, j] = lb_ub_lp(raw[cnt], low, up);</span>
-<span id="cb10-79"><a href=""></a>          cnt += <span class="dv">1</span>;</span>
-<span id="cb10-80"><a href=""></a>        }</span>
-<span id="cb10-81"><a href=""></a>        l_ij_old = log_diff_exp(l_ij_old, <span class="dv">2</span> * log(abs(L[i, j])));</span>
-<span id="cb10-82"><a href=""></a>      }</span>
-<span id="cb10-83"><a href=""></a>      L[i, i] = exp(<span class="fl">0.5</span> * l_ij_old);</span>
-<span id="cb10-84"><a href=""></a>    }</span>
-<span id="cb10-85"><a href=""></a>    <span class="cf">return</span> L;</span>
-<span id="cb10-86"><a href=""></a>  }</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section>
-<section id="the-future" class="slide level2 smaller scrollable">
-<h2>The Future</h2>
-<p>LDL parameterization is done. It’s even more stable.</p>
-<p>Look-ahead given bound constraints and known values to ensure the impossible bounds don’t hit</p>
-<p>Explore new priors for correlation matrices that exploit structure</p>
-<p>References:</p>
-<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
-<div id="ref-delmas_2024" class="csl-entry" role="listitem">
-Delmas, Jean-Pierre. 2024. <span>“Background on Real and Complex Elliptically Symmetric Distributions.”</span> In <em>Elliptically Symmetric Distributions in Signal Processing and Machine Learning</em>, edited by Jean-Pierre Delmas, Mohammed Nabil El Korso, Stefano Fortunati, and Frédéric Pascal, 1–34. Cham: Springer Nature Switzerland. <a href="https://doi.org/10.1007/978-3-031-52116-4_1">https://doi.org/10.1007/978-3-031-52116-4_1</a>.
-</div>
-<div id="ref-pinkney2024" class="csl-entry" role="listitem">
-Pinkney, Sean. 2024. <span>“A Short Note on a Flexible Cholesky Parameterization of Correlation Matrices.”</span> <a href="https://arxiv.org/abs/2405.07286">https://arxiv.org/abs/2405.07286</a>.
-</div>
-</div>
-</section>
-<section id="slides-and-code" class="slide level2">
-<h2>Slides and code</h2>
+<section id="thank-you" class="slide level2 smaller scrollable">
+<h2>Thank you!</h2>
 
 <img data-src="images/repo_qr.png" class="quarto-figure quarto-figure-center r-stretch" width="380"><p style="text-align: center;">
 <a href="https://github.com/spinkney/open-talks">github.com/spinkney/open-talks</a>
 </p>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-delmas_2024" class="csl-entry" role="listitem">
+Delmas, Jean-Pierre. 2024. <span>“Background on Real and Complex Elliptically Symmetric Distributions.”</span> In <em>Elliptically Symmetric Distributions in Signal Processing and Machine Learning</em>, edited by Jean-Pierre Delmas, Mohammed Nabil El Korso, Stefano Fortunati, and Frédéric Pascal. Springer Nature Switzerland. <a href="https://doi.org/10.1007/978-3-031-52116-4_1">https://doi.org/10.1007/978-3-031-52116-4_1</a>.
+</div>
+</div>
 
 </section>
 
