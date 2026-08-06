@@ -2,6 +2,7 @@
 title: "Population Effect Estimation in Bayesian Hierarchical Models Using<br>Sum-to-Zero Constraints"
 subtitle: "StanCon 2026"
 format: clean-revealjs
+css: styles.css
 filters:
   - naquiz
   - include-code-files
@@ -15,6 +16,10 @@ author:
    affiliations: 
     - name: SVP Measurement Analytics at Publicis Groupe
     - name: Stan Developer
+ - name: "Nikolai Vetr"
+   email: nikgvetr@stanford.edu
+   affiliations:
+    - name: Department of Pathology, Stanford University
 highlight-style: "nord"
 bibliography: refs.bib
 ---
@@ -22,6 +27,14 @@ bibliography: refs.bib
 ```{r, include=FALSE, cache=FALSE}
 cmdstanr::register_knitr_engine(override = TRUE)
 options(mc.cores = parallel::detectCores())
+
+# For PDF output, draw the Spectral font (shipped in fonts/) via showtext,
+# since the PDF graphics devices can't see project-local fonts.
+if (knitr::is_latex_output()) {
+  sysfonts::font_add("Spectral", "fonts/Spectral-Regular.ttf")
+  showtext::showtext_auto()
+  knitr::opts_chunk$set(fig.showtext = TRUE)
+}
 
 Sys.setenv(LIBGS = "/opt/homebrew/opt/ghostscript/lib/libgs.dylib")
 Sys.setenv(PATH = paste(file.path(tinytex::tinytex_root(), "bin", "universal-darwin"), Sys.getenv("PATH"), sep = ":"))
@@ -81,14 +94,17 @@ $$
 $$
 To construct one might randomly draw i.i.d. $n - 1$ values $y$ and
 
+::: {style="font-size: 80%;"}
 $$
-\begin{align}
+\begin{aligned}
 y_n & \overset{\text{set}}= -\sum_i^{n - 1} y_i \\
-\bm z &= \left[ y_1 \; y_2 \; \ldots \; y_{n- 1} \; y_n\right]  \\
+\boldsymbol{z} &= \left[ y_1 \; y_2 \; \ldots \; y_{n- 1} \; y_n\right]  \\
 & \sum_i^n z = 0
-\end{align}
+\end{aligned}
 $$
-This works and is a valid construction. The problem is that it induces strong prior assumptions about the relationships across $\bm z$.
+::: 
+
+This works and is a valid construction. The problem is that it induces strong prior assumptions about the relationships across $\boldsymbol{z}$.
 
 ## What is a sum-to-zero constraint?
 
@@ -100,7 +116,7 @@ Since only $z_n$ is a function of $y$ the marginal density will be the density o
 #| fig-align: center
 #| fig-width: 10
 #| fig-height: 5.2
-#| dev: svglite
+#| dev: !expr ifelse(knitr::is_latex_output(), "pdf", "svglite")
 #| dev-args:
 #|   bg: transparent
 #| fig-bg: transparent
@@ -129,7 +145,7 @@ d_sum <- function(x, a = 1) {
   density / (2 * a)
 }
 
-x <- seq(-3.25 * a, 3.25 * a, length.out = 1200)
+x <- seq(-3.5 * a, 3.5 * a, length.out = 1200)
 uniform_density <- d_uniform(x, a)
 sum_density <- d_sum(x, a)
 
@@ -137,13 +153,14 @@ darkblue <- "#21409A"
 orange <- "#E69F00"
 
 op <- par(
-  mar = c(4.2, 4.6, 1.2, 1),
+  mar = c(4.2, 4.6, 1.2, 6),
   las = 1,
   bty = "n",
   bg = NA,
   family = "Spectral",
   col.axis = "#333333",
-  col.lab = "#333333"
+  col.lab = "#333333",
+  xpd = TRUE
 )
 
 plot(
@@ -151,14 +168,14 @@ plot(
   type = "n",
   xlab = "Value",
   ylab = "Density",
-  xlim = c(-3.25 * a, 3.25 * a),
+  xlim = c(-3.5 * a, 3.5 * a),
   ylim = c(0, 0.56 / a),
   xaxt = "n",
   yaxt = "n"
 )
-axis(1, at = (-3:3) * a, labels = -3:3, col = "#999999")
+axis(1, at = (-4:4) * a, labels = -4:4, col = "#999999")
 axis(2, at = seq(0, 0.5 / a, by = 0.1 / a), col = "#999999")
-abline(h = 0, col = "#999999")
+# abline(h = 0, col = "#999999")
 
 polygon(
   c(x, rev(x)),
@@ -178,15 +195,15 @@ lines(x, uniform_density, col = darkblue, lwd = 4)
 legend(
   "topright",
   legend = c(
-    expression(x[i] %~% U(-a, a)),
-    expression(z_4 == -(x_1 + x_2 + x_3))
+    expression(x[i] %~% plain("Uniform")(-a, a)),
+    expression(z[4] == -(x[1] + x[2] + x[3]))
   ),
   col = c(darkblue, orange),
   lwd = 4,
   bty = "n",
-  cex = 1.15
+  cex = 2,
+  inset = c(-0.15, 0.1)
 )
-
 par(op)
 ```
 
@@ -202,7 +219,7 @@ We can balance the density across the values by using an orthonormal basis for t
 #| fig-align: center
 #| fig-width: 11
 #| fig-height: 4.8
-#| dev: svglite
+#| dev: !expr ifelse(knitr::is_latex_output(), "pdf", "svglite")
 #| dev-args:
 #|   bg: transparent
 #| fig-bg: transparent
@@ -307,7 +324,7 @@ text(8.3, 4.9, expression(plain("2D subspace in ") * R^3), col = darkblue, cex =
 par(op)
 ```
 
-All the values are now isotropic and as "uninformed" as can be given the constraint.
+All the values are now isotropic and exchangeable.
 
 ## Preliminaries: Background on Bayesian hierarchical models
 
@@ -537,11 +554,7 @@ $$
 
 ## Is there an equivalence?
 
-Suppose we restrict to varying intercepts
-
-$$
-x_i \sim \mathcal{N}(\alpha + a_j, \sigma_x)
-$$
+Suppose we restrict to varying intercepts, $x_i \sim \mathcal{N}(\alpha + a_j, \sigma_x)$:
 
 ::::: columns
 ::: {.column style="width: 50%; font-size: 75%; border-right: 1px solid #d0d0d0; padding-right: 1.5em; box-sizing: border-box;"}
@@ -565,6 +578,7 @@ $$
 :::
 :::::
 
+::: {style="font-size: 75%;"}
 Take
 $$
 \begin{aligned}
@@ -573,6 +587,7 @@ a_j^{\text{s2z}}  &\overset{\text{set}} = a_j^{\text{bayes}} - \bar{a} \\
 \sum a_j^{\text{s2z}} &= 0
 \end{aligned}
 $$
+:::
 
 ## Does it work?
 
@@ -638,7 +653,6 @@ stopifnot(
   min(s2z_diagnostics$ebfmi) > 0.3
 )
 
-comparison_variables <- c("alpha_s2z", "a_s2z", "tau", "sigma_x")
 summarize_comparison <- function(fit, variables) {
   draws <- fit$draws(variables, format = "matrix")
   data.frame(
@@ -651,14 +665,34 @@ summarize_comparison <- function(fit, variables) {
   )
 }
 
-bayes_summary <- summarize_comparison(fit_bayes, comparison_variables)
-s2z_summary <- summarize_comparison(fit_s2z, comparison_variables)
+canonicalize_recovered_names <- function(summary) {
+  summary$variable <- sub(
+    "_recovered(?=\\[|$)", "", summary$variable, perl = TRUE
+  )
+  summary
+}
+
+bayes_s2z_recovered_variables <- c(
+  "alpha_s2z_recovered", "a_s2z_recovered", "tau", "sigma_x"
+)
+s2z_comparison_variables <- c(
+  "alpha_s2z", "a_s2z", "tau", "sigma_x"
+)
+
+bayes_recovered_s2z_summary <- canonicalize_recovered_names(
+  summarize_comparison(fit_bayes, bayes_s2z_recovered_variables)
+)
+s2z_native_summary <- summarize_comparison(
+  fit_s2z, s2z_comparison_variables
+)
 
 comparison <- merge(
-  bayes_summary[c("variable", "mean", "q5", "q95", "mcse")],
-  s2z_summary[c("variable", "mean", "q5", "q95", "mcse")],
+  bayes_recovered_s2z_summary[
+    c("variable", "mean", "q5", "q95", "mcse")
+  ],
+  s2z_native_summary[c("variable", "mean", "q5", "q95", "mcse")],
   by = "variable",
-  suffixes = c("_bayes", "_s2z"),
+  suffixes = c("_bayes_recovered", "_s2z_native"),
   sort = FALSE
 )
 
@@ -681,33 +715,40 @@ s2z_estimand <- comparison$variable %in% c(
   paste0("a_s2z[", seq_len(J), "]")
 )
 max_s2z_mean_difference <- max(abs(
-  comparison$mean_bayes[s2z_estimand] -
-    comparison$mean_s2z[s2z_estimand]
+  comparison$mean_bayes_recovered[s2z_estimand] -
+    comparison$mean_s2z_native[s2z_estimand]
 ))
 max_all_mean_difference <- max(abs(
-  comparison$mean_bayes - comparison$mean_s2z
+  comparison$mean_bayes_recovered - comparison$mean_s2z_native
 ))
 
-bayes_parameter_variables <- c(
+bayes_native_variables <- c(
   "alpha_bayes",
   "a_bayes",
   "tau",
   "sigma_x"
 )
-full_bayes_summary <- summarize_comparison(
+bayes_native_summary <- summarize_comparison(
   fit_bayes,
-  bayes_parameter_variables
+  bayes_native_variables
 )
-s2z_gq_summary <- summarize_comparison(
-  fit_s2z,
-  bayes_parameter_variables
+s2z_bayes_recovered_variables <- c(
+  "alpha_bayes_recovered",
+  "a_bayes_recovered",
+  "tau",
+  "sigma_x"
+)
+s2z_recovered_bayes_summary <- canonicalize_recovered_names(
+  summarize_comparison(fit_s2z, s2z_bayes_recovered_variables)
 )
 
 reverse_comparison <- merge(
-  full_bayes_summary[c("variable", "mean", "q5", "q95", "mcse")],
-  s2z_gq_summary[c("variable", "mean", "q5", "q95", "mcse")],
+  bayes_native_summary[c("variable", "mean", "q5", "q95", "mcse")],
+  s2z_recovered_bayes_summary[
+    c("variable", "mean", "q5", "q95", "mcse")
+  ],
   by = "variable",
-  suffixes = c("_full_bayes", "_s2z_gq"),
+  suffixes = c("_bayes_native", "_s2z_recovered"),
   sort = FALSE
 )
 
@@ -732,20 +773,20 @@ bayes_estimand <- reverse_comparison$variable %in% c(
   paste0("a_bayes[", seq_len(J), "]")
 )
 max_reverse_estimand_difference <- max(abs(
-  reverse_comparison$mean_full_bayes[bayes_estimand] -
-    reverse_comparison$mean_s2z_gq[bayes_estimand]
+  reverse_comparison$mean_bayes_native[bayes_estimand] -
+    reverse_comparison$mean_s2z_recovered[bayes_estimand]
 ))
 max_reverse_all_difference <- max(abs(
-  reverse_comparison$mean_full_bayes -
-    reverse_comparison$mean_s2z_gq
+  reverse_comparison$mean_bayes_native -
+    reverse_comparison$mean_s2z_recovered
 ))
 max_reverse_mcse_ratio <- max(
   abs(
-    reverse_comparison$mean_full_bayes -
-      reverse_comparison$mean_s2z_gq
+    reverse_comparison$mean_bayes_native -
+      reverse_comparison$mean_s2z_recovered
   ) / sqrt(
-    reverse_comparison$mcse_full_bayes^2 +
-      reverse_comparison$mcse_s2z_gq^2
+    reverse_comparison$mcse_bayes_native^2 +
+      reverse_comparison$mcse_s2z_recovered^2
   )
 )
 stopifnot(max_reverse_mcse_ratio < 4)
@@ -753,32 +794,35 @@ stopifnot(max_reverse_mcse_ratio < 4)
 
 Let's simulate six deliberately unbalanced groups from
 $$
-x_i \sim \mathcal{N}(\alpha + a_{g[i]}, \sigma_x), \qquad
-a_g \sim \mathcal{N}(0, \tau^2),
+x_i \sim \mathcal{N}(\alpha + a_{j[i]}, \sigma_x), \qquad
+a_j \sim \mathcal{N}(0, \tau^2),
 $$
 with
 ```
 alpha = 5
 tau = 2.5
 sigma_x = 1
-n_g = (`r paste(group_sizes, collapse = ", ")`)
+n_j = (`r paste(group_sizes, collapse = ", ")`)
 ```
 For this finite draw,
 
 $$
-\bar a = `r round(mean(a_bayes_true), 2)`, \qquad
+\frac{1}{J} \sum_j a^{\text{bayes}}_j = \bar a = `r round(mean(a_bayes_true), 2)`, \qquad
 \alpha_{\mathrm{s2z}} = `r round(alpha_s2z_true, 2)`.
 $$
 
 Sampling 10k iterations over 4 chains. The first Stan program samples unconstrained Bayesian varying effects; the
 second samples a `sum_to_zero_vector` directly.
 
-## Bayesian specification and conversion
+## Conversion
+
+Bayesian specification and conversion to sum-to-zero equivalent
 
 ```{.stan code-line-numbers="true" include="./stan/varying_intercept_bayes.stan"}
 ```
 
-## Full sum-to-zero specification
+## Conversion
+Sum-to-zero specification and conversion to Bayesian equivalent
 
 ```{.stan code-line-numbers="true" include="./stan/varying_intercept_s2z.stan"}
 ```
@@ -805,7 +849,7 @@ the direct program.
 #| fig-align: center
 #| fig-width: 10
 #| fig-height: 5.2
-#| dev: svglite
+#| dev: !expr ifelse(knitr::is_latex_output(), "pdf", "svglite")
 #| dev-args:
 #|   bg: transparent
 #| fig-bg: transparent
@@ -828,8 +872,10 @@ op <- par(
 
 plot(
   NA,
-  xlim = range(c(comparison$q5_bayes, comparison$q95_bayes,
-                 comparison$q5_s2z, comparison$q95_s2z,
+  xlim = range(c(comparison$q5_bayes_recovered,
+                 comparison$q95_bayes_recovered,
+                 comparison$q5_s2z_native,
+                 comparison$q95_s2z_native,
                  comparison$truth)),
   ylim = c(0.5, nrow(comparison) + 0.5),
   xlab = "Posterior mean and 90% interval",
@@ -849,26 +895,32 @@ axis(
 abline(h = y_at, col = adjustcolor(grey, alpha.f = 0.18))
 
 segments(
-  comparison$q5_bayes, y_at + offset,
-  comparison$q95_bayes, y_at + offset,
+  comparison$q5_bayes_recovered, y_at + offset,
+  comparison$q95_bayes_recovered, y_at + offset,
   col = darkblue, lwd = 3
 )
-points(comparison$mean_bayes, y_at + offset, pch = 16, col = darkblue)
+points(
+  comparison$mean_bayes_recovered, y_at + offset,
+  pch = 16, col = darkblue
+)
 
 segments(
-  comparison$q5_s2z, y_at - offset,
-  comparison$q95_s2z, y_at - offset,
+  comparison$q5_s2z_native, y_at - offset,
+  comparison$q95_s2z_native, y_at - offset,
   col = orange, lwd = 3
 )
-points(comparison$mean_s2z, y_at - offset, pch = 17, col = orange)
+points(
+  comparison$mean_s2z_native, y_at - offset,
+  pch = 17, col = orange
+)
 
 points(comparison$truth, y_at, pch = 4, lwd = 2, cex = 1.15, col = grey)
 
 legend(
   "bottomleft",
   legend = c(
-    "Bayes, transformed in GQ",
-    "Direct sum-to-zero",
+    "Bayesian fit: recovered S2Z",
+    "S2Z fit: native",
     "Truth"
   ),
   col = c(darkblue, orange, grey),
@@ -881,7 +933,7 @@ par(op)
 ```
 
 ::: {style="font-size: 70%;"}
-Across $\alpha_{\mathrm{s2z}}$ and the six $a_g^{\mathrm{s2z}}$, the largest
+Across $\alpha_{\mathrm{s2z}}$ and the six $a_j^{\mathrm{s2z}}$, the largest
 posterior-mean difference is
 `r sprintf("%.3f", max_s2z_mean_difference)`. Across every plotted parameter,
 the largest difference is `r sprintf("%.3f", max_all_mean_difference)`: Monte
@@ -914,8 +966,8 @@ For every sum-to-zero posterior draw:
 ``` stan
 generated quantities {
   real mean_a_bayes;
-  real alpha_bayes;
-  vector[J] a_bayes;
+  real alpha_bayes_recovered;
+  vector[J] a_bayes_recovered;
   {
     real var_mean_a = square(tau) / J;
     real var_alpha = square(alpha_prior_sd);
@@ -926,8 +978,8 @@ generated quantities {
 
     mean_a_bayes = normal_rng(weight * alpha_s2z, conditional_sd);
   }
-  alpha_bayes = alpha_s2z - mean_a_bayes;
-  a_bayes = a_s2z + mean_a_bayes;
+  alpha_bayes_recovered = alpha_s2z - mean_a_bayes;
+  a_bayes_recovered = a_s2z + mean_a_bayes;
 }
 ```
 
@@ -939,7 +991,7 @@ generated quantities {
 #| fig-align: center
 #| fig-width: 10
 #| fig-height: 5.2
-#| dev: svglite
+#| dev: !expr ifelse(knitr::is_latex_output(), "pdf", "svglite")
 #| dev-args:
 #|   bg: transparent
 #| fig-bg: transparent
@@ -958,10 +1010,10 @@ op <- par(
 
 plot(
   NA,
-  xlim = range(c(reverse_comparison$q5_full_bayes,
-                 reverse_comparison$q95_full_bayes,
-                 reverse_comparison$q5_s2z_gq,
-                 reverse_comparison$q95_s2z_gq,
+  xlim = range(c(reverse_comparison$q5_bayes_native,
+                 reverse_comparison$q95_bayes_native,
+                 reverse_comparison$q5_s2z_recovered,
+                 reverse_comparison$q95_s2z_recovered,
                  reverse_comparison$truth)),
   ylim = c(0.5, nrow(reverse_comparison) + 0.5),
   xlab = "Posterior mean and 90% interval",
@@ -981,22 +1033,22 @@ axis(
 abline(h = y_at, col = adjustcolor(grey, alpha.f = 0.18))
 
 segments(
-  reverse_comparison$q5_full_bayes, y_at + offset,
-  reverse_comparison$q95_full_bayes, y_at + offset,
+  reverse_comparison$q5_bayes_native, y_at + offset,
+  reverse_comparison$q95_bayes_native, y_at + offset,
   col = darkblue, lwd = 3
 )
 points(
-  reverse_comparison$mean_full_bayes, y_at + offset,
+  reverse_comparison$mean_bayes_native, y_at + offset,
   pch = 16, col = darkblue
 )
 
 segments(
-  reverse_comparison$q5_s2z_gq, y_at - offset,
-  reverse_comparison$q95_s2z_gq, y_at - offset,
+  reverse_comparison$q5_s2z_recovered, y_at - offset,
+  reverse_comparison$q95_s2z_recovered, y_at - offset,
   col = orange, lwd = 3
 )
 points(
-  reverse_comparison$mean_s2z_gq, y_at - offset,
+  reverse_comparison$mean_s2z_recovered, y_at - offset,
   pch = 17, col = orange
 )
 
@@ -1008,8 +1060,8 @@ points(
 legend(
   "bottomleft",
   legend = c(
-    "Full Bayesian fit",
-    "S2Z, reconstructed in GQ",
+    "Bayesian fit: native",
+    "S2Z fit: recovered Bayes",
     "Truth"
   ),
   col = c(darkblue, orange, grey),
@@ -1022,7 +1074,7 @@ par(op)
 ```
 
 ::: {style="font-size: 70%;"}
-Across $\alpha_{\text{bayes}}$ and the six $a_g^{\text{bayes}}$, the largest
+Across $\alpha_{\text{bayes}}$ and the six $a_j^{\text{bayes}}$, the largest
 posterior-mean difference is
 `r sprintf("%.3f", max_reverse_estimand_difference)`. Across every plotted
 parameter, the largest difference is
@@ -1041,6 +1093,96 @@ z=
 $$
 
 The largest value was 1.6. So the worst observed difference was only 1.6 times the noise expected from running two independent finite MCMC simulations. A standard-normal fluctuation exceeds 1.6 in absolute value about 11% of the time.
+
+## ESS and ESS/grad on the two parameterizations
+
+```{r}
+#| label: compare-ess-per-gradient
+#| echo: false
+#| results: asis
+
+bayes_native_variables <- c(
+  "alpha_bayes",
+  paste0("a_bayes[", seq_len(J), "]"),
+  "tau",
+  "sigma_x"
+)
+s2z_native_variables <- c(
+  "alpha_s2z",
+  paste0("a_s2z[", seq_len(J), "]"),
+  "tau",
+  "sigma_x"
+)
+
+native_bulk_ess <- function(fit, variables) {
+  summary <- fit$summary(variables = variables)
+  summary$ess_bulk[match(variables, summary$variable)]
+}
+
+gradient_evaluations <- function(fit) {
+  diagnostics <- posterior::as_draws_matrix(fit$sampler_diagnostics())
+  sum(diagnostics[, "n_leapfrog__"])
+}
+
+bayes_gradients <- gradient_evaluations(fit_bayes)
+s2z_gradients <- gradient_evaluations(fit_s2z)
+bayes_ess <- native_bulk_ess(fit_bayes, bayes_native_variables)
+s2z_ess <- native_bulk_ess(fit_s2z, s2z_native_variables)
+
+ess_table <- data.frame(
+  parameter = c(
+    "&alpha;",
+    paste0("<i>a</i><sub>", seq_len(J), "</sub>"),
+    "&tau;",
+    "&sigma;<sub><i>x</i></sub>"
+  ),
+  bayes_ess = bayes_ess,
+  bayes_per_gradient = bayes_ess / bayes_gradients,
+  s2z_ess = s2z_ess,
+  s2z_per_gradient = s2z_ess / s2z_gradients
+)
+
+cat(
+  '<table class="ess-table">',
+  '<thead>',
+  '<tr><th rowspan="2">Parameter</th>',
+  '<th class="ess-group ess-group-bayes" colspan="2">Bayesian</th>',
+  '<th class="ess-group ess-group-s2z" colspan="2">Sum-to-zero</th></tr>',
+  '<tr><th class="ess-subhead ess-subhead-bayes">ESS</th>',
+  '<th class="ess-subhead ess-subhead-bayes">ESS/grad</th>',
+  '<th class="ess-subhead ess-subhead-s2z">ESS</th>',
+  '<th class="ess-subhead ess-subhead-s2z">ESS/grad</th></tr>',
+  '</thead><tbody>',
+  sep = "\n"
+)
+
+for (i in seq_len(nrow(ess_table))) {
+  cat(sprintf(
+    paste0(
+      '<tr><td>%s</td><td>%s</td><td>%.3f</td>',
+      '<td>%s</td><td>%.3f</td></tr>'
+    ),
+    ess_table$parameter[i],
+    format(round(ess_table$bayes_ess[i]), big.mark = ",", scientific = FALSE),
+    ess_table$bayes_per_gradient[i],
+    format(round(ess_table$s2z_ess[i]), big.mark = ",", scientific = FALSE),
+    ess_table$s2z_per_gradient[i]
+  ), "\n")
+}
+
+cat('</tbody></table>')
+```
+
+::: {.ess-note}
+`r sample_args$chains` chains ×
+`r format(sample_args$iter_sampling, big.mark = ",")` sampling iterations =
+`r format(sample_args$chains * sample_args$iter_sampling, big.mark = ",")`
+post-warmup draws, plus `r format(sample_args$iter_warmup, big.mark = ",")`
+warmup iterations per chain. Bulk ESS is pooled across chains. ESS/grad divides
+by the total post-warmup `n_leapfrog__`: Bayesian =
+`r format(bayes_gradients, big.mark = ",")`; sum-to-zero =
+`r format(s2z_gradients, big.mark = ",")`.
+:::
 
 ## Take-away
 
@@ -1063,4 +1205,3 @@ More to come in the paper
 
 ::: {#refs}
 :::
-

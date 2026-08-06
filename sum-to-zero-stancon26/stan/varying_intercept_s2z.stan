@@ -24,8 +24,8 @@ model {
 }
 generated quantities {
   real mean_a_bayes;
-  real alpha_bayes;
-  vector[J] a_bayes;
+  real alpha_bayes_recovered;
+  vector[J] a_bayes_recovered;
   {
     real var_mean_a = square(tau) / J;
     real var_alpha = square(alpha_prior_sd);
@@ -39,6 +39,6 @@ generated quantities {
       conditional_sd
     );
   }
-  alpha_bayes = alpha_s2z - mean_a_bayes;
-  a_bayes = a_s2z + mean_a_bayes;
+  alpha_bayes_recovered = alpha_s2z - mean_a_bayes;
+  a_bayes_recovered = a_s2z + mean_a_bayes;
 }

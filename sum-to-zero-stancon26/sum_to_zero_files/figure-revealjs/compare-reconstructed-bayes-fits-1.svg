@@ -169,8 +169,8 @@
 <polygon points='114.84,280.92 118.48,287.22 111.20,287.22 ' style='stroke-width: 2.25; stroke: none; fill: #E69F00;' />
 <line x1='112.14' y1='302.22' x2='117.54' y2='296.82' style='stroke-width: 2.25; stroke: #777777;' />
 <line x1='112.14' y1='296.82' x2='117.54' y2='302.22' style='stroke-width: 2.25; stroke: #777777;' />
-<text x='136.44' y='274.68' style='font-size: 12.00px; font-family: "Spectral";' textLength='86.23px' lengthAdjust='spacingAndGlyphs'>Full Bayesian fit</text>
-<text x='136.44' y='289.08' style='font-size: 12.00px; font-family: "Spectral";' textLength='135.02px' lengthAdjust='spacingAndGlyphs'>S2Z, reconstructed in GQ</text>
+<text x='136.44' y='274.68' style='font-size: 12.00px; font-family: "Spectral";' textLength='100.56px' lengthAdjust='spacingAndGlyphs'>Bayesian fit: native</text>
+<text x='136.44' y='289.08' style='font-size: 12.00px; font-family: "Spectral";' textLength='126.38px' lengthAdjust='spacingAndGlyphs'>S2Z fit: recovered Bayes</text>
 <text x='136.44' y='303.48' style='font-size: 12.00px; font-family: "Spectral";' textLength='30.47px' lengthAdjust='spacingAndGlyphs'>Truth</text>
 </g>
 </g>

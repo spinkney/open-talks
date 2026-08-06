@@ -20,6 +20,6 @@ model {
 }
 generated quantities {
   real mean_a = mean(a_bayes);
-  real alpha_s2z = alpha_bayes + mean_a;
-  vector[J] a_s2z = a_bayes - mean_a;
+  real alpha_s2z_recovered = alpha_bayes + mean_a;
+  vector[J] a_s2z_recovered = a_bayes - mean_a;
 }

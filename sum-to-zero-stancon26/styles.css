@@ -1,0 +1,69 @@
+#title-slide .quarto-title-authors {
+  column-gap: 40px;
+  display: grid;
+  grid-template-columns: 330px 300px;
+  max-width: 670px;
+}
+
+#title-slide .quarto-title-author {
+  min-width: 0;
+  width: auto;
+}
+
+#title-slide .quarto-title-author-email {
+  font-size: 0.8em;
+}
+
+.reveal table.ess-table {
+  font-size: 0.64em;
+  margin: 0.25em auto 0;
+  width: 94%;
+}
+
+.reveal table.ess-table th,
+.reveal table.ess-table td {
+  padding: 0.14em 0.5em;
+  text-align: right;
+}
+
+.reveal table.ess-table th {
+  border-bottom: 1px solid #999;
+  font-weight: 600;
+}
+
+.reveal table.ess-table th.ess-group {
+  border-top: 3px solid currentColor;
+  padding-bottom: 0.12em;
+  text-align: center;
+}
+
+.reveal table.ess-table th.ess-group-bayes,
+.reveal table.ess-table th.ess-subhead-bayes {
+  background: rgb(33 64 154 / 9%);
+  color: #21409a;
+}
+
+.reveal table.ess-table th.ess-group-s2z,
+.reveal table.ess-table th.ess-subhead-s2z {
+  background: rgb(230 159 0 / 11%);
+  color: #9a6800;
+}
+
+.reveal table.ess-table th.ess-subhead {
+  text-align: right;
+}
+
+.reveal table.ess-table th[rowspan],
+.reveal table.ess-table td:first-child {
+  text-align: left;
+}
+
+.reveal .ess-note {
+  font-size: 0.52em;
+  margin: 0.6em auto 0;
+  width: 94%;
+}
+
+.reveal .ess-note p {
+  margin: 0;
+}

@@ -11,6 +11,7 @@
   <meta name="generator" content="quarto-1.9.38">
 
   <meta name="author" content="Sean Pinkney">
+  <meta name="author" content="Nikolai Vetr">
   <title>Population Effect Estimation in Bayesian Hierarchical Models Using Sum-to-Zero Constraints</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -119,6 +120,7 @@
       margin-left: 2em;
     }  </style>
   <link rel="stylesheet" href="sum_to_zero_files/libs/revealjs/dist/theme/quarto-a7c210c2c36bbe979e8d915dfd2ba7a5.css">
+  <link rel="stylesheet" href="styles.css">
   <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
   <script>document.addEventListener("DOMContentLoaded", function () {
  var mathElements = document.getElementsByClassName("math");
@@ -250,6 +252,17 @@ Sean Pinkney
             Stan Developer
           </p>
     </div>
+<div class="quarto-title-author">
+<div class="quarto-title-author-name">
+Nikolai Vetr 
+</div>
+<div class="quarto-title-author-email">
+<a href="mailto:nikgvetr@stanford.edu">nikgvetr@stanford.edu</a>
+</div>
+        <p class="quarto-title-affiliation">
+            Department of Pathology, Stanford University
+          </p>
+    </div>
 </div>
 
 </section>
@@ -304,13 +317,16 @@ Sean Pinkney
 <p>It’s simply <span class="math display">
 \sum_j^n a_j = 0
 </span> To construct one might randomly draw i.i.d. <span class="math inline">n - 1</span> values <span class="math inline">y</span> and</p>
+<div style="font-size: 80%;">
 <p><span class="math display">
-\begin{align}
+\begin{aligned}
 y_n &amp; \overset{\text{set}}= -\sum_i^{n - 1} y_i \\
-\bm z &amp;= \left[ y_1 \; y_2 \; \ldots \; y_{n- 1} \; y_n\right]  \\
+\boldsymbol{z} &amp;= \left[ y_1 \; y_2 \; \ldots \; y_{n- 1} \; y_n\right]  \\
 &amp; \sum_i^n z = 0
-\end{align}
-</span> This works and is a valid construction. The problem is that it induces strong prior assumptions about the relationships across <span class="math inline">\bm z</span>.</p>
+\end{aligned}
+</span></p>
+</div>
+<p>This works and is a valid construction. The problem is that it induces strong prior assumptions about the relationships across <span class="math inline">\boldsymbol{z}</span>.</p>
 </section>
 <section id="what-is-a-sum-to-zero-constraint-1" class="slide level2">
 <h2>What is a sum-to-zero constraint?</h2>
@@ -322,7 +338,7 @@ y_n &amp; \overset{\text{set}}= -\sum_i^{n - 1} y_i \\
 <h2>What is a sum-to-zero constraint?</h2>
 <p>We can balance the density across the values by using an orthonormal basis for the zero-sum subspace, <span class="math inline">QQ^\top=P_0=I_n-\frac1n\mathbf 1_n\mathbf 1_n^\top</span>.</p>
 
-<img data-src="sum_to_zero_files/figure-revealjs/zero-sum-basis-map-1.svg" class="quarto-figure quarto-figure-center r-stretch" style="width:95.0%"><p>All the values are now isotropic and as “uninformed” as can be given the constraint.</p>
+<img data-src="sum_to_zero_files/figure-revealjs/zero-sum-basis-map-1.svg" class="quarto-figure quarto-figure-center r-stretch" style="width:95.0%"><p>All the values are now isotropic and exchangeable.</p>
 </section>
 <section id="preliminaries-background-on-bayesian-hierarchical-models" class="slide level2">
 <h2>Preliminaries: Background on Bayesian hierarchical models</h2>
@@ -426,10 +442,7 @@ a_j \sim \mathcal{N}(\alpha, \sigma_a), \quad b_j \sim \mathcal{N}(\beta, \sigma
 </section>
 <section id="is-there-an-equivalence" class="slide level2">
 <h2>Is there an equivalence?</h2>
-<p>Suppose we restrict to varying intercepts</p>
-<p><span class="math display">
-x_i \sim \mathcal{N}(\alpha + a_j, \sigma_x)
-</span></p>
+<p>Suppose we restrict to varying intercepts, <span class="math inline">x_i \sim \mathcal{N}(\alpha + a_j, \sigma_x)</span>:</p>
 <div class="columns">
 <div class="column" style="width: 50%; font-size: 75%; border-right: 1px solid #d0d0d0; padding-right: 1.5em; box-sizing: border-box;">
 <p><span class="emphasis2">Bayesian hierarchical model</span></p>
@@ -444,6 +457,7 @@ a^{\text{bayes}}_j \sim \mathcal{N}(0, \sigma_a)
 \alpha = \tfrac{1}{J}\textstyle\sum_j \left( \alpha + a^{\text{s2z}}_j \right) \iff \sum_j a^{\text{s2z}}_j = 0
 </span></p>
 </div></div>
+<div style="font-size: 75%;">
 <p>Take <span class="math display">
 \begin{aligned}
 \alpha_{\text{s2z}} &amp;\overset{\text{set}} = \alpha_{\text{bayes}} + \bar{a} \\
@@ -451,26 +465,28 @@ a_j^{\text{s2z}}  &amp;\overset{\text{set}} = a_j^{\text{bayes}} - \bar{a} \\
 \sum a_j^{\text{s2z}} &amp;= 0
 \end{aligned}
 </span></p>
+</div>
 </section>
 <section id="does-it-work" class="slide level2">
 <h2>Does it work?</h2>
 <p>Let’s simulate six deliberately unbalanced groups from <span class="math display">
-x_i \sim \mathcal{N}(\alpha + a_{g[i]}, \sigma_x), \qquad
-a_g \sim \mathcal{N}(0, \tau^2),
+x_i \sim \mathcal{N}(\alpha + a_{j[i]}, \sigma_x), \qquad
+a_j \sim \mathcal{N}(0, \tau^2),
 </span> with</p>
 <pre><code>alpha = 5
 tau = 2.5
 sigma_x = 1
-n_g = (8, 13, 21, 34, 55, 89)</code></pre>
+n_j = (8, 13, 21, 34, 55, 89)</code></pre>
 <p>For this finite draw,</p>
 <p><span class="math display">
-\bar a = 0.85, \qquad
+\frac{1}{J} \sum_j a^{\text{bayes}}_j = \bar a = 0.85, \qquad
 \alpha_{\mathrm{s2z}} = 5.85.
 </span></p>
 <p>Sampling 10k iterations over 4 chains. The first Stan program samples unconstrained Bayesian varying effects; the second samples a <code>sum_to_zero_vector</code> directly.</p>
 </section>
-<section id="bayesian-specification-and-conversion" class="slide level2">
-<h2>Bayesian specification and conversion</h2>
+<section id="conversion" class="slide level2">
+<h2>Conversion</h2>
+<p>Bayesian specification and conversion to sum-to-zero equivalent</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb2-1"><a href=""></a><span class="kw">data</span> {</span>
 <span id="cb2-2"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>&gt; N;</span>
 <span id="cb2-3"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">2</span>&gt; J;</span>
@@ -493,12 +509,13 @@ n_g = (8, 13, 21, 34, 55, 89)</code></pre>
 <span id="cb2-20"><a href=""></a>}</span>
 <span id="cb2-21"><a href=""></a><span class="kw">generated quantities</span> {</span>
 <span id="cb2-22"><a href=""></a>  <span class="dt">real</span> mean_a = mean(a_bayes);</span>
-<span id="cb2-23"><a href=""></a>  <span class="dt">real</span> alpha_s2z = alpha_bayes + mean_a;</span>
-<span id="cb2-24"><a href=""></a>  <span class="dt">vector</span>[J] a_s2z = a_bayes - mean_a;</span>
+<span id="cb2-23"><a href=""></a>  <span class="dt">real</span> alpha_s2z_recovered = alpha_bayes + mean_a;</span>
+<span id="cb2-24"><a href=""></a>  <span class="dt">vector</span>[J] a_s2z_recovered = a_bayes - mean_a;</span>
 <span id="cb2-25"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="full-sum-to-zero-specification" class="slide level2">
-<h2>Full sum-to-zero specification</h2>
+<section id="conversion-1" class="slide level2">
+<h2>Conversion</h2>
+<p>Sum-to-zero specification and conversion to Bayesian equivalent</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb3-1"><a href=""></a><span class="kw">data</span> {</span>
 <span id="cb3-2"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>&gt; N;</span>
 <span id="cb3-3"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">2</span>&gt; J;</span>
@@ -525,8 +542,8 @@ n_g = (8, 13, 21, 34, 55, 89)</code></pre>
 <span id="cb3-24"><a href=""></a>}</span>
 <span id="cb3-25"><a href=""></a><span class="kw">generated quantities</span> {</span>
 <span id="cb3-26"><a href=""></a>  <span class="dt">real</span> mean_a_bayes;</span>
-<span id="cb3-27"><a href=""></a>  <span class="dt">real</span> alpha_bayes;</span>
-<span id="cb3-28"><a href=""></a>  <span class="dt">vector</span>[J] a_bayes;</span>
+<span id="cb3-27"><a href=""></a>  <span class="dt">real</span> alpha_bayes_recovered;</span>
+<span id="cb3-28"><a href=""></a>  <span class="dt">vector</span>[J] a_bayes_recovered;</span>
 <span id="cb3-29"><a href=""></a>  {</span>
 <span id="cb3-30"><a href=""></a>    <span class="dt">real</span> var_mean_a = square(tau) / J;</span>
 <span id="cb3-31"><a href=""></a>    <span class="dt">real</span> var_alpha = square(alpha_prior_sd);</span>
@@ -540,8 +557,8 @@ n_g = (8, 13, 21, 34, 55, 89)</code></pre>
 <span id="cb3-39"><a href=""></a>      conditional_sd</span>
 <span id="cb3-40"><a href=""></a>    );</span>
 <span id="cb3-41"><a href=""></a>  }</span>
-<span id="cb3-42"><a href=""></a>  alpha_bayes = alpha_s2z - mean_a_bayes;</span>
-<span id="cb3-43"><a href=""></a>  a_bayes = a_s2z + mean_a_bayes;</span>
+<span id="cb3-42"><a href=""></a>  alpha_bayes_recovered = alpha_s2z - mean_a_bayes;</span>
+<span id="cb3-43"><a href=""></a>  a_bayes_recovered = a_s2z + mean_a_bayes;</span>
 <span id="cb3-44"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <aside class="notes">
 <p>Centering J independent normal effects induces covariance <span class="math inline">\tau^2 (I - \mathbf{1}\mathbf{1}^\top / J)</span> on the zero-sum subspace. The direct model therefore uses the same subspace scale tau.</p>
@@ -563,7 +580,7 @@ n_g = (8, 13, 21, 34, 55, 89)</code></pre>
 <h2>The two fits agree</h2>
 
 <img data-src="sum_to_zero_files/figure-revealjs/compare-varying-intercept-fits-1.svg" class="quarto-figure quarto-figure-center r-stretch" style="width:92.0%"><div style="font-size: 70%;">
-<p>Across <span class="math inline">\alpha_{\mathrm{s2z}}</span> and the six <span class="math inline">a_g^{\mathrm{s2z}}</span>, the largest posterior-mean difference is 0.002. Across every plotted parameter, the largest difference is 0.003: Monte Carlo error at the scale of the plot.</p>
+<p>Across <span class="math inline">\alpha_{\mathrm{s2z}}</span> and the six <span class="math inline">a_j^{\mathrm{s2z}}</span>, the largest posterior-mean difference is 0.002. Across every plotted parameter, the largest difference is 0.003: Monte Carlo error at the scale of the plot.</p>
 </div>
 </section>
 <section id="what-about-going-from-sum-to-zero-to-population-models" class="slide level2">
@@ -586,8 +603,8 @@ n_g = (8, 13, 21, 34, 55, 89)</code></pre>
 <h2>Sum-to-zero specification and conversion</h2>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb4-1"><a href=""></a><span class="kw">generated quantities</span> {</span>
 <span id="cb4-2"><a href=""></a>  <span class="dt">real</span> mean_a_bayes;</span>
-<span id="cb4-3"><a href=""></a>  <span class="dt">real</span> alpha_bayes;</span>
-<span id="cb4-4"><a href=""></a>  <span class="dt">vector</span>[J] a_bayes;</span>
+<span id="cb4-3"><a href=""></a>  <span class="dt">real</span> alpha_bayes_recovered;</span>
+<span id="cb4-4"><a href=""></a>  <span class="dt">vector</span>[J] a_bayes_recovered;</span>
 <span id="cb4-5"><a href=""></a>  {</span>
 <span id="cb4-6"><a href=""></a>    <span class="dt">real</span> var_mean_a = square(tau) / J;</span>
 <span id="cb4-7"><a href=""></a>    <span class="dt">real</span> var_alpha = square(alpha_prior_sd);</span>
@@ -598,15 +615,15 @@ n_g = (8, 13, 21, 34, 55, 89)</code></pre>
 <span id="cb4-12"><a href=""></a></span>
 <span id="cb4-13"><a href=""></a>    mean_a_bayes = normal_rng(weight * alpha_s2z, conditional_sd);</span>
 <span id="cb4-14"><a href=""></a>  }</span>
-<span id="cb4-15"><a href=""></a>  alpha_bayes = alpha_s2z - mean_a_bayes;</span>
-<span id="cb4-16"><a href=""></a>  a_bayes = a_s2z + mean_a_bayes;</span>
+<span id="cb4-15"><a href=""></a>  alpha_bayes_recovered = alpha_s2z - mean_a_bayes;</span>
+<span id="cb4-16"><a href=""></a>  a_bayes_recovered = a_s2z + mean_a_bayes;</span>
 <span id="cb4-17"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="back-to-bayesian-the-two-fits-agree" class="slide level2">
 <h2>Back to Bayesian: the two fits agree</h2>
 
 <img data-src="sum_to_zero_files/figure-revealjs/compare-reconstructed-bayes-fits-1.svg" class="quarto-figure quarto-figure-center r-stretch" style="width:92.0%"><div style="font-size: 70%;">
-<p>Across <span class="math inline">\alpha_{\text{bayes}}</span> and the six <span class="math inline">a_g^{\text{bayes}}</span>, the largest posterior-mean difference is 0.032. Across every plotted parameter, the largest difference is 0.032. The largest standardized gap is 1.6 combined Monte Carlo SEs.</p>
+<p>Across <span class="math inline">\alpha_{\text{bayes}}</span> and the six <span class="math inline">a_j^{\text{bayes}}</span>, the largest posterior-mean difference is 0.032. Across every plotted parameter, the largest difference is 0.032. The largest standardized gap is 1.6 combined Monte Carlo SEs.</p>
 </div>
 </section>
 <section id="on-the-difference-between-two-posterior-means" class="slide level2">
@@ -618,6 +635,196 @@ z=
        \operatorname{MCSE}_{\text{S2Z}}^2}}.
 </span></p>
 <p>The largest value was 1.6. So the worst observed difference was only 1.6 times the noise expected from running two independent finite MCMC simulations. A standard-normal fluctuation exceeds 1.6 in absolute value about 11% of the time.</p>
+</section>
+<section id="ess-and-essgrad-on-the-two-parameterizations" class="slide level2">
+<h2>ESS and ESS/grad on the two parameterizations</h2>
+<table class="ess-table">
+<thead>
+<tr>
+<th rowspan="2">
+Parameter
+</th>
+<th class="ess-group ess-group-bayes" colspan="2">
+Bayesian
+</th>
+<th class="ess-group ess-group-s2z" colspan="2">
+Sum-to-zero
+</th>
+</tr>
+<tr>
+<th class="ess-subhead ess-subhead-bayes">
+ESS
+</th>
+<th class="ess-subhead ess-subhead-bayes">
+ESS/grad
+</th>
+<th class="ess-subhead ess-subhead-s2z">
+ESS
+</th>
+<th class="ess-subhead ess-subhead-s2z">
+ESS/grad
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+α
+</td>
+<td>
+5,557
+</td>
+<td>
+0.002
+</td>
+<td>
+33,461
+</td>
+<td>
+0.121
+</td>
+</tr>
+<tr>
+<td>
+<i>a</i><sub>1</sub>
+</td>
+<td>
+5,719
+</td>
+<td>
+0.002
+</td>
+<td>
+39,725
+</td>
+<td>
+0.144
+</td>
+</tr>
+<tr>
+<td>
+<i>a</i><sub>2</sub>
+</td>
+<td>
+5,683
+</td>
+<td>
+0.002
+</td>
+<td>
+64,383
+</td>
+<td>
+0.234
+</td>
+</tr>
+<tr>
+<td>
+<i>a</i><sub>3</sub>
+</td>
+<td>
+5,650
+</td>
+<td>
+0.002
+</td>
+<td>
+71,686
+</td>
+<td>
+0.260
+</td>
+</tr>
+<tr>
+<td>
+<i>a</i><sub>4</sub>
+</td>
+<td>
+5,588
+</td>
+<td>
+0.002
+</td>
+<td>
+56,372
+</td>
+<td>
+0.204
+</td>
+</tr>
+<tr>
+<td>
+<i>a</i><sub>5</sub>
+</td>
+<td>
+5,581
+</td>
+<td>
+0.002
+</td>
+<td>
+46,215
+</td>
+<td>
+0.168
+</td>
+</tr>
+<tr>
+<td>
+<i>a</i><sub>6</sub>
+</td>
+<td>
+5,572
+</td>
+<td>
+0.002
+</td>
+<td>
+39,120
+</td>
+<td>
+0.142
+</td>
+</tr>
+<tr>
+<td>
+τ
+</td>
+<td>
+11,574
+</td>
+<td>
+0.004
+</td>
+<td>
+57,662
+</td>
+<td>
+0.209
+</td>
+</tr>
+<tr>
+<td>
+σ<sub><i>x</i></sub>
+</td>
+<td>
+16,549
+</td>
+<td>
+0.006
+</td>
+<td>
+61,344
+</td>
+<td>
+0.223
+</td>
+</tr>
+</tbody>
+</table>
+<div class="ess-note">
+<p>4 chains × 10,000 sampling iterations = 40,000 post-warmup draws, plus 4,000 warmup iterations per chain. Bulk ESS is pooled across chains. ESS/grad divides by the total post-warmup <code>n_leapfrog__</code>: Bayesian = 2,796,128; sum-to-zero = 275,672.</p>
+</div>
 </section>
 <section id="take-away" class="slide level2">
 <h2>Take-away</h2>
