@@ -538,31 +538,29 @@ n_j = (8, 13, 21, 34, 55, 89)</code></pre>
 <h2>Sum-to-zero specification and conversion</h2>
 <p>The sum-to-zero parameter lives in <span class="math inline">J - 1</span> subspace a normal prior divides by <span class="math inline">J</span> instead of <span class="math inline">J-1</span>, add back a <span class="math inline">\log(\tau)</span></p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb3-1"><a href=""></a><span class="kw">parameters</span> {</span>
-<span id="cb3-2"><a href=""></a>  <span class="dt">real</span> alpha_s2z;</span>
+<span id="cb3-2"><a href=""></a>  <span class="dt">real</span> alpha_s2z; <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; tau, sigma_x;</span>
 <span id="cb3-3"><a href=""></a>  sum_to_zero_vector[J] a_s2z;</span>
-<span id="cb3-4"><a href=""></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; tau, sigma_x;</span>
-<span id="cb3-5"><a href=""></a>}</span>
-<span id="cb3-6"><a href=""></a><span class="kw">model</span> {</span>
-<span id="cb3-7"><a href=""></a>  tau ~ normal(<span class="dv">0</span>, <span class="dv">5</span>);</span>
-<span id="cb3-8"><a href=""></a>  sigma_x ~ normal(<span class="dv">0</span>, <span class="dv">2</span>);</span>
-<span id="cb3-9"><a href=""></a>  alpha_s2z ~ normal(<span class="dv">0</span>, hypot(alpha_prior_sd, tau / sqrt(J)));</span>
-<span id="cb3-10"><a href=""></a>  a_s2z ~ normal(<span class="dv">0</span>, tau);</span>
-<span id="cb3-11"><a href=""></a>  <span class="kw">target +=</span> log(tau);</span>
-<span id="cb3-12"><a href=""></a>  x ~ normal(alpha_s2z + a_s2z[group], sigma_x);</span>
-<span id="cb3-13"><a href=""></a>}</span>
-<span id="cb3-14"><a href=""></a><span class="kw">generated quantities</span> {</span>
-<span id="cb3-15"><a href=""></a>  <span class="dt">real</span> mean_a_bayes, alpha_bayes_recovered;</span>
-<span id="cb3-16"><a href=""></a>  <span class="dt">vector</span>[J] a_bayes_recovered;</span>
-<span id="cb3-17"><a href=""></a>  {</span>
-<span id="cb3-18"><a href=""></a>    <span class="dt">real</span> var_mean_a = square(tau) / J;</span>
-<span id="cb3-19"><a href=""></a>    <span class="dt">real</span> var_alpha = square(alpha_prior_sd);</span>
-<span id="cb3-20"><a href=""></a>    <span class="dt">real</span> weight = var_mean_a / (var_alpha + var_mean_a);</span>
-<span id="cb3-21"><a href=""></a>    <span class="dt">real</span> conditional_sd = sqrt(var_alpha * var_mean_a / (var_alpha var_mean_a));</span>
-<span id="cb3-22"><a href=""></a>    mean_a_bayes = normal_rng(weight * alpha_s2z, conditional_sd);</span>
-<span id="cb3-23"><a href=""></a>  }</span>
-<span id="cb3-24"><a href=""></a>  alpha_bayes_recovered = alpha_s2z - mean_a_bayes;</span>
-<span id="cb3-25"><a href=""></a>  a_bayes_recovered = a_s2z + mean_a_bayes;</span>
-<span id="cb3-26"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb3-4"><a href=""></a>}</span>
+<span id="cb3-5"><a href=""></a><span class="kw">model</span> {</span>
+<span id="cb3-6"><a href=""></a>  tau ~ normal(<span class="dv">0</span>, <span class="dv">5</span>); sigma_x ~ normal(<span class="dv">0</span>, <span class="dv">2</span>);</span>
+<span id="cb3-7"><a href=""></a>  alpha_s2z ~ normal(<span class="dv">0</span>, hypot(alpha_prior_sd, tau / sqrt(J)));</span>
+<span id="cb3-8"><a href=""></a>  a_s2z ~ normal(<span class="dv">0</span>, tau);</span>
+<span id="cb3-9"><a href=""></a>  <span class="kw">target +=</span> log(tau);</span>
+<span id="cb3-10"><a href=""></a>  x ~ normal(alpha_s2z + a_s2z[group], sigma_x);</span>
+<span id="cb3-11"><a href=""></a>}</span>
+<span id="cb3-12"><a href=""></a><span class="kw">generated quantities</span> {</span>
+<span id="cb3-13"><a href=""></a>  <span class="dt">real</span> mean_a_bayes, alpha_bayes_recovered;</span>
+<span id="cb3-14"><a href=""></a>  <span class="dt">vector</span>[J] a_bayes_recovered;</span>
+<span id="cb3-15"><a href=""></a>  {</span>
+<span id="cb3-16"><a href=""></a>    <span class="dt">real</span> var_mean_a = square(tau) / J;</span>
+<span id="cb3-17"><a href=""></a>    <span class="dt">real</span> var_alpha = square(alpha_prior_sd);</span>
+<span id="cb3-18"><a href=""></a>    <span class="dt">real</span> weight = var_mean_a / (var_alpha + var_mean_a);</span>
+<span id="cb3-19"><a href=""></a>    <span class="dt">real</span> conditional_sd = sqrt(var_alpha * var_mean_a / (var_alpha var_mean_a));</span>
+<span id="cb3-20"><a href=""></a>    mean_a_bayes = normal_rng(weight * alpha_s2z, conditional_sd);</span>
+<span id="cb3-21"><a href=""></a>  }</span>
+<span id="cb3-22"><a href=""></a>  alpha_bayes_recovered = alpha_s2z - mean_a_bayes;</span>
+<span id="cb3-23"><a href=""></a>  a_bayes_recovered = a_s2z + mean_a_bayes;</span>
+<span id="cb3-24"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <aside class="notes">
 <p>Centering J independent normal effects induces covariance <span class="math inline">\tau^2 (I - \mathbf{1}\mathbf{1}^\top / J)</span> on the zero-sum subspace. The direct model therefore uses the same subspace scale tau.</p>
 <p>The <code>target += log(tau)</code> term restores the missing scale factor because the constrained vector has J - 1 degrees of freedom while the vectorized normal density supplies J normalizing terms.</p>

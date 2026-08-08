@@ -945,13 +945,11 @@ For every sum-to-zero posterior draw:
   The sum-to-zero parameter lives in $J - 1$ subspace a normal prior divides by $J$ instead of $J-1$, add back a $\log(\tau)$
 ``` stan
 parameters {
-  real alpha_s2z;
+  real alpha_s2z; real<lower=0> tau, sigma_x;
   sum_to_zero_vector[J] a_s2z;
-  real<lower=0> tau, sigma_x;
 }
 model {
-  tau ~ normal(0, 5);
-  sigma_x ~ normal(0, 2);
+  tau ~ normal(0, 5); sigma_x ~ normal(0, 2);
   alpha_s2z ~ normal(0, hypot(alpha_prior_sd, tau / sqrt(J)));
   a_s2z ~ normal(0, tau);
   target += log(tau);
