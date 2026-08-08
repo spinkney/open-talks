@@ -385,7 +385,7 @@ Sharing of information happens
 -   $\Phi$ population distribution
 -   Globally
 -   Bi-directionally
--   AKA [partial pooling]{.emphasis}
+-   Partial pooling
 
 When the evidence or data for a parameter are
 
@@ -454,7 +454,7 @@ When the evidence or data for a parameter are
 No population distribution $\Phi$
 
 -   the $\theta_j$ are **fixed unknowns**, not draws
--   no pooling: each $\theta_j$ is estimated from group $j$'s data alone
+-   no pooling: each $\theta_j$ is estimated from group $j$ data alone
 -   information flows one way, $\theta_j \rightarrow y_j$
 
 Groups are tied together only by a *hard* constraint
@@ -821,26 +821,6 @@ Bayesian specification and conversion to sum-to-zero equivalent
 ```{.stan code-line-numbers="true" include="./stan/varying_intercept_bayes.stan"}
 ```
 
-## Conversion
-Sum-to-zero specification and conversion to Bayesian equivalent
-
-```{.stan code-line-numbers="true" include="./stan/varying_intercept_s2z.stan"}
-```
-
-::: notes
-Centering J independent normal effects induces covariance
-$\tau^2 (I - \mathbf{1}\mathbf{1}^\top / J)$ on the zero-sum subspace. The
-direct model therefore uses the same subspace scale tau.
-
-The `target += log(tau)` term restores the missing scale factor because the
-constrained vector has J - 1 degrees of freedom while the vectorized normal
-density supplies J normalizing terms.
-
-Conditional on tau, mean(a_bayes) has standard deviation tau / sqrt(J).
-Convolving it with the alpha_bayes prior gives the induced alpha_s2z prior in
-the direct program.
-:::
-
 ## The two fits agree
 
 ```{r}
@@ -962,26 +942,48 @@ For every sum-to-zero posterior draw:
    $a_g^{\text{bayes}} = a_g^{\text{s2z}} + m$.
 
 ## Sum-to-zero specification and conversion
-
+  The sum-to-zero parameter lives in $J - 1$ subspace a normal prior divides by $J$ instead of $J-1$, add back a $\log(\tau)$
 ``` stan
+parameters {
+  real alpha_s2z;
+  sum_to_zero_vector[J] a_s2z;
+  real<lower=0> tau, sigma_x;
+}
+model {
+  tau ~ normal(0, 5);
+  sigma_x ~ normal(0, 2);
+  alpha_s2z ~ normal(0, hypot(alpha_prior_sd, tau / sqrt(J)));
+  a_s2z ~ normal(0, tau);
+  target += log(tau);
+  x ~ normal(alpha_s2z + a_s2z[group], sigma_x);
+}
 generated quantities {
-  real mean_a_bayes;
-  real alpha_bayes_recovered;
+  real mean_a_bayes, alpha_bayes_recovered;
   vector[J] a_bayes_recovered;
   {
     real var_mean_a = square(tau) / J;
     real var_alpha = square(alpha_prior_sd);
     real weight = var_mean_a / (var_alpha + var_mean_a);
-    real conditional_sd = sqrt(
-      var_alpha * var_mean_a / (var_alpha + var_mean_a)
-    );
-
+    real conditional_sd = sqrt(var_alpha * var_mean_a / (var_alpha var_mean_a));
     mean_a_bayes = normal_rng(weight * alpha_s2z, conditional_sd);
   }
   alpha_bayes_recovered = alpha_s2z - mean_a_bayes;
   a_bayes_recovered = a_s2z + mean_a_bayes;
 }
 ```
+::: notes
+Centering J independent normal effects induces covariance
+$\tau^2 (I - \mathbf{1}\mathbf{1}^\top / J)$ on the zero-sum subspace. The
+direct model therefore uses the same subspace scale tau.
+
+The `target += log(tau)` term restores the missing scale factor because the
+constrained vector has J - 1 degrees of freedom while the vectorized normal
+density supplies J normalizing terms.
+
+Conditional on tau, mean(a_bayes) has standard deviation tau / sqrt(J).
+Convolving it with the alpha_bayes prior gives the induced alpha_s2z prior in
+the direct program.
+:::
 
 ## Back to Bayesian: the two fits agree
 
@@ -1182,6 +1184,346 @@ warmup iterations per chain. Bulk ESS is pooled across chains. ESS/grad divides
 by the total post-warmup `n_leapfrog__`: Bayesian =
 `r format(bayes_gradients, big.mark = ",")`; sum-to-zero =
 `r format(s2z_gradients, big.mark = ",")`.
+:::
+
+## Different variances on the varying intercepts
+
+::: {style="font-size: 70%;"}
+Let $m = \bar a_{\mathrm{bayes}}$, $s = \alpha_{\mathrm{s2z}}$, and
+$z_j = a_j^{\mathrm{s2z}}$, with $\sum_j z_j = 0$.  We sample $(s, z, m)$
+but place the priors on the recovered coordinates
+
+$$
+\alpha_{\mathrm{bayes}} = s-m,
+\qquad
+a_j^{\mathrm{bayes}} = z_j+m,
+\qquad
+a_j^{\mathrm{bayes}} \sim \mathcal N(0,\sigma_j^2).
+$$
+
+Consequently, the recovered priors already contribute the following quadratic
+in $m$:
+
+$$
+\log p(m\mid s,\mathbf z)
+= C-\frac12\left\{
+\frac{(s-m)^2}{s_\alpha^2}
++\sum_{j=1}^J\frac{(z_j+m)^2}{\sigma_j^2}
+\right\}.
+$$
+
+Writing $\lambda = s_\alpha^{-2}+\sum_j\sigma_j^{-2}$ gives
+
+$$
+m\mid s,\mathbf z
+\sim \mathcal N\!\left(
+\frac{s/s_\alpha^2-\sum_j z_j/\sigma_j^2}{\lambda},
+\frac{1}{\lambda}
+\right),
+\qquad
+m \sim \mathcal N\!\left(0,\frac{1}{J^2}\sum_j\sigma_j^2\right).
+$$
+
+It is the correct induced prior on $m$, so no need to place a prior directly on $m$.
+:::
+
+```{r}
+#| label: fit-heterogeneous-varying-intercept-models
+#| include: false
+
+hetero_a_prior_sd <- c(1, 1.5, 2, 2.5, 3, 3.5)
+hetero_data <- modifyList(
+  stan_data,
+  list(a_prior_sd = hetero_a_prior_sd)
+)
+hetero_sample_args <- modifyList(
+  sample_args,
+  list(data = hetero_data)
+)
+
+hetero_bayes_model <- cmdstanr::cmdstan_model(
+  "stan/varying_intercept_bayes_diff_vars.stan"
+)
+hetero_s2z_model <- cmdstanr::cmdstan_model(
+  "stan/varying_intercept_diff_vars.stan"
+)
+
+fit_hetero_bayes <- do.call(
+  hetero_bayes_model$sample,
+  hetero_sample_args
+)
+fit_hetero_s2z <- do.call(
+  hetero_s2z_model$sample,
+  hetero_sample_args
+)
+
+hetero_bayes_diagnostics <- fit_hetero_bayes$diagnostic_summary()
+hetero_s2z_diagnostics <- fit_hetero_s2z$diagnostic_summary()
+stopifnot(
+  sum(hetero_bayes_diagnostics$num_divergent) == 0,
+  sum(hetero_s2z_diagnostics$num_divergent) == 0,
+  sum(hetero_bayes_diagnostics$num_max_treedepth) == 0,
+  sum(hetero_s2z_diagnostics$num_max_treedepth) == 0,
+  min(hetero_bayes_diagnostics$ebfmi) > 0.3,
+  min(hetero_s2z_diagnostics$ebfmi) > 0.3
+)
+
+hetero_bayes_summary <- summarize_comparison(
+  fit_hetero_bayes,
+  c("alpha_bayes", "a_bayes", "mean_a", "sigma_x")
+)
+hetero_s2z_summary <- canonicalize_recovered_names(
+  summarize_comparison(
+    fit_hetero_s2z,
+    c(
+      "alpha_bayes_recovered",
+      "a_bayes_recovered",
+      "mean_a_bayes",
+      "sigma_x"
+    )
+  )
+)
+hetero_s2z_summary$variable[
+  hetero_s2z_summary$variable == "mean_a_bayes"
+] <- "mean_a"
+
+hetero_order <- c(
+  "alpha_bayes",
+  paste0("a_bayes[", seq_len(J), "]"),
+  "mean_a",
+  "sigma_x"
+)
+
+hetero_comparison <- merge(
+  hetero_bayes_summary[c("variable", "mean", "q5", "q95", "mcse")],
+  hetero_s2z_summary[c("variable", "mean", "q5", "q95", "mcse")],
+  by = "variable",
+  suffixes = c("_conventional", "_s2z"),
+  sort = FALSE
+)
+hetero_comparison <- hetero_comparison[
+  match(hetero_order, hetero_comparison$variable),
+]
+hetero_comparison$truth <- c(
+  alpha_true,
+  a_bayes_true,
+  mean(a_bayes_true),
+  sigma_x_true
+)
+
+hetero_max_mean_difference <- max(abs(
+  hetero_comparison$mean_conventional - hetero_comparison$mean_s2z
+))
+hetero_max_mcse_ratio <- max(
+  abs(
+    hetero_comparison$mean_conventional - hetero_comparison$mean_s2z
+  ) / sqrt(
+    hetero_comparison$mcse_conventional^2 +
+      hetero_comparison$mcse_s2z^2
+  )
+)
+
+hetero_bayes_ess_variables <- c(
+  "alpha_bayes",
+  paste0("a_bayes[", seq_len(J), "]"),
+  "mean_a",
+  "sigma_x"
+)
+hetero_s2z_ess_variables <- c(
+  "alpha_bayes_recovered",
+  paste0("a_bayes_recovered[", seq_len(J), "]"),
+  "mean_a_bayes",
+  "sigma_x"
+)
+
+hetero_bayes_gradients <- gradient_evaluations(fit_hetero_bayes)
+hetero_s2z_gradients <- gradient_evaluations(fit_hetero_s2z)
+hetero_bayes_ess <- native_bulk_ess(
+  fit_hetero_bayes,
+  hetero_bayes_ess_variables
+)
+hetero_s2z_ess <- native_bulk_ess(
+  fit_hetero_s2z,
+  hetero_s2z_ess_variables
+)
+```
+
+## Stan: different prior SDs
+
+```{.stan code-line-numbers="true" include="./stan/varying_intercept_diff_vars.stan"}
+```
+
+## Different variances: the two fits agree
+
+```{r}
+#| label: compare-heterogeneous-varying-intercept-fits
+#| echo: false
+#| fig-align: center
+#| fig-width: 10
+#| fig-height: 5.2
+#| dev: !expr ifelse(knitr::is_latex_output(), "pdf", "svglite")
+#| dev-args:
+#|   bg: transparent
+#| fig-bg: transparent
+#| out-width: 92%
+
+y_at <- rev(seq_len(nrow(hetero_comparison)))
+offset <- 0.10
+
+op <- par(
+  mar = c(4.2, 7.0, 0.8, 1.0),
+  bty = "n",
+  las = 1,
+  bg = NA,
+  family = "Spectral"
+)
+
+plot(
+  NA,
+  xlim = range(c(
+    hetero_comparison$q5_conventional,
+    hetero_comparison$q95_conventional,
+    hetero_comparison$q5_s2z,
+    hetero_comparison$q95_s2z,
+    hetero_comparison$truth
+  )),
+  ylim = c(0.5, nrow(hetero_comparison) + 0.5),
+  xlab = "Posterior mean and 90% interval",
+  ylab = "",
+  yaxt = "n"
+)
+axis(
+  2,
+  at = y_at,
+  labels = c(
+    expression(alpha[bayes]),
+    expression(a[1]^bayes), expression(a[2]^bayes),
+    expression(a[3]^bayes), expression(a[4]^bayes),
+    expression(a[5]^bayes), expression(a[6]^bayes),
+    expression(bar(a)[bayes]), expression(sigma[x])
+  ),
+  tick = FALSE
+)
+abline(h = y_at, col = adjustcolor(grey, alpha.f = 0.18))
+
+segments(
+  hetero_comparison$q5_conventional, y_at + offset,
+  hetero_comparison$q95_conventional, y_at + offset,
+  col = darkblue, lwd = 3
+)
+points(
+  hetero_comparison$mean_conventional, y_at + offset,
+  pch = 16, col = darkblue
+)
+
+segments(
+  hetero_comparison$q5_s2z, y_at - offset,
+  hetero_comparison$q95_s2z, y_at - offset,
+  col = orange, lwd = 3
+)
+points(
+  hetero_comparison$mean_s2z, y_at - offset,
+  pch = 17, col = orange
+)
+
+points(
+  hetero_comparison$truth, y_at,
+  pch = 4, lwd = 2, cex = 1.15, col = grey
+)
+
+legend(
+  "bottomleft",
+  legend = c(
+    "Conventional fit",
+    "S2Z-coordinate fit: recovered Bayes",
+    "Truth"
+  ),
+  col = c(darkblue, orange, grey),
+  pch = c(16, 17, 4),
+  lwd = c(3, 3, NA),
+  bty = "n"
+)
+
+par(op)
+```
+
+::: {style="font-size: 70%;"}
+The six prior SDs are
+`r paste(hetero_a_prior_sd, collapse = ", ")`. Across every plotted parameter,
+the largest posterior-mean difference is
+`r sprintf("%.3f", hetero_max_mean_difference)` and the largest standardized
+gap is `r sprintf("%.1f", hetero_max_mcse_ratio)` combined Monte Carlo SEs.
+:::
+
+## Sampling efficiency
+
+```{r}
+#| label: compare-heterogeneous-ess-per-gradient
+#| echo: false
+#| results: asis
+
+hetero_ess_table <- data.frame(
+  parameter = c(
+    "&alpha;",
+    paste0("<i>a</i><sub>", seq_len(J), "</sub>"),
+    "<i>a&#772;</i>",
+    "&sigma;<sub><i>x</i></sub>"
+  ),
+  bayes_ess = hetero_bayes_ess,
+  bayes_per_gradient = hetero_bayes_ess / hetero_bayes_gradients,
+  s2z_ess = hetero_s2z_ess,
+  s2z_per_gradient = hetero_s2z_ess / hetero_s2z_gradients
+)
+
+cat(
+  '<table class="ess-table hetero-ess-table">',
+  paste0(
+    '<colgroup><col class="hetero-parameter-col">',
+    '<col span="4" class="hetero-metric-col"></colgroup>'
+  ),
+  '<thead>',
+  '<tr><th rowspan="2">Parameter</th>',
+  '<th class="ess-group ess-group-bayes" colspan="2">Conventional</th>',
+  '<th class="ess-group ess-group-s2z" colspan="2">S2Z coordinates</th></tr>',
+  '<tr><th class="ess-subhead ess-subhead-bayes">ESS</th>',
+  '<th class="ess-subhead ess-subhead-bayes">ESS/grad</th>',
+  '<th class="ess-subhead ess-subhead-s2z">ESS</th>',
+  '<th class="ess-subhead ess-subhead-s2z">ESS/grad</th></tr>',
+  '</thead><tbody>',
+  sep = "\n"
+)
+
+for (i in seq_len(nrow(hetero_ess_table))) {
+  cat(sprintf(
+    paste0(
+      '<tr><td>%s</td><td>%s</td><td>%.3f</td>',
+      '<td>%s</td><td>%.3f</td></tr>'
+    ),
+    hetero_ess_table$parameter[i],
+    format(
+      round(hetero_ess_table$bayes_ess[i]),
+      big.mark = ",",
+      scientific = FALSE
+    ),
+    hetero_ess_table$bayes_per_gradient[i],
+    format(
+      round(hetero_ess_table$s2z_ess[i]),
+      big.mark = ",",
+      scientific = FALSE
+    ),
+    hetero_ess_table$s2z_per_gradient[i]
+  ), "\n")
+}
+
+cat('</tbody></table>')
+```
+
+::: {.ess-note}
+Matched Bayesian estimands from
+`r format(hetero_sample_args$chains * hetero_sample_args$iter_sampling, big.mark = ",")`
+post-warmup draws. ESS/grad divides by total post-warmup `n_leapfrog__`:
+conventional = `r format(hetero_bayes_gradients, big.mark = ",")`;
+S2Z coordinates = `r format(hetero_s2z_gradients, big.mark = ",")`.
 :::
 
 ## Take-away

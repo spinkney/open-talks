@@ -6,9 +6,9 @@
 <script src="sum_to_zero_files/libs/quarto-html/tippy.umd.min.js"></script>
 <link href="sum_to_zero_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="sum_to_zero_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<link href="sum_to_zero_files/libs/quarto-html/quarto-syntax-highlighting-3a307c3d481e20695a1fb528b2a75670.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="sum_to_zero_files/libs/quarto-html/quarto-syntax-highlighting-e97fc0c53e03b0d912b748b5c8c98638.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <link href="sum_to_zero_files/libs/quarto-contrib/alpine-3.12/buttons.css" rel="stylesheet"><meta charset="utf-8">
-  <meta name="generator" content="quarto-1.9.38">
+  <meta name="generator" content="quarto-1.8.26">
 
   <meta name="author" content="Sean Pinkney">
   <meta name="author" content="Nikolai Vetr">
@@ -19,9 +19,6 @@
   <link rel="stylesheet" href="sum_to_zero_files/libs/revealjs/dist/reset.css">
   <link rel="stylesheet" href="sum_to_zero_files/libs/revealjs/dist/reveal.css">
   <style>
-    /* Default styles provided by pandoc.
-    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
-    */
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
     div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -103,6 +100,7 @@
     div.csl-bib-body { }
     div.csl-entry {
       clear: both;
+      margin-bottom: 0em;
     }
     .hanging-indent div.csl-entry {
       margin-left:2em;
@@ -119,7 +117,7 @@
     div.csl-indent {
       margin-left: 2em;
     }  </style>
-  <link rel="stylesheet" href="sum_to_zero_files/libs/revealjs/dist/theme/quarto-a7c210c2c36bbe979e8d915dfd2ba7a5.css">
+  <link rel="stylesheet" href="sum_to_zero_files/libs/revealjs/dist/theme/quarto-48620ee4811eece0313b2ba3d6b03046.css">
   <link rel="stylesheet" href="styles.css">
   <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
   <script>document.addEventListener("DOMContentLoaded", function () {
@@ -351,7 +349,7 @@ y_n &amp; \overset{\text{set}}= -\sum_i^{n - 1} y_i \\
 <li><span class="math inline">\Phi</span> population distribution</li>
 <li>Globally</li>
 <li>Bi-directionally</li>
-<li>AKA <span class="emphasis">partial pooling</span></li>
+<li>Partial pooling</li>
 </ul>
 <p>When the evidence or data for a parameter are</p>
 <ul>
@@ -376,7 +374,7 @@ y_n &amp; \overset{\text{set}}= -\sum_i^{n - 1} y_i \\
 <p>No population distribution <span class="math inline">\Phi</span></p>
 <ul>
 <li>the <span class="math inline">\theta_j</span> are <strong>fixed unknowns</strong>, not draws</li>
-<li>no pooling: each <span class="math inline">\theta_j</span> is estimated from group <span class="math inline">j</span>’s data alone</li>
+<li>no pooling: each <span class="math inline">\theta_j</span> is estimated from group <span class="math inline">j</span> data alone</li>
 <li>information flows one way, <span class="math inline">\theta_j \rightarrow y_j</span></li>
 </ul>
 <p>Groups are tied together only by a <em>hard</em> constraint</p>
@@ -513,69 +511,6 @@ n_j = (8, 13, 21, 34, 55, 89)</code></pre>
 <span id="cb2-24"><a href=""></a>  <span class="dt">vector</span>[J] a_s2z_recovered = a_bayes - mean_a;</span>
 <span id="cb2-25"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="conversion-1" class="slide level2">
-<h2>Conversion</h2>
-<p>Sum-to-zero specification and conversion to Bayesian equivalent</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb3-1"><a href=""></a><span class="kw">data</span> {</span>
-<span id="cb3-2"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>&gt; N;</span>
-<span id="cb3-3"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">2</span>&gt; J;</span>
-<span id="cb3-4"><a href=""></a>  <span class="dt">array</span>[N] <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>, <span class="kw">upper</span>=J&gt; group;</span>
-<span id="cb3-5"><a href=""></a>  <span class="dt">vector</span>[N] x;</span>
-<span id="cb3-6"><a href=""></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; alpha_prior_sd;</span>
-<span id="cb3-7"><a href=""></a>}</span>
-<span id="cb3-8"><a href=""></a><span class="kw">parameters</span> {</span>
-<span id="cb3-9"><a href=""></a>  <span class="dt">real</span> alpha_s2z;</span>
-<span id="cb3-10"><a href=""></a>  <span class="dt">sum_to_zero_vector</span>[J] a_s2z;</span>
-<span id="cb3-11"><a href=""></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; tau;</span>
-<span id="cb3-12"><a href=""></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; sigma_x;</span>
-<span id="cb3-13"><a href=""></a>}</span>
-<span id="cb3-14"><a href=""></a><span class="kw">model</span> {</span>
-<span id="cb3-15"><a href=""></a>  tau ~ normal(<span class="dv">0</span>, <span class="dv">5</span>);</span>
-<span id="cb3-16"><a href=""></a>  sigma_x ~ normal(<span class="dv">0</span>, <span class="dv">2</span>);</span>
-<span id="cb3-17"><a href=""></a>  alpha_s2z ~ normal(<span class="dv">0</span>, hypot(alpha_prior_sd, tau / sqrt(J)));</span>
-<span id="cb3-18"><a href=""></a>  a_s2z ~ normal(<span class="dv">0</span>, tau);</span>
-<span id="cb3-19"><a href=""></a>  <span class="co">// a_s2z lives in J - 1 subspace</span></span>
-<span id="cb3-20"><a href=""></a>  <span class="co">// but the normal divides by J instead of J-1</span></span>
-<span id="cb3-21"><a href=""></a>  <span class="co">// add back one log(tau)</span></span>
-<span id="cb3-22"><a href=""></a>  <span class="kw">target +=</span> log(tau);</span>
-<span id="cb3-23"><a href=""></a>  x ~ normal(alpha_s2z + a_s2z[group], sigma_x);</span>
-<span id="cb3-24"><a href=""></a>}</span>
-<span id="cb3-25"><a href=""></a><span class="kw">generated quantities</span> {</span>
-<span id="cb3-26"><a href=""></a>  <span class="dt">real</span> mean_a_bayes;</span>
-<span id="cb3-27"><a href=""></a>  <span class="dt">real</span> alpha_bayes_recovered;</span>
-<span id="cb3-28"><a href=""></a>  <span class="dt">vector</span>[J] a_bayes_recovered;</span>
-<span id="cb3-29"><a href=""></a>  {</span>
-<span id="cb3-30"><a href=""></a>    <span class="dt">real</span> var_mean_a = square(tau) / J;</span>
-<span id="cb3-31"><a href=""></a>    <span class="dt">real</span> var_alpha = square(alpha_prior_sd);</span>
-<span id="cb3-32"><a href=""></a>    <span class="dt">real</span> conditional_weight = var_mean_a / (var_alpha + var_mean_a);</span>
-<span id="cb3-33"><a href=""></a>    <span class="dt">real</span> conditional_sd = sqrt(</span>
-<span id="cb3-34"><a href=""></a>      var_alpha * var_mean_a / (var_alpha + var_mean_a)</span>
-<span id="cb3-35"><a href=""></a>    );</span>
-<span id="cb3-36"><a href=""></a></span>
-<span id="cb3-37"><a href=""></a>    mean_a_bayes = normal_rng(</span>
-<span id="cb3-38"><a href=""></a>      conditional_weight * alpha_s2z,</span>
-<span id="cb3-39"><a href=""></a>      conditional_sd</span>
-<span id="cb3-40"><a href=""></a>    );</span>
-<span id="cb3-41"><a href=""></a>  }</span>
-<span id="cb3-42"><a href=""></a>  alpha_bayes_recovered = alpha_s2z - mean_a_bayes;</span>
-<span id="cb3-43"><a href=""></a>  a_bayes_recovered = a_s2z + mean_a_bayes;</span>
-<span id="cb3-44"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<aside class="notes">
-<p>Centering J independent normal effects induces covariance <span class="math inline">\tau^2 (I - \mathbf{1}\mathbf{1}^\top / J)</span> on the zero-sum subspace. The direct model therefore uses the same subspace scale tau.</p>
-<p>The <code>target += log(tau)</code> term restores the missing scale factor because the constrained vector has J - 1 degrees of freedom while the vectorized normal density supplies J normalizing terms.</p>
-<p>Conditional on tau, mean(a_bayes) has standard deviation tau / sqrt(J). Convolving it with the alpha_bayes prior gives the induced alpha_s2z prior in the direct program.</p>
-<style type="text/css">
-        span.MJX_Assistive_MathML {
-          position:absolute!important;
-          clip: rect(1px, 1px, 1px, 1px);
-          padding: 1px 0 0 0!important;
-          border: 0!important;
-          height: 1px!important;
-          width: 1px!important;
-          overflow: hidden!important;
-          display:block!important;
-      }</style></aside>
-</section>
 <section id="the-two-fits-agree" class="slide level2">
 <h2>The two fits agree</h2>
 
@@ -601,23 +536,48 @@ n_j = (8, 13, 21, 34, 55, 89)</code></pre>
 </section>
 <section id="sum-to-zero-specification-and-conversion" class="slide level2">
 <h2>Sum-to-zero specification and conversion</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb4-1"><a href=""></a><span class="kw">generated quantities</span> {</span>
-<span id="cb4-2"><a href=""></a>  <span class="dt">real</span> mean_a_bayes;</span>
-<span id="cb4-3"><a href=""></a>  <span class="dt">real</span> alpha_bayes_recovered;</span>
-<span id="cb4-4"><a href=""></a>  <span class="dt">vector</span>[J] a_bayes_recovered;</span>
-<span id="cb4-5"><a href=""></a>  {</span>
-<span id="cb4-6"><a href=""></a>    <span class="dt">real</span> var_mean_a = square(tau) / J;</span>
-<span id="cb4-7"><a href=""></a>    <span class="dt">real</span> var_alpha = square(alpha_prior_sd);</span>
-<span id="cb4-8"><a href=""></a>    <span class="dt">real</span> weight = var_mean_a / (var_alpha + var_mean_a);</span>
-<span id="cb4-9"><a href=""></a>    <span class="dt">real</span> conditional_sd = sqrt(</span>
-<span id="cb4-10"><a href=""></a>      var_alpha * var_mean_a / (var_alpha + var_mean_a)</span>
-<span id="cb4-11"><a href=""></a>    );</span>
-<span id="cb4-12"><a href=""></a></span>
-<span id="cb4-13"><a href=""></a>    mean_a_bayes = normal_rng(weight * alpha_s2z, conditional_sd);</span>
-<span id="cb4-14"><a href=""></a>  }</span>
-<span id="cb4-15"><a href=""></a>  alpha_bayes_recovered = alpha_s2z - mean_a_bayes;</span>
-<span id="cb4-16"><a href=""></a>  a_bayes_recovered = a_s2z + mean_a_bayes;</span>
-<span id="cb4-17"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The sum-to-zero parameter lives in <span class="math inline">J - 1</span> subspace a normal prior divides by <span class="math inline">J</span> instead of <span class="math inline">J-1</span>, add back a <span class="math inline">\log(\tau)</span></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb3-1"><a href=""></a><span class="kw">parameters</span> {</span>
+<span id="cb3-2"><a href=""></a>  <span class="dt">real</span> alpha_s2z;</span>
+<span id="cb3-3"><a href=""></a>  sum_to_zero_vector[J] a_s2z;</span>
+<span id="cb3-4"><a href=""></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; tau, sigma_x;</span>
+<span id="cb3-5"><a href=""></a>}</span>
+<span id="cb3-6"><a href=""></a><span class="kw">model</span> {</span>
+<span id="cb3-7"><a href=""></a>  tau ~ normal(<span class="dv">0</span>, <span class="dv">5</span>);</span>
+<span id="cb3-8"><a href=""></a>  sigma_x ~ normal(<span class="dv">0</span>, <span class="dv">2</span>);</span>
+<span id="cb3-9"><a href=""></a>  alpha_s2z ~ normal(<span class="dv">0</span>, hypot(alpha_prior_sd, tau / sqrt(J)));</span>
+<span id="cb3-10"><a href=""></a>  a_s2z ~ normal(<span class="dv">0</span>, tau);</span>
+<span id="cb3-11"><a href=""></a>  <span class="kw">target +=</span> log(tau);</span>
+<span id="cb3-12"><a href=""></a>  x ~ normal(alpha_s2z + a_s2z[group], sigma_x);</span>
+<span id="cb3-13"><a href=""></a>}</span>
+<span id="cb3-14"><a href=""></a><span class="kw">generated quantities</span> {</span>
+<span id="cb3-15"><a href=""></a>  <span class="dt">real</span> mean_a_bayes, alpha_bayes_recovered;</span>
+<span id="cb3-16"><a href=""></a>  <span class="dt">vector</span>[J] a_bayes_recovered;</span>
+<span id="cb3-17"><a href=""></a>  {</span>
+<span id="cb3-18"><a href=""></a>    <span class="dt">real</span> var_mean_a = square(tau) / J;</span>
+<span id="cb3-19"><a href=""></a>    <span class="dt">real</span> var_alpha = square(alpha_prior_sd);</span>
+<span id="cb3-20"><a href=""></a>    <span class="dt">real</span> weight = var_mean_a / (var_alpha + var_mean_a);</span>
+<span id="cb3-21"><a href=""></a>    <span class="dt">real</span> conditional_sd = sqrt(var_alpha * var_mean_a / (var_alpha var_mean_a));</span>
+<span id="cb3-22"><a href=""></a>    mean_a_bayes = normal_rng(weight * alpha_s2z, conditional_sd);</span>
+<span id="cb3-23"><a href=""></a>  }</span>
+<span id="cb3-24"><a href=""></a>  alpha_bayes_recovered = alpha_s2z - mean_a_bayes;</span>
+<span id="cb3-25"><a href=""></a>  a_bayes_recovered = a_s2z + mean_a_bayes;</span>
+<span id="cb3-26"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<aside class="notes">
+<p>Centering J independent normal effects induces covariance <span class="math inline">\tau^2 (I - \mathbf{1}\mathbf{1}^\top / J)</span> on the zero-sum subspace. The direct model therefore uses the same subspace scale tau.</p>
+<p>The <code>target += log(tau)</code> term restores the missing scale factor because the constrained vector has J - 1 degrees of freedom while the vectorized normal density supplies J normalizing terms.</p>
+<p>Conditional on tau, mean(a_bayes) has standard deviation tau / sqrt(J). Convolving it with the alpha_bayes prior gives the induced alpha_s2z prior in the direct program.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </section>
 <section id="back-to-bayesian-the-two-fits-agree" class="slide level2">
 <h2>Back to Bayesian: the two fits agree</h2>
@@ -826,6 +786,269 @@ ESS/grad
 <p>4 chains × 10,000 sampling iterations = 40,000 post-warmup draws, plus 4,000 warmup iterations per chain. Bulk ESS is pooled across chains. ESS/grad divides by the total post-warmup <code>n_leapfrog__</code>: Bayesian = 2,796,128; sum-to-zero = 275,672.</p>
 </div>
 </section>
+<section id="different-variances-on-the-varying-intercepts" class="slide level2">
+<h2>Different variances on the varying intercepts</h2>
+<div style="font-size: 70%;">
+<p>Let <span class="math inline">m = \bar a_{\mathrm{bayes}}</span>, <span class="math inline">s = \alpha_{\mathrm{s2z}}</span>, and <span class="math inline">z_j = a_j^{\mathrm{s2z}}</span>, with <span class="math inline">\sum_j z_j = 0</span>. We sample <span class="math inline">(s, z, m)</span> but place the priors on the recovered coordinates</p>
+<p><span class="math display">
+\alpha_{\mathrm{bayes}} = s-m,
+\qquad
+a_j^{\mathrm{bayes}} = z_j+m,
+\qquad
+a_j^{\mathrm{bayes}} \sim \mathcal N(0,\sigma_j^2).
+</span></p>
+<p>Consequently, the recovered priors already contribute the following quadratic in <span class="math inline">m</span>:</p>
+<p><span class="math display">
+\log p(m\mid s,\mathbf z)
+= C-\frac12\left\{
+\frac{(s-m)^2}{s_\alpha^2}
++\sum_{j=1}^J\frac{(z_j+m)^2}{\sigma_j^2}
+\right\}.
+</span></p>
+<p>Writing <span class="math inline">\lambda = s_\alpha^{-2}+\sum_j\sigma_j^{-2}</span> gives</p>
+<p><span class="math display">
+m\mid s,\mathbf z
+\sim \mathcal N\!\left(
+\frac{s/s_\alpha^2-\sum_j z_j/\sigma_j^2}{\lambda},
+\frac{1}{\lambda}
+\right),
+\qquad
+m \sim \mathcal N\!\left(0,\frac{1}{J^2}\sum_j\sigma_j^2\right).
+</span></p>
+<p>It is the correct induced prior on <span class="math inline">m</span>, so no need to place a prior directly on <span class="math inline">m</span>.</p>
+</div>
+</section>
+<section id="stan-different-prior-sds" class="slide level2">
+<h2>Stan: different prior SDs</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb4-1"><a href=""></a><span class="kw">data</span> {</span>
+<span id="cb4-2"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>&gt; N;</span>
+<span id="cb4-3"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">2</span>&gt; J;</span>
+<span id="cb4-4"><a href=""></a>  <span class="dt">array</span>[N] <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>, <span class="kw">upper</span>=J&gt; group;</span>
+<span id="cb4-5"><a href=""></a>  <span class="dt">vector</span>[N] x;</span>
+<span id="cb4-6"><a href=""></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; alpha_prior_sd;</span>
+<span id="cb4-7"><a href=""></a>  <span class="dt">vector</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt;[J] a_prior_sd;</span>
+<span id="cb4-8"><a href=""></a>}</span>
+<span id="cb4-9"><a href=""></a><span class="kw">parameters</span> {</span>
+<span id="cb4-10"><a href=""></a>  <span class="dt">real</span> alpha_s2z;</span>
+<span id="cb4-11"><a href=""></a>  sum_to_zero_vector[J] a_s2z;</span>
+<span id="cb4-12"><a href=""></a>  <span class="dt">real</span> mean_a_bayes;</span>
+<span id="cb4-13"><a href=""></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; sigma_x;</span>
+<span id="cb4-14"><a href=""></a>}</span>
+<span id="cb4-15"><a href=""></a><span class="kw">transformed parameters</span> {</span>
+<span id="cb4-16"><a href=""></a>  <span class="dt">real</span> alpha_bayes_recovered = alpha_s2z - mean_a_bayes;</span>
+<span id="cb4-17"><a href=""></a>  <span class="dt">vector</span>[J] a_bayes_recovered = a_s2z + mean_a_bayes;</span>
+<span id="cb4-18"><a href=""></a>}</span>
+<span id="cb4-19"><a href=""></a><span class="kw">model</span> {</span>
+<span id="cb4-20"><a href=""></a>  sigma_x ~ normal(<span class="dv">0</span>, <span class="dv">2</span>);</span>
+<span id="cb4-21"><a href=""></a>  <span class="co">// Priors are placed in the intuitive Bayesian coordinates.</span></span>
+<span id="cb4-22"><a href=""></a>  alpha_bayes_recovered ~ normal(<span class="dv">0</span>, alpha_prior_sd);</span>
+<span id="cb4-23"><a href=""></a>  a_bayes_recovered ~ normal(<span class="dv">0</span>, a_prior_sd);</span>
+<span id="cb4-24"><a href=""></a>  <span class="co">// Exact change of variables; constant because J is fixed.</span></span>
+<span id="cb4-25"><a href=""></a>  <span class="kw">target +=</span> <span class="fl">0.5</span> * log(J);</span>
+<span id="cb4-26"><a href=""></a>  x ~ normal(alpha_bayes_recovered + a_bayes_recovered[group], sigma_x);</span>
+<span id="cb4-27"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="different-variances-the-two-fits-agree" class="slide level2">
+<h2>Different variances: the two fits agree</h2>
+
+<img data-src="sum_to_zero_files/figure-revealjs/compare-heterogeneous-varying-intercept-fits-1.svg" class="quarto-figure quarto-figure-center r-stretch" style="width:92.0%"><div style="font-size: 70%;">
+<p>The six prior SDs are 1, 1.5, 2, 2.5, 3, 3.5. Across every plotted parameter, the largest posterior-mean difference is 0.004 and the largest standardized gap is 0.4 combined Monte Carlo SEs.</p>
+</div>
+</section>
+<section id="sampling-efficiency" class="slide level2">
+<h2>Sampling efficiency</h2>
+<table class="ess-table hetero-ess-table">
+<colgroup>
+<col class="hetero-parameter-col">
+<col span="4" class="hetero-metric-col">
+</colgroup>
+<thead>
+<tr>
+<th rowspan="2">
+Parameter
+</th>
+<th class="ess-group ess-group-bayes" colspan="2">
+Conventional
+</th>
+<th class="ess-group ess-group-s2z" colspan="2">
+S2Z coordinates
+</th>
+</tr>
+<tr>
+<th class="ess-subhead ess-subhead-bayes">
+ESS
+</th>
+<th class="ess-subhead ess-subhead-bayes">
+ESS/grad
+</th>
+<th class="ess-subhead ess-subhead-s2z">
+ESS
+</th>
+<th class="ess-subhead ess-subhead-s2z">
+ESS/grad
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+α
+</td>
+<td>
+6,263
+</td>
+<td>
+0.004
+</td>
+<td>
+61,647
+</td>
+<td>
+0.220
+</td>
+</tr>
+<tr>
+<td>
+<i>a</i><sub>1</sub>
+</td>
+<td>
+7,061
+</td>
+<td>
+0.005
+</td>
+<td>
+70,771
+</td>
+<td>
+0.253
+</td>
+</tr>
+<tr>
+<td>
+<i>a</i><sub>2</sub>
+</td>
+<td>
+6,783
+</td>
+<td>
+0.004
+</td>
+<td>
+68,576
+</td>
+<td>
+0.245
+</td>
+</tr>
+<tr>
+<td>
+<i>a</i><sub>3</sub>
+</td>
+<td>
+6,560
+</td>
+<td>
+0.004
+</td>
+<td>
+64,527
+</td>
+<td>
+0.231
+</td>
+</tr>
+<tr>
+<td>
+<i>a</i><sub>4</sub>
+</td>
+<td>
+6,510
+</td>
+<td>
+0.004
+</td>
+<td>
+63,248
+</td>
+<td>
+0.226
+</td>
+</tr>
+<tr>
+<td>
+<i>a</i><sub>5</sub>
+</td>
+<td>
+6,405
+</td>
+<td>
+0.004
+</td>
+<td>
+61,533
+</td>
+<td>
+0.220
+</td>
+</tr>
+<tr>
+<td>
+<i>a</i><sub>6</sub>
+</td>
+<td>
+6,332
+</td>
+<td>
+0.004
+</td>
+<td>
+60,586
+</td>
+<td>
+0.217
+</td>
+</tr>
+<tr>
+<td>
+<i>ā</i>
+</td>
+<td>
+6,225
+</td>
+<td>
+0.004
+</td>
+<td>
+66,282
+</td>
+<td>
+0.237
+</td>
+</tr>
+<tr>
+<td>
+σ<sub><i>x</i></sub>
+</td>
+<td>
+15,363
+</td>
+<td>
+0.010
+</td>
+<td>
+61,945
+</td>
+<td>
+0.221
+</td>
+</tr>
+</tbody>
+</table>
+<div class="ess-note">
+<p>Matched Bayesian estimands from 40,000 post-warmup draws. ESS/grad divides by total post-warmup <code>n_leapfrog__</code>: conventional = 1,549,108; S2Z coordinates = 279,784.</p>
+</div>
+</section>
 <section id="take-away" class="slide level2">
 <h2>Take-away</h2>
 <p>Our Bayesian hierarchical models are doing something special.</p>
@@ -843,9 +1066,9 @@ ESS/grad
 <img data-src="images/repo_qr.png" class="quarto-figure quarto-figure-center r-stretch" width="380"><p style="text-align: center;">
 <a href="https://github.com/spinkney/open-talks">github.com/spinkney/open-talks</a>
 </p>
-<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
 <div id="ref-delmas_2024" class="csl-entry" role="listitem">
-Delmas, Jean-Pierre. 2024. <span>“Background on Real and Complex Elliptically Symmetric Distributions.”</span> In <em>Elliptically Symmetric Distributions in Signal Processing and Machine Learning</em>, edited by Jean-Pierre Delmas, Mohammed Nabil El Korso, Stefano Fortunati, and Frédéric Pascal. Springer Nature Switzerland. <a href="https://doi.org/10.1007/978-3-031-52116-4_1">https://doi.org/10.1007/978-3-031-52116-4_1</a>.
+Delmas, Jean-Pierre. 2024. <span>“Background on Real and Complex Elliptically Symmetric Distributions.”</span> In <em>Elliptically Symmetric Distributions in Signal Processing and Machine Learning</em>, edited by Jean-Pierre Delmas, Mohammed Nabil El Korso, Stefano Fortunati, and Frédéric Pascal, 1–34. Cham: Springer Nature Switzerland. <a href="https://doi.org/10.1007/978-3-031-52116-4_1">https://doi.org/10.1007/978-3-031-52116-4_1</a>.
 </div>
 </div>
 

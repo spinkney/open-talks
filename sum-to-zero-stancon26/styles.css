@@ -67,3 +67,15 @@
 .reveal .ess-note p {
   margin: 0;
 }
+
+.reveal table.hetero-ess-table {
+  table-layout: fixed;
+}
+
+.reveal table.hetero-ess-table col.hetero-parameter-col {
+  width: 20%;
+}
+
+.reveal table.hetero-ess-table col.hetero-metric-col {
+  width: 20%;
+}
