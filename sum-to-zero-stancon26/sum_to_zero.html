@@ -6,9 +6,9 @@
 <script src="sum_to_zero_files/libs/quarto-html/tippy.umd.min.js"></script>
 <link href="sum_to_zero_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="sum_to_zero_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<link href="sum_to_zero_files/libs/quarto-html/quarto-syntax-highlighting-38902dcd73e7f8352ecceb5e549548c1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="sum_to_zero_files/libs/quarto-html/quarto-syntax-highlighting-e97fc0c53e03b0d912b748b5c8c98638.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <link href="sum_to_zero_files/libs/quarto-contrib/alpine-3.12/buttons.css" rel="stylesheet"><meta charset="utf-8">
-  <meta name="generator" content="quarto-1.10.18">
+  <meta name="generator" content="quarto-1.8.26">
 
   <meta name="author" content="Sean Pinkney">
   <meta name="author" content="Nikolai Vetr">
@@ -19,16 +19,10 @@
   <link rel="stylesheet" href="sum_to_zero_files/libs/revealjs/dist/reset.css">
   <link rel="stylesheet" href="sum_to_zero_files/libs/revealjs/dist/reveal.css">
   <style>
-    /* Default styles provided by pandoc.
-    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
-    */
+    code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
-    div.columns{display: flex; gap: 1.5em;}
-    div.column{flex: auto;}
-    @media screen {
-    div.columns{gap: min(4vw, 1.5em);}
-    div.column{overflow-x: auto;}
-    }
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
     ul.task-list{list-style: none;}
     ul.task-list li input[type="checkbox"] {
@@ -106,6 +100,7 @@
     div.csl-bib-body { }
     div.csl-entry {
       clear: both;
+      margin-bottom: 0em;
     }
     .hanging-indent div.csl-entry {
       margin-left:2em;
@@ -122,7 +117,7 @@
     div.csl-indent {
       margin-left: 2em;
     }  </style>
-  <link rel="stylesheet" href="sum_to_zero_files/libs/revealjs/dist/theme/quarto-a7c210c2c36bbe979e8d915dfd2ba7a5.css">
+  <link rel="stylesheet" href="sum_to_zero_files/libs/revealjs/dist/theme/quarto-48620ee4811eece0313b2ba3d6b03046.css">
   <link rel="stylesheet" href="styles.css">
   <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
   <script>document.addEventListener("DOMContentLoaded", function () {
@@ -243,7 +238,7 @@
 <div class="quarto-title-authors">
 <div class="quarto-title-author">
 <div class="quarto-title-author-name">
-Sean Pinkney
+Sean Pinkney 
 </div>
 <div class="quarto-title-author-email">
 <a href="mailto:sean.pinkney@gmail.com">sean.pinkney@gmail.com</a>
@@ -257,7 +252,7 @@ Sean Pinkney
     </div>
 <div class="quarto-title-author">
 <div class="quarto-title-author-name">
-Nikolai Vetr
+Nikolai Vetr 
 </div>
 <div class="quarto-title-author-email">
 <a href="mailto:nikgvetr@stanford.edu">nikgvetr@stanford.edu</a>
@@ -464,31 +459,31 @@ n_j = (8, 13, 21, 34, 55, 89)</code></pre>
 <section id="conversion" class="slide level2 conversion-code-slide">
 <h2>Conversion</h2>
 <p>Bayesian specification and conversion to sum-to-zero equivalent</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb2-1"><a href="" aria-label="1"></a><span class="kw">data</span> {</span>
-<span id="cb2-2"><a href="" aria-label="2"></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>&gt; N;</span>
-<span id="cb2-3"><a href="" aria-label="3"></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">2</span>&gt; J;</span>
-<span id="cb2-4"><a href="" aria-label="4"></a>  <span class="dt">array</span>[N] <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>, <span class="kw">upper</span>=J&gt; group;</span>
-<span id="cb2-5"><a href="" aria-label="5"></a>  <span class="dt">vector</span>[N] x;</span>
-<span id="cb2-6"><a href="" aria-label="6"></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; alpha_prior_sd;</span>
-<span id="cb2-7"><a href="" aria-label="7"></a>}</span>
-<span id="cb2-8"><a href="" aria-label="8"></a><span class="kw">parameters</span> {</span>
-<span id="cb2-9"><a href="" aria-label="9"></a>  <span class="dt">real</span> alpha_bayes;</span>
-<span id="cb2-10"><a href="" aria-label="10"></a>  <span class="dt">vector</span>[J] a_bayes;</span>
-<span id="cb2-11"><a href="" aria-label="11"></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; tau;</span>
-<span id="cb2-12"><a href="" aria-label="12"></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; sigma_x;</span>
-<span id="cb2-13"><a href="" aria-label="13"></a>}</span>
-<span id="cb2-14"><a href="" aria-label="14"></a><span class="kw">model</span> {</span>
-<span id="cb2-15"><a href="" aria-label="15"></a>  alpha_bayes ~ normal(<span class="dv">0</span>, alpha_prior_sd);</span>
-<span id="cb2-16"><a href="" aria-label="16"></a>  a_bayes ~ normal(<span class="dv">0</span>, tau);</span>
-<span id="cb2-17"><a href="" aria-label="17"></a>  tau ~ normal(<span class="dv">0</span>, <span class="dv">5</span>);</span>
-<span id="cb2-18"><a href="" aria-label="18"></a>  sigma_x ~ normal(<span class="dv">0</span>, <span class="dv">2</span>);</span>
-<span id="cb2-19"><a href="" aria-label="19"></a>  x ~ normal(alpha_bayes + a_bayes[group], sigma_x);</span>
-<span id="cb2-20"><a href="" aria-label="20"></a>}</span>
-<span id="cb2-21"><a href="" aria-label="21"></a><span class="kw">generated quantities</span> {</span>
-<span id="cb2-22"><a href="" aria-label="22"></a>  <span class="dt">real</span> mean_a = mean(a_bayes);</span>
-<span id="cb2-23"><a href="" aria-label="23"></a>  <span class="dt">real</span> alpha_s2z_recovered = alpha_bayes + mean_a;</span>
-<span id="cb2-24"><a href="" aria-label="24"></a>  <span class="dt">vector</span>[J] a_s2z_recovered = a_bayes - mean_a;</span>
-<span id="cb2-25"><a href="" aria-label="25"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb2-1"><a href=""></a><span class="kw">data</span> {</span>
+<span id="cb2-2"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>&gt; N;</span>
+<span id="cb2-3"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">2</span>&gt; J;</span>
+<span id="cb2-4"><a href=""></a>  <span class="dt">array</span>[N] <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>, <span class="kw">upper</span>=J&gt; group;</span>
+<span id="cb2-5"><a href=""></a>  <span class="dt">vector</span>[N] x;</span>
+<span id="cb2-6"><a href=""></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; alpha_prior_sd;</span>
+<span id="cb2-7"><a href=""></a>}</span>
+<span id="cb2-8"><a href=""></a><span class="kw">parameters</span> {</span>
+<span id="cb2-9"><a href=""></a>  <span class="dt">real</span> alpha_bayes;</span>
+<span id="cb2-10"><a href=""></a>  <span class="dt">vector</span>[J] a_bayes;</span>
+<span id="cb2-11"><a href=""></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; tau;</span>
+<span id="cb2-12"><a href=""></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; sigma_x;</span>
+<span id="cb2-13"><a href=""></a>}</span>
+<span id="cb2-14"><a href=""></a><span class="kw">model</span> {</span>
+<span id="cb2-15"><a href=""></a>  alpha_bayes ~ normal(<span class="dv">0</span>, alpha_prior_sd);</span>
+<span id="cb2-16"><a href=""></a>  a_bayes ~ normal(<span class="dv">0</span>, tau);</span>
+<span id="cb2-17"><a href=""></a>  tau ~ normal(<span class="dv">0</span>, <span class="dv">5</span>);</span>
+<span id="cb2-18"><a href=""></a>  sigma_x ~ normal(<span class="dv">0</span>, <span class="dv">2</span>);</span>
+<span id="cb2-19"><a href=""></a>  x ~ normal(alpha_bayes + a_bayes[group], sigma_x);</span>
+<span id="cb2-20"><a href=""></a>}</span>
+<span id="cb2-21"><a href=""></a><span class="kw">generated quantities</span> {</span>
+<span id="cb2-22"><a href=""></a>  <span class="dt">real</span> mean_a = mean(a_bayes);</span>
+<span id="cb2-23"><a href=""></a>  <span class="dt">real</span> alpha_s2z_recovered = alpha_bayes + mean_a;</span>
+<span id="cb2-24"><a href=""></a>  <span class="dt">vector</span>[J] a_s2z_recovered = a_bayes - mean_a;</span>
+<span id="cb2-25"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="the-two-fits-agree" class="slide level2">
 <h2>The two fits agree</h2>
@@ -497,40 +492,32 @@ n_j = (8, 13, 21, 34, 55, 89)</code></pre>
 <p>Across <span class="math inline">\alpha_{\mathrm{s2z}}</span> and the six <span class="math inline">a_j^{\mathrm{s2z}}</span>, the largest posterior-mean difference is 0.002. Across every plotted parameter, the largest difference is 0.003: Monte Carlo error at the scale of the plot.</p>
 </div>
 </section>
-<section id="what-about-going-from-sum-to-zero-to-population-models" class="slide level2">
+<section id="what-about-going-from-sum-to-zero-to-population-models" class="slide level2 nostretch population-derivation-slide">
 <h2>What about going from sum-to-zero to population models?</h2>
-<p>We have</p>
-<div style="font-size: 75%;">
-<p><span class="math display">
-\alpha_{\text{bayes}} \sim \mathcal{N}(0, s^2_\alpha) \qquad \bar{a} \mid \tau \sim \mathcal{N}(0, v_m) \qquad  v_m = \frac{\tau^2}{J}
-</span></p>
-</div>
-<p>Previously we saw that <span class="math inline">\alpha_{\text{s2z}} = \alpha_{\text{bayes}} + \bar{a}</span>. Therefore, the joint prior given <span class="math inline">\tau</span> is MVN as</p>
-<div style="font-size: 75%;">
-<p><span class="math display">
-\text{Var}(\alpha_{\text{s2z}} \mid \tau) = s^2_\alpha + v_m, \qquad \text{Cov}(\bar{a},\, \alpha_\text{s2z} \mid \tau) = v_m
-</span></p>
-</div>
-<p>where</p>
-<div style="font-size: 75%;">
-<p><span class="math display">
-\begin{pmatrix} \bar{a} \\ \alpha_\text{s2z} \end{pmatrix}\Bigm|\tau
-\sim
-\mathcal N\!\left[
-\begin{pmatrix}0\\0\end{pmatrix},
-\begin{pmatrix}
-v_m &amp; v_m\\
-v_m &amp; s_\alpha^2+v_m
-\end{pmatrix}
-\right]
-</span></p>
-</div>
-<p>Using the standard conditional normal formulas,</p>
-<div style="font-size: 75%;">
+<div style="font-size: 66%; line-height: 1.12;">
+<p>Given <span class="math inline">\tau</span>, let <span class="math inline">v_m=\tau^2/J</span>, with <span class="math inline">\alpha_{\mathrm{bayes}}\perp\bar a\mid\tau</span>. Then</p>
 <p><span class="math display">
 \begin{gathered}
-\bar{a}\mid\alpha_{\mathrm{s2z}},\,\tau
-\sim\mathcal N\!\left(w\alpha_{\mathrm{s2z}},v_c\right),\\[0.6em]
+\alpha_{\mathrm{bayes}}\sim\mathcal N(0,s_\alpha^2),
+\qquad \bar a\mid\tau\sim\mathcal N(0,v_m),\\[0.35em]
+\alpha_{\mathrm{s2z}}=\alpha_{\mathrm{bayes}}+\bar a
+\ \Longrightarrow\
+\begin{cases}
+\operatorname{Var}(\alpha_{\mathrm{s2z}}\mid\tau)=s_\alpha^2+v_m,\\
+\operatorname{Cov}(\bar a,\alpha_{\mathrm{s2z}}\mid\tau)=v_m,
+\end{cases}\\[0.45em]
+\begin{pmatrix}\bar a\\ \alpha_{\mathrm{s2z}}\end{pmatrix}\Bigm|\tau
+\sim\mathcal N\!\left[
+\begin{pmatrix}0\\0\end{pmatrix},
+\begin{pmatrix}v_m&amp;v_m\\v_m&amp;s_\alpha^2+v_m\end{pmatrix}
+\right].
+\end{gathered}
+</span></p>
+<p>The conditional-normal formula therefore gives</p>
+<p><span class="math display">
+\begin{gathered}
+\bar a\mid\alpha_{\mathrm{s2z}},\tau
+\sim\mathcal N\!\left(w\alpha_{\mathrm{s2z}},v_c\right),\\[0.35em]
 \underbrace{\frac{v_m}{s_\alpha^2+v_m}}_{w},
 \qquad
 \underbrace{v_m-\frac{v_m^2}{s_\alpha^2+v_m}}_{v_c}.
@@ -538,37 +525,42 @@ v_m &amp; s_\alpha^2+v_m
 </span></p>
 </div>
 </section>
-<section id="what-about-going-from-sum-to-zero-to-population-models-1" class="slide level2 s2z-conversion-code-slide">
+<section id="what-about-going-from-sum-to-zero-to-population-models-1" class="slide level2 s2z-conversion-code-slide nostretch">
 <h2>What about going from sum-to-zero to population models?</h2>
-<p>Previously, we derived the distribution of <span class="math inline">\bar{a}</span>, the realized mean of the Bayesian group effects, and we denote a random draw from that distribution as <span class="math inline">m</span>. To convert the sum-to-zero estimates into equivalent (in distribution) Bayesian estimates:</p>
-<ol type="1">
-<li>Sample <span class="math inline">m \sim \mathcal N(w\,\alpha_{\text{s2z}},v_c)</span>, using (mean, variance) notation.</li>
-<li>Set <span class="math inline">\alpha_{\text{bayes}} = \alpha_{\text{s2z}} - m</span> and <span class="math inline">a_j^{\text{bayes}} = a_j^{\text{s2z}} + m</span>.</li>
-</ol>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb3-1"><a href="" aria-label="1"></a><span class="kw">parameters</span> {</span>
-<span id="cb3-2"><a href="" aria-label="2"></a>  <span class="dt">real</span> alpha_s2z; <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; tau, sigma_x;</span>
-<span id="cb3-3"><a href="" aria-label="3"></a>  <span class="dt">sum_to_zero_vector</span>[J] a_s2z;</span>
-<span id="cb3-4"><a href="" aria-label="4"></a>}</span>
-<span id="cb3-5"><a href="" aria-label="5"></a><span class="kw">model</span> {</span>
-<span id="cb3-6"><a href="" aria-label="6"></a>  tau ~ normal(<span class="dv">0</span>, <span class="dv">5</span>); sigma_x ~ normal(<span class="dv">0</span>, <span class="dv">2</span>);</span>
-<span id="cb3-7"><a href="" aria-label="7"></a>  alpha_s2z ~ normal(<span class="dv">0</span>, hypot(alpha_prior_sd, tau / sqrt(J)));</span>
-<span id="cb3-8"><a href="" aria-label="8"></a>  a_s2z ~ normal(<span class="dv">0</span>, tau);</span>
-<span id="cb3-9"><a href="" aria-label="9"></a>  <span class="kw">target +=</span> log(tau);</span>
-<span id="cb3-10"><a href="" aria-label="10"></a>  x ~ normal(alpha_s2z + a_s2z[group], sigma_x);</span>
-<span id="cb3-11"><a href="" aria-label="11"></a>}</span>
-<span id="cb3-12"><a href="" aria-label="12"></a><span class="kw">generated quantities</span> {</span>
-<span id="cb3-13"><a href="" aria-label="13"></a>  <span class="dt">real</span> mean_a_bayes, alpha_bayes_recovered;</span>
-<span id="cb3-14"><a href="" aria-label="14"></a>  <span class="dt">vector</span>[J] a_bayes_recovered;</span>
-<span id="cb3-15"><a href="" aria-label="15"></a>  {</span>
-<span id="cb3-16"><a href="" aria-label="16"></a>    <span class="dt">real</span> var_mean_a = square(tau) / J;</span>
-<span id="cb3-17"><a href="" aria-label="17"></a>    <span class="dt">real</span> var_alpha = square(alpha_prior_sd);</span>
-<span id="cb3-18"><a href="" aria-label="18"></a>    <span class="dt">real</span> weight = var_mean_a / (var_alpha + var_mean_a);</span>
-<span id="cb3-19"><a href="" aria-label="19"></a>    <span class="dt">real</span> conditional_sd = sqrt(var_alpha * var_mean_a / (var_alpha + var_mean_a));</span>
-<span id="cb3-20"><a href="" aria-label="20"></a>    mean_a_bayes = normal_rng(weight * alpha_s2z, conditional_sd);</span>
-<span id="cb3-21"><a href="" aria-label="21"></a>  }</span>
-<span id="cb3-22"><a href="" aria-label="22"></a>  alpha_bayes_recovered = alpha_s2z - mean_a_bayes;</span>
-<span id="cb3-23"><a href="" aria-label="23"></a>  a_bayes_recovered = a_s2z + mean_a_bayes;</span>
-<span id="cb3-24"><a href="" aria-label="24"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div style="font-size: 64%; line-height: 1.08;">
+<p>For each sum-to-zero posterior draw, sample the missing realized mean and shift the coordinates:</p>
+<p><span class="math display">
+m\mid\alpha_{\mathrm{s2z}},\tau
+\sim\mathcal N(w\alpha_{\mathrm{s2z}},v_c),\qquad
+\alpha_{\mathrm{bayes}}=\alpha_{\mathrm{s2z}}-m,\qquad
+a_j^{\mathrm{bayes}}=a_j^{\mathrm{s2z}}+m,
+</span></p>
+<p>where <span class="math inline">\mathcal N(\text{mean},\text{variance})</span> is used.</p>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb3-1"><a href=""></a><span class="kw">parameters</span> {</span>
+<span id="cb3-2"><a href=""></a>  <span class="dt">real</span> alpha_s2z; <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; tau, sigma_x;</span>
+<span id="cb3-3"><a href=""></a>  sum_to_zero_vector[J] a_s2z;</span>
+<span id="cb3-4"><a href=""></a>}</span>
+<span id="cb3-5"><a href=""></a><span class="kw">model</span> {</span>
+<span id="cb3-6"><a href=""></a>  tau ~ normal(<span class="dv">0</span>, <span class="dv">5</span>); sigma_x ~ normal(<span class="dv">0</span>, <span class="dv">2</span>);</span>
+<span id="cb3-7"><a href=""></a>  alpha_s2z ~ normal(<span class="dv">0</span>, hypot(alpha_prior_sd, tau / sqrt(J)));</span>
+<span id="cb3-8"><a href=""></a>  a_s2z ~ normal(<span class="dv">0</span>, tau);</span>
+<span id="cb3-9"><a href=""></a>  <span class="kw">target +=</span> log(tau);</span>
+<span id="cb3-10"><a href=""></a>  x ~ normal(alpha_s2z + a_s2z[group], sigma_x);</span>
+<span id="cb3-11"><a href=""></a>}</span>
+<span id="cb3-12"><a href=""></a><span class="kw">generated quantities</span> {</span>
+<span id="cb3-13"><a href=""></a>  <span class="dt">real</span> mean_a_bayes, alpha_bayes_recovered;</span>
+<span id="cb3-14"><a href=""></a>  <span class="dt">vector</span>[J] a_bayes_recovered;</span>
+<span id="cb3-15"><a href=""></a>  {</span>
+<span id="cb3-16"><a href=""></a>    <span class="dt">real</span> var_mean_a = square(tau) / J;</span>
+<span id="cb3-17"><a href=""></a>    <span class="dt">real</span> var_alpha = square(alpha_prior_sd);</span>
+<span id="cb3-18"><a href=""></a>    <span class="dt">real</span> weight = var_mean_a / (var_alpha + var_mean_a);</span>
+<span id="cb3-19"><a href=""></a>    <span class="dt">real</span> conditional_sd = sqrt(var_alpha * var_mean_a / (var_alpha + var_mean_a));</span>
+<span id="cb3-20"><a href=""></a>    mean_a_bayes = normal_rng(weight * alpha_s2z, conditional_sd);</span>
+<span id="cb3-21"><a href=""></a>  }</span>
+<span id="cb3-22"><a href=""></a>  alpha_bayes_recovered = alpha_s2z - mean_a_bayes;</span>
+<span id="cb3-23"><a href=""></a>  a_bayes_recovered = a_s2z + mean_a_bayes;</span>
+<span id="cb3-24"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <aside class="notes">
 <p>Centering J independent normal effects induces covariance <span class="math inline">\tau^2 (I - \mathbf{1}\mathbf{1}^\top / J)</span> on the zero-sum subspace. The direct model therefore uses the same subspace scale tau.</p>
 <p>The <code>target += log(tau)</code> term restores the missing scale factor because the constrained vector has J - 1 degrees of freedom while the vectorized normal density supplies J normalizing terms.</p>
@@ -904,10 +896,10 @@ b_j^{\mathrm{s2z}}=\lambda_\omega z_j^{\mathrm{s2z}},
 </span></p>
 </div>
 </section>
-<section id="recovery" class="slide level2 nostretch">
+<section id="recovery" class="slide level2 nostretch recovery-slide">
 <h2>Recovery</h2>
-<p>Recovering the removed log-scale mean <span class="math inline">\bar b</span></p>
-<div style="font-size: 70%;">
+<div style="font-size: 60%; line-height: 1.08;">
+<p><strong>Recovering the removed log-scale mean <span class="math inline">\bar b</span></strong></p>
 <p>Let <span class="math inline">v_b=\lambda_\omega^2/J=\omega^2/J</span> and <span class="math inline">V=s_\gamma^2+v_b</span>. Then</p>
 <p><span class="math display">
 \bar b\mid\gamma_{\mathrm{s2z}},\lambda_\omega
@@ -928,10 +920,7 @@ b_j^{\mathrm{s2z}}=\lambda_\omega z_j^{\mathrm{s2z}},
 b_j=b_j^{\mathrm{s2z}}+\bar b.
 \end{aligned}
 </span></p>
-<p>The appendix code calls <span class="math inline">z_{\bar b}</span> <code>z_mean_b_cond</code>. Its symmetry means <span class="math inline">\lambda_\omega z_{\bar b}</span> and <span class="math inline">\omega z_{\bar b}</span> have the same distribution.</p>
-</div>
-<p>Recovering the removed varying-effect mean <span class="math inline">m</span></p>
-<div style="font-size: 70%;">
+<p><strong>Recovering the removed varying-effect mean <span class="math inline">m</span></strong></p>
 <p>Let <span class="math inline">m=\bar a_{\mathrm{bayes}}=J^{-1}\sum_j a_j^{\mathrm{bayes}}</span> be the mean removed from the unconstrained Bayesian effects. Given <span class="math inline">s_\alpha</span>, <span class="math inline">s_j</span>, <span class="math inline">\alpha_{\mathrm{s2z}}</span>, and <span class="math inline">a^{\mathrm{s2z}}</span>, define</p>
 <p><span class="math display">
 P=s_\alpha^{-2}+\sum_j s_j^{-2},
@@ -985,7 +974,7 @@ Post-warmup leapfrog steps
 Wall-clock fit time
 </td>
 <td>
-4.7 s
+4.2 s
 </td>
 <td>
 0.7 s
@@ -1158,7 +1147,7 @@ ESS/grad
 </tr>
 <tr>
 <td>
-&amp;lambda_omega;
+λ<sub>ω</sub>
 </td>
 <td>
 27,275
@@ -1282,120 +1271,120 @@ Different variances: conventional vs recovered Bayesian
 </section>
 <section id="differing-variances-conventional-bayesian-stan-model-declarations" class="slide level2 long-code-title">
 <h2>Differing variances conventional Bayesian Stan model: declarations</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" data-startfrom="1"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb4-1"><a href="" aria-label="1"></a><span class="kw">data</span> {</span>
-<span id="cb4-2"><a href="" aria-label="2"></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>&gt; N;</span>
-<span id="cb4-3"><a href="" aria-label="3"></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">2</span>&gt; J;</span>
-<span id="cb4-4"><a href="" aria-label="4"></a>  <span class="dt">array</span>[N] <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>, <span class="kw">upper</span>=J&gt; group;</span>
-<span id="cb4-5"><a href="" aria-label="5"></a>  <span class="dt">vector</span>[N] x;</span>
-<span id="cb4-6"><a href="" aria-label="6"></a>}</span>
-<span id="cb4-7"><a href="" aria-label="7"></a><span class="kw">transformed data</span> {</span>
-<span id="cb4-8"><a href="" aria-label="8"></a>  <span class="dt">real</span> mu_gamma = log(<span class="fl">2.5</span>);</span>
-<span id="cb4-9"><a href="" aria-label="9"></a>  <span class="dt">real</span> s_gamma = <span class="fl">0.5</span>;</span>
-<span id="cb4-10"><a href="" aria-label="10"></a>}</span>
-<span id="cb4-11"><a href="" aria-label="11"></a><span class="kw">parameters</span> {</span>
-<span id="cb4-12"><a href="" aria-label="12"></a>  <span class="dt">real</span> alpha_bayes;</span>
-<span id="cb4-13"><a href="" aria-label="13"></a>  <span class="dt">vector</span>[J] a_bayes;</span>
-<span id="cb4-14"><a href="" aria-label="14"></a>  <span class="dt">real</span> gamma;</span>
-<span id="cb4-15"><a href="" aria-label="15"></a>  <span class="dt">vector</span>[J] z_log_sd;</span>
-<span id="cb4-16"><a href="" aria-label="16"></a>  <span class="dt">real</span> lambda_omega;</span>
-<span id="cb4-17"><a href="" aria-label="17"></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; sigma_x;</span>
-<span id="cb4-18"><a href="" aria-label="18"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" data-startfrom="1"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb4-1"><a href=""></a><span class="kw">data</span> {</span>
+<span id="cb4-2"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>&gt; N;</span>
+<span id="cb4-3"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">2</span>&gt; J;</span>
+<span id="cb4-4"><a href=""></a>  <span class="dt">array</span>[N] <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>, <span class="kw">upper</span>=J&gt; group;</span>
+<span id="cb4-5"><a href=""></a>  <span class="dt">vector</span>[N] x;</span>
+<span id="cb4-6"><a href=""></a>}</span>
+<span id="cb4-7"><a href=""></a><span class="kw">transformed data</span> {</span>
+<span id="cb4-8"><a href=""></a>  <span class="dt">real</span> mu_gamma = log(<span class="fl">2.5</span>);</span>
+<span id="cb4-9"><a href=""></a>  <span class="dt">real</span> s_gamma = <span class="fl">0.5</span>;</span>
+<span id="cb4-10"><a href=""></a>}</span>
+<span id="cb4-11"><a href=""></a><span class="kw">parameters</span> {</span>
+<span id="cb4-12"><a href=""></a>  <span class="dt">real</span> alpha_bayes;</span>
+<span id="cb4-13"><a href=""></a>  <span class="dt">vector</span>[J] a_bayes;</span>
+<span id="cb4-14"><a href=""></a>  <span class="dt">real</span> gamma;</span>
+<span id="cb4-15"><a href=""></a>  <span class="dt">vector</span>[J] z_log_sd;</span>
+<span id="cb4-16"><a href=""></a>  <span class="dt">real</span> lambda_omega;</span>
+<span id="cb4-17"><a href=""></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; sigma_x;</span>
+<span id="cb4-18"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="differing-variances-conventional-bayesian-stan-model-sd-hierarchy-and-model" class="slide level2 long-code-title dense-code-slide">
 <h2>Differing variances conventional Bayesian Stan model: SD hierarchy and model</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" data-startfrom="18"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan" style="counter-reset: source-line 17;"><span id="cb5-18"><a href="" aria-label="18"></a>}</span>
-<span id="cb5-19"><a href="" aria-label="19"></a><span class="kw">transformed parameters</span> {</span>
-<span id="cb5-20"><a href="" aria-label="20"></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; alpha_prior_sd = exp(gamma);</span>
-<span id="cb5-21"><a href="" aria-label="21"></a>  <span class="dt">vector</span>[J] b = lambda_omega * z_log_sd;</span>
-<span id="cb5-22"><a href="" aria-label="22"></a>  <span class="dt">vector</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt;[J] a_prior_sd = exp(gamma + b);</span>
-<span id="cb5-23"><a href="" aria-label="23"></a>}</span>
-<span id="cb5-24"><a href="" aria-label="24"></a><span class="kw">model</span> {</span>
-<span id="cb5-25"><a href="" aria-label="25"></a>  gamma ~ normal(mu_gamma, s_gamma);</span>
-<span id="cb5-26"><a href="" aria-label="26"></a>  z_log_sd ~ std_normal();</span>
-<span id="cb5-27"><a href="" aria-label="27"></a>  lambda_omega ~ normal(<span class="dv">0</span>, <span class="fl">0.25</span>);</span>
-<span id="cb5-28"><a href="" aria-label="28"></a>  alpha_bayes ~ normal(<span class="dv">0</span>, alpha_prior_sd);</span>
-<span id="cb5-29"><a href="" aria-label="29"></a>  a_bayes ~ normal(<span class="dv">0</span>, a_prior_sd);</span>
-<span id="cb5-30"><a href="" aria-label="30"></a>  sigma_x ~ normal(<span class="dv">0</span>, <span class="dv">2</span>);</span>
-<span id="cb5-31"><a href="" aria-label="31"></a>  x ~ normal(alpha_bayes + a_bayes[group], sigma_x);</span>
-<span id="cb5-32"><a href="" aria-label="32"></a>}</span>
-<span id="cb5-33"><a href="" aria-label="33"></a><span class="kw">generated quantities</span> {</span>
-<span id="cb5-34"><a href="" aria-label="34"></a>  <span class="dt">real</span> mean_a = mean(a_bayes);</span>
-<span id="cb5-35"><a href="" aria-label="35"></a>  <span class="dt">real</span> alpha_s2z_recovered = alpha_bayes + mean_a;</span>
-<span id="cb5-36"><a href="" aria-label="36"></a>  <span class="dt">vector</span>[J] a_s2z_recovered = a_bayes - mean_a;</span>
-<span id="cb5-37"><a href="" aria-label="37"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" data-startfrom="18"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan" style="counter-reset: source-line 17;"><span id="cb5-18"><a href=""></a>}</span>
+<span id="cb5-19"><a href=""></a><span class="kw">transformed parameters</span> {</span>
+<span id="cb5-20"><a href=""></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; alpha_prior_sd = exp(gamma);</span>
+<span id="cb5-21"><a href=""></a>  <span class="dt">vector</span>[J] b = lambda_omega * z_log_sd;</span>
+<span id="cb5-22"><a href=""></a>  <span class="dt">vector</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt;[J] a_prior_sd = exp(gamma + b);</span>
+<span id="cb5-23"><a href=""></a>}</span>
+<span id="cb5-24"><a href=""></a><span class="kw">model</span> {</span>
+<span id="cb5-25"><a href=""></a>  gamma ~ normal(mu_gamma, s_gamma);</span>
+<span id="cb5-26"><a href=""></a>  z_log_sd ~ std_normal();</span>
+<span id="cb5-27"><a href=""></a>  lambda_omega ~ normal(<span class="dv">0</span>, <span class="fl">0.25</span>);</span>
+<span id="cb5-28"><a href=""></a>  alpha_bayes ~ normal(<span class="dv">0</span>, alpha_prior_sd);</span>
+<span id="cb5-29"><a href=""></a>  a_bayes ~ normal(<span class="dv">0</span>, a_prior_sd);</span>
+<span id="cb5-30"><a href=""></a>  sigma_x ~ normal(<span class="dv">0</span>, <span class="dv">2</span>);</span>
+<span id="cb5-31"><a href=""></a>  x ~ normal(alpha_bayes + a_bayes[group], sigma_x);</span>
+<span id="cb5-32"><a href=""></a>}</span>
+<span id="cb5-33"><a href=""></a><span class="kw">generated quantities</span> {</span>
+<span id="cb5-34"><a href=""></a>  <span class="dt">real</span> mean_a = mean(a_bayes);</span>
+<span id="cb5-35"><a href=""></a>  <span class="dt">real</span> alpha_s2z_recovered = alpha_bayes + mean_a;</span>
+<span id="cb5-36"><a href=""></a>  <span class="dt">vector</span>[J] a_s2z_recovered = a_bayes - mean_a;</span>
+<span id="cb5-37"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="s2z-stan-declarations" class="slide level2">
 <h2>S2Z Stan: declarations</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" data-startfrom="1"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb6-1"><a href="" aria-label="1"></a><span class="kw">data</span> {</span>
-<span id="cb6-2"><a href="" aria-label="2"></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>&gt; N;</span>
-<span id="cb6-3"><a href="" aria-label="3"></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">2</span>&gt; J;</span>
-<span id="cb6-4"><a href="" aria-label="4"></a>  <span class="dt">array</span>[N] <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>, <span class="kw">upper</span>=J&gt; group;</span>
-<span id="cb6-5"><a href="" aria-label="5"></a>  <span class="dt">vector</span>[N] x;</span>
-<span id="cb6-6"><a href="" aria-label="6"></a>}</span>
-<span id="cb6-7"><a href="" aria-label="7"></a><span class="kw">transformed data</span> {</span>
-<span id="cb6-8"><a href="" aria-label="8"></a>  <span class="dt">real</span> mu_gamma = log(<span class="fl">2.5</span>);</span>
-<span id="cb6-9"><a href="" aria-label="9"></a>  <span class="dt">real</span> s_gamma = <span class="fl">0.5</span>;</span>
-<span id="cb6-10"><a href="" aria-label="10"></a>}</span>
-<span id="cb6-11"><a href="" aria-label="11"></a><span class="kw">parameters</span> {</span>
-<span id="cb6-12"><a href="" aria-label="12"></a>  <span class="dt">real</span> alpha_s2z;</span>
-<span id="cb6-13"><a href="" aria-label="13"></a>  <span class="dt">sum_to_zero_vector</span>[J] a_s2z;</span>
-<span id="cb6-14"><a href="" aria-label="14"></a>  <span class="dt">real</span> z_mean_a_cond;</span>
-<span id="cb6-15"><a href="" aria-label="15"></a>  <span class="dt">real</span> gamma_s2z;</span>
-<span id="cb6-16"><a href="" aria-label="16"></a>  <span class="dt">sum_to_zero_vector</span>[J] z_log_sd_s2z;</span>
-<span id="cb6-17"><a href="" aria-label="17"></a>  <span class="dt">real</span> z_mean_b_cond;</span>
-<span id="cb6-18"><a href="" aria-label="18"></a>  <span class="dt">real</span> lambda_omega;</span>
-<span id="cb6-19"><a href="" aria-label="19"></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; sigma_x;</span>
-<span id="cb6-20"><a href="" aria-label="20"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" data-startfrom="1"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb6-1"><a href=""></a><span class="kw">data</span> {</span>
+<span id="cb6-2"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>&gt; N;</span>
+<span id="cb6-3"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">2</span>&gt; J;</span>
+<span id="cb6-4"><a href=""></a>  <span class="dt">array</span>[N] <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>, <span class="kw">upper</span>=J&gt; group;</span>
+<span id="cb6-5"><a href=""></a>  <span class="dt">vector</span>[N] x;</span>
+<span id="cb6-6"><a href=""></a>}</span>
+<span id="cb6-7"><a href=""></a><span class="kw">transformed data</span> {</span>
+<span id="cb6-8"><a href=""></a>  <span class="dt">real</span> mu_gamma = log(<span class="fl">2.5</span>);</span>
+<span id="cb6-9"><a href=""></a>  <span class="dt">real</span> s_gamma = <span class="fl">0.5</span>;</span>
+<span id="cb6-10"><a href=""></a>}</span>
+<span id="cb6-11"><a href=""></a><span class="kw">parameters</span> {</span>
+<span id="cb6-12"><a href=""></a>  <span class="dt">real</span> alpha_s2z;</span>
+<span id="cb6-13"><a href=""></a>  sum_to_zero_vector[J] a_s2z;</span>
+<span id="cb6-14"><a href=""></a>  <span class="dt">real</span> z_mean_a_cond;</span>
+<span id="cb6-15"><a href=""></a>  <span class="dt">real</span> gamma_s2z;</span>
+<span id="cb6-16"><a href=""></a>  sum_to_zero_vector[J] z_log_sd_s2z;</span>
+<span id="cb6-17"><a href=""></a>  <span class="dt">real</span> z_mean_b_cond;</span>
+<span id="cb6-18"><a href=""></a>  <span class="dt">real</span> lambda_omega;</span>
+<span id="cb6-19"><a href=""></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; sigma_x;</span>
+<span id="cb6-20"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="s2z-stan-log-scale-constraint" class="slide level2">
 <h2>S2Z Stan: log-scale constraint</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7" data-startfrom="21"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan" style="counter-reset: source-line 20;"><span id="cb7-21"><a href="" aria-label="21"></a><span class="kw">transformed parameters</span> {</span>
-<span id="cb7-22"><a href="" aria-label="22"></a>  <span class="dt">real</span> var_gamma = square(s_gamma);</span>
-<span id="cb7-23"><a href="" aria-label="23"></a>  <span class="dt">real</span> var_mean_b = square(lambda_omega) / J;</span>
-<span id="cb7-24"><a href="" aria-label="24"></a>  <span class="dt">real</span> var_gamma_s2z = var_gamma + var_mean_b;</span>
-<span id="cb7-25"><a href="" aria-label="25"></a>  <span class="dt">real</span> mean_b_cond = var_mean_b / var_gamma_s2z</span>
-<span id="cb7-26"><a href="" aria-label="26"></a>    * (gamma_s2z - mu_gamma);</span>
-<span id="cb7-27"><a href="" aria-label="27"></a>  <span class="dt">real</span> mean_b = mean_b_cond + lambda_omega</span>
-<span id="cb7-28"><a href="" aria-label="28"></a>      * sqrt(var_gamma / (J * var_gamma_s2z))</span>
-<span id="cb7-29"><a href="" aria-label="29"></a>      * z_mean_b_cond;</span>
-<span id="cb7-30"><a href="" aria-label="30"></a>  <span class="dt">real</span> gamma_recovered = gamma_s2z - mean_b;</span>
-<span id="cb7-31"><a href="" aria-label="31"></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; alpha_prior_sd_recovered =</span>
-<span id="cb7-32"><a href="" aria-label="32"></a>    exp(gamma_recovered);</span>
-<span id="cb7-33"><a href="" aria-label="33"></a>  <span class="dt">vector</span>[J] b_s2z = lambda_omega * z_log_sd_s2z;</span>
-<span id="cb7-34"><a href="" aria-label="34"></a>  <span class="dt">vector</span>[J] b_recovered = b_s2z + mean_b;</span>
-<span id="cb7-35"><a href="" aria-label="35"></a>  <span class="dt">vector</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt;[J] a_prior_sd =</span>
-<span id="cb7-36"><a href="" aria-label="36"></a>    exp(gamma_s2z + b_s2z);</span>
-<span id="cb7-37"><a href="" aria-label="37"></a>  <span class="dt">vector</span>[J] inv_var_a = inv(square(a_prior_sd));</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7" data-startfrom="21"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan" style="counter-reset: source-line 20;"><span id="cb7-21"><a href=""></a><span class="kw">transformed parameters</span> {</span>
+<span id="cb7-22"><a href=""></a>  <span class="dt">real</span> var_gamma = square(s_gamma);</span>
+<span id="cb7-23"><a href=""></a>  <span class="dt">real</span> var_mean_b = square(lambda_omega) / J;</span>
+<span id="cb7-24"><a href=""></a>  <span class="dt">real</span> var_gamma_s2z = var_gamma + var_mean_b;</span>
+<span id="cb7-25"><a href=""></a>  <span class="dt">real</span> mean_b_cond = var_mean_b / var_gamma_s2z</span>
+<span id="cb7-26"><a href=""></a>    * (gamma_s2z - mu_gamma);</span>
+<span id="cb7-27"><a href=""></a>  <span class="dt">real</span> mean_b = mean_b_cond + lambda_omega</span>
+<span id="cb7-28"><a href=""></a>      * sqrt(var_gamma / (J * var_gamma_s2z))</span>
+<span id="cb7-29"><a href=""></a>      * z_mean_b_cond;</span>
+<span id="cb7-30"><a href=""></a>  <span class="dt">real</span> gamma_recovered = gamma_s2z - mean_b;</span>
+<span id="cb7-31"><a href=""></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; alpha_prior_sd_recovered =</span>
+<span id="cb7-32"><a href=""></a>    exp(gamma_recovered);</span>
+<span id="cb7-33"><a href=""></a>  <span class="dt">vector</span>[J] b_s2z = lambda_omega * z_log_sd_s2z;</span>
+<span id="cb7-34"><a href=""></a>  <span class="dt">vector</span>[J] b_recovered = b_s2z + mean_b;</span>
+<span id="cb7-35"><a href=""></a>  <span class="dt">vector</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt;[J] a_prior_sd =</span>
+<span id="cb7-36"><a href=""></a>    exp(gamma_s2z + b_s2z);</span>
+<span id="cb7-37"><a href=""></a>  <span class="dt">vector</span>[J] inv_var_a = inv(square(a_prior_sd));</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="s2z-stan-remove-the-effect-mean" class="slide level2">
 <h2>S2Z Stan: remove the effect mean</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8" data-startfrom="38"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan" style="counter-reset: source-line 37;"><span id="cb8-38"><a href="" aria-label="38"></a>  <span class="dt">real</span> inv_var_alpha =</span>
-<span id="cb8-39"><a href="" aria-label="39"></a>    inv(square(alpha_prior_sd_recovered));</span>
-<span id="cb8-40"><a href="" aria-label="40"></a>  <span class="dt">real</span> precision_mean_a = inv_var_alpha + sum(inv_var_a);</span>
-<span id="cb8-41"><a href="" aria-label="41"></a>  <span class="dt">real</span> mean_a_cond = (alpha_s2z * inv_var_alpha</span>
-<span id="cb8-42"><a href="" aria-label="42"></a>      - dot_product(a_s2z, inv_var_a)) / precision_mean_a;</span>
-<span id="cb8-43"><a href="" aria-label="43"></a>  <span class="dt">real</span> sd_mean_a_cond = inv_sqrt(precision_mean_a);</span>
-<span id="cb8-44"><a href="" aria-label="44"></a>  <span class="dt">real</span> mean_a_bayes = mean_a_cond + sd_mean_a_cond * z_mean_a_cond;</span>
-<span id="cb8-45"><a href="" aria-label="45"></a>  <span class="dt">real</span> alpha_bayes_recovered = alpha_s2z - mean_a_bayes;</span>
-<span id="cb8-46"><a href="" aria-label="46"></a>  <span class="dt">vector</span>[J] a_bayes_recovered = a_s2z + mean_a_bayes;</span>
-<span id="cb8-47"><a href="" aria-label="47"></a>}</span>
-<span id="cb8-48"><a href="" aria-label="48"></a><span class="kw">model</span> {</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8" data-startfrom="38"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan" style="counter-reset: source-line 37;"><span id="cb8-38"><a href=""></a>  <span class="dt">real</span> inv_var_alpha =</span>
+<span id="cb8-39"><a href=""></a>    inv(square(alpha_prior_sd_recovered));</span>
+<span id="cb8-40"><a href=""></a>  <span class="dt">real</span> precision_mean_a = inv_var_alpha + sum(inv_var_a);</span>
+<span id="cb8-41"><a href=""></a>  <span class="dt">real</span> mean_a_cond = (alpha_s2z * inv_var_alpha</span>
+<span id="cb8-42"><a href=""></a>      - dot_product(a_s2z, inv_var_a)) / precision_mean_a;</span>
+<span id="cb8-43"><a href=""></a>  <span class="dt">real</span> sd_mean_a_cond = inv_sqrt(precision_mean_a);</span>
+<span id="cb8-44"><a href=""></a>  <span class="dt">real</span> mean_a_bayes = mean_a_cond + sd_mean_a_cond * z_mean_a_cond;</span>
+<span id="cb8-45"><a href=""></a>  <span class="dt">real</span> alpha_bayes_recovered = alpha_s2z - mean_a_bayes;</span>
+<span id="cb8-46"><a href=""></a>  <span class="dt">vector</span>[J] a_bayes_recovered = a_s2z + mean_a_bayes;</span>
+<span id="cb8-47"><a href=""></a>}</span>
+<span id="cb8-48"><a href=""></a><span class="kw">model</span> {</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="s2z-stan-prior-and-likelihood" class="slide level2">
 <h2>S2Z Stan: prior and likelihood</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9" data-startfrom="48"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan" style="counter-reset: source-line 47;"><span id="cb9-48"><a href="" aria-label="48"></a><span class="kw">model</span> {</span>
-<span id="cb9-49"><a href="" aria-label="49"></a>  gamma_s2z ~ normal(mu_gamma, sqrt(var_gamma_s2z));</span>
-<span id="cb9-50"><a href="" aria-label="50"></a>  z_log_sd_s2z ~ std_normal();</span>
-<span id="cb9-51"><a href="" aria-label="51"></a>  z_mean_b_cond ~ std_normal();</span>
-<span id="cb9-52"><a href="" aria-label="52"></a>  lambda_omega ~ normal(<span class="dv">0</span>, <span class="fl">0.25</span>);</span>
-<span id="cb9-53"><a href="" aria-label="53"></a></span>
-<span id="cb9-54"><a href="" aria-label="54"></a>  alpha_s2z - mean_a_cond ~ normal(<span class="dv">0</span>, alpha_prior_sd_recovered);</span>
-<span id="cb9-55"><a href="" aria-label="55"></a>  a_s2z + mean_a_cond ~ normal(<span class="dv">0</span>, a_prior_sd);</span>
-<span id="cb9-56"><a href="" aria-label="56"></a>  <span class="kw">target +=</span> <span class="fl">0.5</span> * log(<span class="dv">2</span> * pi()) - <span class="fl">0.5</span> * log(precision_mean_a);</span>
-<span id="cb9-57"><a href="" aria-label="57"></a>  z_mean_a_cond ~ std_normal();</span>
-<span id="cb9-58"><a href="" aria-label="58"></a>  sigma_x ~ normal(<span class="dv">0</span>, <span class="dv">2</span>);</span>
-<span id="cb9-59"><a href="" aria-label="59"></a>  x ~ normal(alpha_s2z + a_s2z[group], sigma_x);</span>
-<span id="cb9-60"><a href="" aria-label="60"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9" data-startfrom="48"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan" style="counter-reset: source-line 47;"><span id="cb9-48"><a href=""></a><span class="kw">model</span> {</span>
+<span id="cb9-49"><a href=""></a>  gamma_s2z ~ normal(mu_gamma, sqrt(var_gamma_s2z));</span>
+<span id="cb9-50"><a href=""></a>  z_log_sd_s2z ~ std_normal();</span>
+<span id="cb9-51"><a href=""></a>  z_mean_b_cond ~ std_normal();</span>
+<span id="cb9-52"><a href=""></a>  lambda_omega ~ normal(<span class="dv">0</span>, <span class="fl">0.25</span>);</span>
+<span id="cb9-53"><a href=""></a></span>
+<span id="cb9-54"><a href=""></a>  alpha_s2z - mean_a_cond ~ normal(<span class="dv">0</span>, alpha_prior_sd_recovered);</span>
+<span id="cb9-55"><a href=""></a>  a_s2z + mean_a_cond ~ normal(<span class="dv">0</span>, a_prior_sd);</span>
+<span id="cb9-56"><a href=""></a>  <span class="kw">target +=</span> <span class="fl">0.5</span> * log(<span class="dv">2</span> * pi()) - <span class="fl">0.5</span> * log(precision_mean_a);</span>
+<span id="cb9-57"><a href=""></a>  z_mean_a_cond ~ std_normal();</span>
+<span id="cb9-58"><a href=""></a>  sigma_x ~ normal(<span class="dv">0</span>, <span class="dv">2</span>);</span>
+<span id="cb9-59"><a href=""></a>  x ~ normal(alpha_s2z + a_s2z[group], sigma_x);</span>
+<span id="cb9-60"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="completing-the-square-in-the-removed-mean-m" class="slide level2 nostretch">
 <h2>Completing the square in the removed mean <span class="math inline">m</span></h2>
@@ -1469,9 +1458,9 @@ e^{-\frac{P}{2}(m-\widehat m)^2}\,dm \\
 </section>
 <section id="references" class="slide level2 smaller scrollable">
 <h2>References</h2>
-<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
 <div id="ref-delmas_2024" class="csl-entry" role="listitem">
-Delmas, Jean-Pierre. 2024. <span>“Background on Real and Complex Elliptically Symmetric Distributions.”</span> In <em>Elliptically Symmetric Distributions in Signal Processing and Machine Learning</em>, edited by Jean-Pierre Delmas, Mohammed Nabil El Korso, Stefano Fortunati, and Frédéric Pascal. Springer Nature Switzerland. <a href="https://doi.org/10.1007/978-3-031-52116-4_1">https://doi.org/10.1007/978-3-031-52116-4_1</a>.
+Delmas, Jean-Pierre. 2024. <span>“Background on Real and Complex Elliptically Symmetric Distributions.”</span> In <em>Elliptically Symmetric Distributions in Signal Processing and Machine Learning</em>, edited by Jean-Pierre Delmas, Mohammed Nabil El Korso, Stefano Fortunati, and Frédéric Pascal, 1–34. Cham: Springer Nature Switzerland. <a href="https://doi.org/10.1007/978-3-031-52116-4_1">https://doi.org/10.1007/978-3-031-52116-4_1</a>.
 </div>
 </div>
 

@@ -121,7 +121,17 @@
 }
 
 .reveal .slides section.s2z-conversion-code-slide pre {
-  font-size: 0.46em;
+  font-size: 0.36em;
+  margin: 0.2em auto 0;
+}
+
+.reveal .slides section.population-derivation-slide .katex-display,
+.reveal .slides section.recovery-slide .katex-display {
+  margin: 0.28em 0;
+}
+
+.reveal .slides section.recovery-slide p {
+  margin: 0.28em 0;
 }
 
 .reveal table.comparison-gap-table {

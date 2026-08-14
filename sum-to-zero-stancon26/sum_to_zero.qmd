@@ -899,46 +899,36 @@ the largest difference is `r sprintf("%.3f", max_all_mean_difference)`: Monte
 Carlo error at the scale of the plot.
 :::
 
-## What about going from sum-to-zero to population models? 
+## What about going from sum-to-zero to population models? {.nostretch .population-derivation-slide}
 
-We have 
+::: {style="font-size: 66%; line-height: 1.12;"}
+Given $\tau$, let $v_m=\tau^2/J$, with
+$\alpha_{\mathrm{bayes}}\perp\bar a\mid\tau$. Then
 
-::: {style="font-size: 75%;"}
-$$
-\alpha_{\text{bayes}} \sim \mathcal{N}(0, s^2_\alpha) \qquad \bar{a} \mid \tau \sim \mathcal{N}(0, v_m) \qquad  v_m = \frac{\tau^2}{J}
-$$
-:::
-
-Previously we saw that $\alpha_{\text{s2z}} = \alpha_{\text{bayes}} + \bar{a}$. Therefore, the joint prior given $\tau$ is MVN as
-
-::: {style="font-size: 75%;"}
-$$
-\text{Var}(\alpha_{\text{s2z}} \mid \tau) = s^2_\alpha + v_m, \qquad \text{Cov}(\bar{a},\, \alpha_\text{s2z} \mid \tau) = v_m
-$$
-:::
-where
-
-::: {style="font-size: 75%;"}
-$$
-\begin{pmatrix} \bar{a} \\ \alpha_\text{s2z} \end{pmatrix}\Bigm|\tau
-\sim
-\mathcal N\!\left[
-\begin{pmatrix}0\\0\end{pmatrix},
-\begin{pmatrix}
-v_m & v_m\\
-v_m & s_\alpha^2+v_m
-\end{pmatrix}
-\right]
-$$
-:::
-
-Using the standard conditional normal formulas, 
-
-::: {style="font-size: 75%;"}
 $$
 \begin{gathered}
-\bar{a}\mid\alpha_{\mathrm{s2z}},\,\tau
-\sim\mathcal N\!\left(w\alpha_{\mathrm{s2z}},v_c\right),\\[0.6em]
+\alpha_{\mathrm{bayes}}\sim\mathcal N(0,s_\alpha^2),
+\qquad \bar a\mid\tau\sim\mathcal N(0,v_m),\\[0.35em]
+\alpha_{\mathrm{s2z}}=\alpha_{\mathrm{bayes}}+\bar a
+\ \Longrightarrow\
+\begin{cases}
+\operatorname{Var}(\alpha_{\mathrm{s2z}}\mid\tau)=s_\alpha^2+v_m,\\
+\operatorname{Cov}(\bar a,\alpha_{\mathrm{s2z}}\mid\tau)=v_m,
+\end{cases}\\[0.45em]
+\begin{pmatrix}\bar a\\ \alpha_{\mathrm{s2z}}\end{pmatrix}\Bigm|\tau
+\sim\mathcal N\!\left[
+\begin{pmatrix}0\\0\end{pmatrix},
+\begin{pmatrix}v_m&v_m\\v_m&s_\alpha^2+v_m\end{pmatrix}
+\right].
+\end{gathered}
+$$
+
+The conditional-normal formula therefore gives
+
+$$
+\begin{gathered}
+\bar a\mid\alpha_{\mathrm{s2z}},\tau
+\sim\mathcal N\!\left(w\alpha_{\mathrm{s2z}},v_c\right),\\[0.35em]
 \underbrace{\frac{v_m}{s_\alpha^2+v_m}}_{w},
 \qquad
 \underbrace{v_m-\frac{v_m^2}{s_\alpha^2+v_m}}_{v_c}.
@@ -946,14 +936,21 @@ $$
 $$
 :::
 
-## What about going from sum-to-zero to population models? {.s2z-conversion-code-slide}
+## What about going from sum-to-zero to population models? {.s2z-conversion-code-slide .nostretch}
 
-Previously, we derived the distribution of $\bar{a}$, the realized mean of the Bayesian group effects, and we denote a random draw from that distribution as $m$. To convert the sum-to-zero estimates into equivalent (in distribution) Bayesian estimates:
+::: {style="font-size: 64%; line-height: 1.08;"}
+For each sum-to-zero posterior draw, sample the missing realized mean and
+shift the coordinates:
 
-1. Sample $m \sim \mathcal N(w\,\alpha_{\text{s2z}},v_c)$, using
-   (mean, variance) notation.
-2. Set $\alpha_{\text{bayes}} = \alpha_{\text{s2z}} - m$ and
-   $a_j^{\text{bayes}} = a_j^{\text{s2z}} + m$.
+$$
+m\mid\alpha_{\mathrm{s2z}},\tau
+\sim\mathcal N(w\alpha_{\mathrm{s2z}},v_c),\qquad
+\alpha_{\mathrm{bayes}}=\alpha_{\mathrm{s2z}}-m,\qquad
+a_j^{\mathrm{bayes}}=a_j^{\mathrm{s2z}}+m,
+$$
+
+where $\mathcal N(\text{mean},\text{variance})$ is used.
+:::
 
 ``` stan
 parameters {
@@ -1332,11 +1329,11 @@ $$
 $$
 :::
 
-## Recovery {.nostretch}
+## Recovery {.nostretch .recovery-slide}
 
-Recovering the removed log-scale mean $\bar b$
+::: {style="font-size: 60%; line-height: 1.08;"}
+**Recovering the removed log-scale mean $\bar b$**
 
-::: {style="font-size: 70%;"}
 Let $v_b=\lambda_\omega^2/J=\omega^2/J$ and $V=s_\gamma^2+v_b$. Then
 
 $$
@@ -1362,14 +1359,8 @@ b_j=b_j^{\mathrm{s2z}}+\bar b.
 \end{aligned}
 $$
 
-The appendix code calls $z_{\bar b}$ `z_mean_b_cond`. Its symmetry means
-$\lambda_\omega z_{\bar b}$ and $\omega z_{\bar b}$ have the same
-distribution.
-:::
+**Recovering the removed varying-effect mean $m$**
 
-Recovering the removed varying-effect mean $m$
-
-::: {style="font-size: 70%;"}
 Let
 $m=\bar a_{\mathrm{bayes}}=J^{-1}\sum_j a_j^{\mathrm{bayes}}$ be the mean
 removed from the unconstrained Bayesian effects. Given $s_\alpha$, $s_j$,
@@ -1722,7 +1713,7 @@ hetero_ess_table <- data.frame(
     "&sigma;<sub><i>x</i></sub>",
     "<i>s</i><sub>&alpha;</sub>",
     "<i>s</i><sub><i>j</i></sub> (mean)",
-    "&lambda_omega;"
+    "&lambda;<sub>&omega;</sub>"
   ),
   bayes_ess = c(
     hetero_bayes_ess[1],
