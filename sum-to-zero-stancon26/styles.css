@@ -79,3 +79,134 @@
 .reveal table.hetero-ess-table col.hetero-metric-col {
   width: 20%;
 }
+
+.reveal table.hetero-ess-table tr.parameter-block-start td {
+  border-top: 1px solid #999;
+  padding-top: 0.3em;
+}
+
+.reveal table.efficiency-summary-table {
+  font-size: 0.78em;
+  margin-top: 0.75em;
+  width: 84%;
+}
+
+.reveal table.efficiency-summary-table th:first-child {
+  text-align: left;
+}
+
+.reveal .slides section.long-code-title h2 {
+  font-size: 1.15em;
+  line-height: 1.08;
+}
+
+.reveal .slides section.long-code-title pre {
+  font-size: 0.5em;
+}
+
+.reveal .slides section.dense-code-slide h2 {
+  font-size: 0.95em;
+}
+
+.reveal .slides section.dense-code-slide pre {
+  font-size: 0.42em;
+}
+
+.reveal .slides section.conversion-code-slide pre {
+  font-size: 0.46em;
+}
+
+.reveal .slides section.recovery-list-slide ol {
+  font-size: 0.82em;
+}
+
+.reveal .slides section.s2z-conversion-code-slide pre {
+  font-size: 0.46em;
+}
+
+.reveal table.comparison-gap-table {
+  font-size: 0.68em;
+  margin: 0.45em auto 0;
+  width: 94%;
+}
+
+.reveal table.comparison-gap-table th,
+.reveal table.comparison-gap-table td {
+  padding: 0.28em 0.5em;
+}
+
+.reveal table.comparison-gap-table th {
+  border-bottom: 1px solid #999;
+  font-weight: 600;
+}
+
+.reveal table.comparison-gap-table th:first-child,
+.reveal table.comparison-gap-table td:first-child {
+  text-align: left;
+  width: 46%;
+}
+
+.reveal table.comparison-gap-table th:not(:first-child),
+.reveal table.comparison-gap-table td:not(:first-child) {
+  text-align: right;
+}
+
+.reveal .comparison-gap-note {
+  font-size: 0.58em;
+  margin: 0.65em auto 0;
+  width: 94%;
+}
+
+.reveal .comparison-gap-note p {
+  margin: 0;
+}
+
+.reveal .implications-pairs {
+  align-items: stretch;
+  column-gap: 1.15em;
+  display: grid;
+  grid-template-columns: minmax(0, 59fr) minmax(0, 38fr);
+}
+
+.reveal .implications-pair-heading {
+  color: #21409a;
+  font-size: 0.58em;
+  font-weight: 600;
+  padding: 0 0 0.28em 1.2em;
+}
+
+.reveal .implications-math-heading {
+  color: #9a6800;
+}
+
+.reveal .implications-pair {
+  border-top: 1px solid #bbb;
+  padding: 0.42em 0 0.28em;
+}
+
+.reveal .implications-pair ul {
+  margin: 0;
+}
+
+.reveal .implications-pair li {
+  margin: 0;
+}
+
+.reveal .implications-copy {
+  font-size: 0.54em;
+  line-height: 1.17;
+}
+
+.reveal .implications-math {
+  font-size: 0.49em;
+  line-height: 1.12;
+}
+
+.reveal .implications-math li::marker {
+  color: #e69f00;
+}
+
+.reveal .implications-math .katex-display {
+  font-size: 0.94em;
+  margin: 0.18em 0 0;
+}

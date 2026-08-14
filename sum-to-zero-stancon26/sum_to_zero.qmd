@@ -48,43 +48,10 @@ Sys.setenv(PATH = paste(file.path(tinytex::tinytex_root(), "bin", "universal-dar
 
 ## Agenda
 
--   Preliminaries
 -   What is a sum-to-zero constraint?
 -   Hierarchical models between frequentist and bayesian approaches
 -   How is it possible to translate between them?
 -   Implications
-
-
-## Preliminaries: Distributions
-
- We will restrict ourselves to elliptically symmetric distributions for hierarchical models, i.e.,
-$$
-\begin{align*}
-&f(x) = c \, g(x^\top \Sigma_x^{-1}x), \\
-&\int_{\mathbb{R}^d} f(x) \, dx = 1
-\end{align*}
-$$
-where^[@delmas_2024]
-
--   the generator $g(\cdot): \mathbb{R}^+ \rightarrow \mathbb{R}^+$
--   the normalizing constant $c$ ensures $f(x)$ integrates to 1
-
-## Preliminaries: Distributions
-
-$$
-\begin{align*}
-&f(x) = c \, g(x^\top \Sigma_x^{-1}x), \\
-&\int_{\mathbb{R}^d} f(x) \, dx = 1
-\end{align*}
-$$
-
-The choice of $g$ controls the tail behavior, allowing both light- and heavy-tailed priors within the same family:
-
--   Normal: $g(t) \propto e^{-t/2}$
--   Student-$t_\nu$ (Cauchy at $\nu = 1$): $g(t) \propto \left(1 + t/\nu\right)^{-(\nu + d)/2}$
--   Logistic: $g(t) \propto e^{-t} / \left(1 + e^{-t}\right)^2$
--   Laplace: $g(t) \propto e^{-\sqrt{t}}$
-
 
 ## What is a sum-to-zero constraint?
 
@@ -207,7 +174,9 @@ legend(
 par(op)
 ```
 
+::: {style="font-size: 80%;"}
 The implicit prior on the last element is clearly different. Furthermore, the covariance of the final element is coupled strongly with the other elements.
+:::
 
 ## What is a sum-to-zero constraint?
 
@@ -326,7 +295,7 @@ par(op)
 
 All the values are now isotropic and exchangeable.
 
-## Preliminaries: Background on Bayesian hierarchical models
+## Bayesian hierarchical models
 
 ::::: columns
 ::: {.column style="width: 50%;"}
@@ -397,7 +366,7 @@ When the evidence or data for a parameter are
 :::
 :::::
 
-## Preliminaries: Background on frequentist hierarchical models
+## Frequentist hierarchical models
 
 ::::: columns
 ::: {.column style="width: 50%;"}
@@ -721,6 +690,14 @@ max_s2z_mean_difference <- max(abs(
 max_all_mean_difference <- max(abs(
   comparison$mean_bayes_recovered - comparison$mean_s2z_native
 ))
+max_s2z_mcse_ratio <- max(
+  abs(
+    comparison$mean_bayes_recovered - comparison$mean_s2z_native
+  ) / sqrt(
+    comparison$mcse_bayes_recovered^2 +
+      comparison$mcse_s2z_native^2
+  )
+)
 
 bayes_native_variables <- c(
   "alpha_bayes",
@@ -811,10 +788,12 @@ $$
 \alpha_{\mathrm{s2z}} = `r round(alpha_s2z_true, 2)`.
 $$
 
+::: {style="font-size: 78%;"}
 Sampling 10k iterations over 4 chains. The first Stan program samples unconstrained Bayesian varying effects; the
 second samples a `sum_to_zero_vector` directly.
+:::
 
-## Conversion
+## Conversion {.conversion-code-slide}
 
 Bayesian specification and conversion to sum-to-zero equivalent
 
@@ -912,7 +891,7 @@ legend(
 par(op)
 ```
 
-::: {style="font-size: 70%;"}
+::: {style="font-size: 67%;"}
 Across $\alpha_{\mathrm{s2z}}$ and the six $a_j^{\mathrm{s2z}}$, the largest
 posterior-mean difference is
 `r sprintf("%.3f", max_s2z_mean_difference)`. Across every plotted parameter,
@@ -920,29 +899,62 @@ the largest difference is `r sprintf("%.3f", max_all_mean_difference)`: Monte
 Carlo error at the scale of the plot.
 :::
 
-## What about going from sum-to-zero to population models?
+## What about going from sum-to-zero to population models? 
 
-Let $s_\alpha$ denote the prior SD of $\alpha_{\text{bayes}}$ and set
-$v_m = \tau^2/J$. Because
-$\alpha_{\text{s2z}} = \alpha_{\text{bayes}} + \bar a$,
+We have 
 
+::: {style="font-size: 75%;"}
 $$
-\begin{align}
-  w &= \frac{v_m}{s_\alpha^2 + v_m}, \\
-  v_c &= \frac{s_\alpha^2 v_m}{s_\alpha^2 + v_m}, \\
-  \bar a \mid \alpha_{\text{s2z}},\tau
-    &\sim \mathcal N\!\left(w\,\alpha_{\text{s2z}},\,v_c\right).
-\end{align}
+\alpha_{\text{bayes}} \sim \mathcal{N}(0, s^2_\alpha) \qquad \bar{a} \mid \tau \sim \mathcal{N}(0, v_m) \qquad  v_m = \frac{\tau^2}{J}
 $$
-For every sum-to-zero posterior draw:
+:::
+
+Previously we saw that $\alpha_{\text{s2z}} = \alpha_{\text{bayes}} + \bar{a}$. Therefore, the joint prior given $\tau$ is MVN as
+
+::: {style="font-size: 75%;"}
+$$
+\text{Var}(\alpha_{\text{s2z}} \mid \tau) = s^2_\alpha + v_m, \qquad \text{Cov}(\bar{a},\, \alpha_\text{s2z} \mid \tau) = v_m
+$$
+:::
+where
+
+::: {style="font-size: 75%;"}
+$$
+\begin{pmatrix} \bar{a} \\ \alpha_\text{s2z} \end{pmatrix}\Bigm|\tau
+\sim
+\mathcal N\!\left[
+\begin{pmatrix}0\\0\end{pmatrix},
+\begin{pmatrix}
+v_m & v_m\\
+v_m & s_\alpha^2+v_m
+\end{pmatrix}
+\right]
+$$
+:::
+
+Using the standard conditional normal formulas, 
+
+::: {style="font-size: 75%;"}
+$$
+\begin{gathered}
+\bar{a}\mid\alpha_{\mathrm{s2z}},\,\tau
+\sim\mathcal N\!\left(w\alpha_{\mathrm{s2z}},v_c\right),\\[0.6em]
+\underbrace{\frac{v_m}{s_\alpha^2+v_m}}_{w},
+\qquad
+\underbrace{v_m-\frac{v_m^2}{s_\alpha^2+v_m}}_{v_c}.
+\end{gathered}
+$$
+:::
+
+## What about going from sum-to-zero to population models? {.s2z-conversion-code-slide}
+
+Previously, we derived the distribution of $\bar{a}$, the realized mean of the Bayesian group effects, and we denote a random draw from that distribution as $m$. To convert the sum-to-zero estimates into equivalent (in distribution) Bayesian estimates:
 
 1. Sample $m \sim \mathcal N(w\,\alpha_{\text{s2z}},v_c)$, using
    (mean, variance) notation.
 2. Set $\alpha_{\text{bayes}} = \alpha_{\text{s2z}} - m$ and
-   $a_g^{\text{bayes}} = a_g^{\text{s2z}} + m$.
+   $a_j^{\text{bayes}} = a_j^{\text{s2z}} + m$.
 
-## Sum-to-zero specification and conversion
-  The sum-to-zero parameter lives in $J - 1$ subspace a normal prior divides by $J$ instead of $J-1$, add back a $\log(\tau)$
 ``` stan
 parameters {
   real alpha_s2z; real<lower=0> tau, sigma_x;
@@ -962,7 +974,7 @@ generated quantities {
     real var_mean_a = square(tau) / J;
     real var_alpha = square(alpha_prior_sd);
     real weight = var_mean_a / (var_alpha + var_mean_a);
-    real conditional_sd = sqrt(var_alpha * var_mean_a / (var_alpha var_mean_a));
+    real conditional_sd = sqrt(var_alpha * var_mean_a / (var_alpha + var_mean_a));
     mean_a_bayes = normal_rng(weight * alpha_s2z, conditional_sd);
   }
   alpha_bayes_recovered = alpha_s2z - mean_a_bayes;
@@ -1082,18 +1094,6 @@ parameter, the largest difference is
 is `r sprintf("%.1f", max_reverse_mcse_ratio)` combined Monte Carlo SEs.
 :::
 
-## On the difference between two posterior means
-
-For each parameter, we calculate
-$$
-z=
-\frac{|\hat\mu_{\text{Bayes}}-\hat\mu_{\text{S2Z}}|}
-{\sqrt{\operatorname{MCSE}_{\text{Bayes}}^2+
-       \operatorname{MCSE}_{\text{S2Z}}^2}}.
-$$
-
-The largest value was 1.6. So the worst observed difference was only 1.6 times the noise expected from running two independent finite MCMC simulations. A standard-normal fluctuation exceeds 1.6 in absolute value about 11% of the time.
-
 ## ESS and ESS/grad on the two parameterizations
 
 ```{r}
@@ -1184,59 +1184,230 @@ by the total post-warmup `n_leapfrog__`: Bayesian =
 `r format(s2z_gradients, big.mark = ",")`.
 :::
 
-## Different variances on the varying intercepts
+## Idea on one slide {.implications-slide}
+
+::::: {.implications-pairs}
+
+::: {.implications-pair .implications-copy}
+Super-population decomposition
+:::
+
+::: {.implications-pair .implications-math}
+  $$
+  \begin{aligned}
+  \underbrace{\alpha_{\mathrm{s2z}}}_{\text{mean of these }J\text{ groups}}
+    &=\underbrace{\alpha_{\mathrm{bayes}}}_{\text{super-population mean}} + \underbrace{\frac{1}{J}\sum a^{\text{bayes}}_j}_{\bar{a}},\\
+  \bar{a} \mid\tau&\sim\mathcal N(0,\tau^2/J)
+  \end{aligned}
+  $$
+:::
+
+::: {.implications-pair .implications-copy}
+ For every draw from the induced-prior sum-to-zero fit, draw the missing common shift from the prior-implied conditional distribution. This restores the Bayesian super-population draw.
+:::
+
+::: {.implications-pair .implications-math}
+  $$
+  \begin{aligned}
+  m\mid\alpha_{\mathrm{s2z}},\tau
+    &\sim\mathcal N(w\alpha_{\mathrm{s2z}},v_c),\\
+  \alpha_{\mathrm{Bayes}}^{\mathrm{rec}}
+    &=\alpha_{\mathrm{s2z}} - m,\\
+  \mathbf a_{\mathrm{Bayes}}^{\mathrm{rec}}
+    &=\mathbf a_{\mathrm{s2z}}+ m\mathbf 1.
+  \end{aligned}
+  $$
+:::
+
+::: {.implications-pair .implications-copy}
+ The native Bayesian and sum-to-zero estimates are different. Equivalence is distributional and holds only after randomly augmenting the sum-to-zero draws.
+:::
+
+::: {.implications-pair .implications-math}
+  $$
+  (\alpha_{\mathrm{Bayes}}^{\mathrm{rec}},
+   \mathbf a_{\mathrm{Bayes}}^{\mathrm{rec}})\mid y
+  \ \overset{d}{=}\
+  (\alpha_{\mathrm{Bayes}},\mathbf a_{\mathrm{Bayes}})\mid y,
+  $$
+:::
+
+::: {.implications-pair .implications-copy}
+ Extends to varying prior standard deviations on the varying effects. Common in Bayesian models and we can derive similar logic.
+:::
+
+::: {.implications-pair .implications-math}
+- Repeat the decomposition on the log-SD scale:
+  $$
+  \log s_j=\gamma_{\mathrm{s2z}}+b_j^{\mathrm{s2z}},
+  \qquad \mathbf 1^\top\mathbf b_{\mathrm{s2z}}=0,
+  $$
+  then restore $\bar b$.
+:::
+:::::
+
+## From one common SD to group-specific SDs {.nostretch}
+
+::: {style="font-size: 68%;"}
+The original model used one common prior SD $\tau$ for every varying
+intercept. We now learn a separate prior SD $s_j$ for each group:
+
+$$
+a_j\mid\tau\sim\mathcal N(0,\tau^2)
+\qquad\Longrightarrow\qquad
+a_j\mid s_j\sim\mathcal N(0,s_j^2),\quad j=1,\ldots,J.
+$$
+
+The $J$ positive scales are partially pooled through a log-scale hierarchy:
+
+$$
+\gamma\sim\mathcal N(\mu_\gamma,s_\gamma^2),
+\qquad
+b_j\mid\omega\sim\mathcal N(0,\omega^2),
+\qquad
+s_j=\exp(\gamma+b_j).
+$$
+
+Here $\exp(\gamma)$ is their shared geometric center and $\omega$ is the new
+hyper-SD controlling how much the group log scales vary.
+
+Apply the earlier sum-to-zero shift to the log-SD deviations:
+
+$$
+\begin{gathered}
+\bar b=J^{-1}\sum_j b_j,\qquad
+b_j^{\mathrm{s2z}}=b_j-\bar b,\qquad
+\gamma_{\mathrm{s2z}}=\gamma+\bar b,\\
+\log s_j=\gamma+b_j
+=\gamma_{\mathrm{s2z}}+b_j^{\mathrm{s2z}}.
+\end{gathered}
+$$
+
+:::
+
+## Different variances on the varying intercepts {.nostretch}
+
+::: {style="font-size: 71%;"}
+The statistical model uses the nonnegative hyper-SD $\omega$:
+
+$$
+\gamma\sim\mathcal N(\mu_\gamma,s_\gamma^2),
+\qquad
+b_j\mid\omega\sim\mathcal N(0,\omega^2),
+\qquad
+\log s_j=\gamma+b_j.
+$$
+
+$\omega$ is the sampled magnitude, coded as the signed form $\lambda_\omega$ to preserve continuity at zero.
+
+$$
+\begin{gathered}
+\lambda_\omega\sim\mathcal N(0,0.25^2),\qquad
+\omega=|\lambda_\omega|,\\
+z_j\sim\mathcal N(0,1),\qquad
+b_j=\lambda_\omega z_j.
+\end{gathered}
+$$
+
+Because $z_j$ is symmetric, $\lambda_\omega=+\omega$ and
+$\lambda_\omega=-\omega$ induce the same
+$b_j\mid\omega\sim\mathcal N(0,\omega^2)$. 
+
+$$
+\sum_j z_j^{\mathrm{s2z}}=0,
+\qquad
+b_j^{\mathrm{s2z}}=\lambda_\omega z_j^{\mathrm{s2z}},
+\qquad
+\gamma_{\mathrm{s2z}}=\gamma+\bar b.
+$$
+
+The removed mean has variance $\lambda_\omega^2/J=\omega^2/J$, so
+
+$$
+\boxed{
+\operatorname{Var}(\gamma_{\mathrm{s2z}}\mid\lambda_\omega)
+=s_\gamma^2+\frac{\lambda_\omega^2}{J}
+=s_\gamma^2+\frac{\omega^2}{J}
+}.
+$$
+:::
+
+## Recovery {.nostretch}
+
+Recovering the removed log-scale mean $\bar b$
 
 ::: {style="font-size: 70%;"}
-Let $m = \bar a_{\mathrm{bayes}}$, $s = \alpha_{\mathrm{s2z}}$, and
-$z_j = a_j^{\mathrm{s2z}}$, with $\sum_j z_j = 0$.  We sample $(s, z, m)$
-but place the priors on the recovered coordinates
+Let $v_b=\lambda_\omega^2/J=\omega^2/J$ and $V=s_\gamma^2+v_b$. Then
 
 $$
-\alpha_{\mathrm{bayes}} = s-m,
-\qquad
-a_j^{\mathrm{bayes}} = z_j+m,
-\qquad
-a_j^{\mathrm{bayes}} \sim \mathcal N(0,\sigma_j^2).
-$$
-
-Consequently, the recovered priors already contribute the following quadratic
-in $m$:
-
-$$
-\log p(m\mid s,\mathbf z)
-= C-\frac12\left\{
-\frac{(s-m)^2}{s_\alpha^2}
-+\sum_{j=1}^J\frac{(z_j+m)^2}{\sigma_j^2}
-\right\}.
-$$
-
-Writing $\lambda = s_\alpha^{-2}+\sum_j\sigma_j^{-2}$ gives
-
-$$
-m\mid s,\mathbf z
-\sim \mathcal N\!\left(
-\frac{s/s_\alpha^2-\sum_j z_j/\sigma_j^2}{\lambda},
-\frac{1}{\lambda}
+\bar b\mid\gamma_{\mathrm{s2z}},\lambda_\omega
+\sim\mathcal N\!\left(
+\frac{v_b}{V}(\gamma_{\mathrm{s2z}}-\mu_\gamma),
+\frac{s_\gamma^2v_b}{V}
 \right),
-\qquad
-m \sim \mathcal N\!\left(0,\frac{1}{J^2}\sum_j\sigma_j^2\right).
 $$
 
-It is the correct induced prior on $m$, so no need to place a prior directly on $m$.
+where the second argument is a variance. Using
+$z_{\bar b}\sim\mathcal N(0,1)$, recover
+
+$$
+\begin{aligned}
+\bar b
+&=\frac{v_b}{V}(\gamma_{\mathrm{s2z}}-\mu_\gamma)
++\lambda_\omega
+\sqrt{\frac{s_\gamma^2}{JV}}\,z_{\bar b},\\
+\gamma&=\gamma_{\mathrm{s2z}}-\bar b,
+\qquad
+b_j=b_j^{\mathrm{s2z}}+\bar b.
+\end{aligned}
+$$
+
+The appendix code calls $z_{\bar b}$ `z_mean_b_cond`. Its symmetry means
+$\lambda_\omega z_{\bar b}$ and $\omega z_{\bar b}$ have the same
+distribution.
+:::
+
+Recovering the removed varying-effect mean $m$
+
+::: {style="font-size: 70%;"}
+Let
+$m=\bar a_{\mathrm{bayes}}=J^{-1}\sum_j a_j^{\mathrm{bayes}}$ be the mean
+removed from the unconstrained Bayesian effects. Given $s_\alpha$, $s_j$,
+$\alpha_{\mathrm{s2z}}$, and $a^{\mathrm{s2z}}$, define
+
+$$
+P=s_\alpha^{-2}+\sum_j s_j^{-2},
+\qquad
+\widehat m=P^{-1}\!\left(
+\frac{\alpha_{\mathrm{s2z}}}{s_\alpha^2}
+-\sum_j\frac{a_j^{\mathrm{s2z}}}{s_j^2}
+\right).
+$$
+
+Then
+$m\mid\alpha_{\mathrm{s2z}},a^{\mathrm{s2z}},s_\alpha,\{s_j\}
+\sim\mathcal N(\widehat m,P^{-1})$ and
+$\alpha_{\mathrm{bayes}}=\alpha_{\mathrm{s2z}}-m$,
+$a_j^{\mathrm{bayes}}=a_j^{\mathrm{s2z}}+m$.
 :::
 
 ```{r}
 #| label: fit-heterogeneous-varying-intercept-models
 #| include: false
 
-hetero_a_prior_sd <- c(1, 1.5, 2, 2.5, 3, 3.5)
-hetero_data <- modifyList(
-  stan_data,
-  list(a_prior_sd = hetero_a_prior_sd)
+hetero_data <- list(
+  N = stan_data$N,
+  J = stan_data$J,
+  group = stan_data$group,
+  x = stan_data$x
 )
 hetero_sample_args <- modifyList(
   sample_args,
-  list(data = hetero_data)
+  list(
+    data = hetero_data,
+    adapt_delta = 0.8,
+    max_treedepth = 15
+  )
 )
 
 hetero_bayes_model <- cmdstanr::cmdstan_model(
@@ -1254,6 +1425,14 @@ fit_hetero_s2z <- do.call(
   hetero_s2z_model$sample,
   hetero_sample_args
 )
+
+fit_wall_seconds <- function(fit) {
+  seconds <- fit$time()$total
+  stopifnot(length(seconds) == 1L, is.finite(seconds), seconds >= 0)
+  unname(seconds)
+}
+hetero_bayes_wall_seconds <- fit_wall_seconds(fit_hetero_bayes)
+hetero_s2z_wall_seconds <- fit_wall_seconds(fit_hetero_s2z)
 
 hetero_bayes_diagnostics <- fit_hetero_bayes$diagnostic_summary()
 hetero_s2z_diagnostics <- fit_hetero_s2z$diagnostic_summary()
@@ -1333,6 +1512,16 @@ hetero_s2z_ess_variables <- c(
   "mean_a_bayes",
   "sigma_x"
 )
+hetero_bayes_scale_ess_variables <- c(
+  "alpha_prior_sd",
+  paste0("a_prior_sd[", seq_len(J), "]"),
+  "lambda_omega"
+)
+hetero_s2z_scale_ess_variables <- c(
+  "alpha_prior_sd_recovered",
+  paste0("a_prior_sd[", seq_len(J), "]"),
+  "lambda_omega"
+)
 
 hetero_bayes_gradients <- gradient_evaluations(fit_hetero_bayes)
 hetero_s2z_gradients <- gradient_evaluations(fit_hetero_s2z)
@@ -1344,11 +1533,14 @@ hetero_s2z_ess <- native_bulk_ess(
   fit_hetero_s2z,
   hetero_s2z_ess_variables
 )
-```
-
-## Stan: different prior SDs
-
-```{.stan code-line-numbers="true" include="./stan/varying_intercept_diff_vars.stan"}
+hetero_bayes_scale_ess <- native_bulk_ess(
+  fit_hetero_bayes,
+  hetero_bayes_scale_ess_variables
+)
+hetero_s2z_scale_ess <- native_bulk_ess(
+  fit_hetero_s2z,
+  hetero_s2z_scale_ess_variables
+)
 ```
 
 ## Different variances: the two fits agree
@@ -1446,14 +1638,76 @@ par(op)
 ```
 
 ::: {style="font-size: 70%;"}
-The six prior SDs are
-`r paste(hetero_a_prior_sd, collapse = ", ")`. Across every plotted parameter,
-the largest posterior-mean difference is
-`r sprintf("%.3f", hetero_max_mean_difference)` and the largest standardized
-gap is `r sprintf("%.1f", hetero_max_mcse_ratio)` combined Monte Carlo SEs.
+The shared log scale has a $\mathcal N(\log 2.5,0.5^2)$ prior, and
+$\lambda_\omega \sim\operatorname{Normal}(0,0.25)$. Conditional on them,
+$s_j=\exp(\gamma+b_j)$ with $b_j\sim\mathcal N(0,\omega^2)$.
 :::
 
-## Sampling efficiency
+## Conventional versus S2Z efficiency
+
+```{r}
+#| label: summarize-heterogeneous-efficiency
+#| echo: false
+#| results: asis
+
+format_wall_seconds <- function(seconds) {
+  if (seconds < 60) {
+    return(sprintf("%.1f s", seconds))
+  }
+  sprintf(
+    "%d min %.1f s",
+    as.integer(seconds %/% 60),
+    seconds %% 60
+  )
+}
+
+hetero_efficiency_summary <- data.frame(
+  metric = c(
+    "Post-warmup leapfrog steps",
+    "Wall-clock fit time",
+    "Bulk ESS for &alpha;",
+    "Bulk ESS/grad for &alpha;"
+  ),
+  conventional = c(
+    format(hetero_bayes_gradients, big.mark = ","),
+    format_wall_seconds(hetero_bayes_wall_seconds),
+    format(round(hetero_bayes_ess[1]), big.mark = ","),
+    sprintf("%.5f", hetero_bayes_ess[1] / hetero_bayes_gradients)
+  ),
+  s2z = c(
+    format(hetero_s2z_gradients, big.mark = ","),
+    format_wall_seconds(hetero_s2z_wall_seconds),
+    format(round(hetero_s2z_ess[1]), big.mark = ","),
+    sprintf("%.5f", hetero_s2z_ess[1] / hetero_s2z_gradients)
+  )
+)
+
+cat(
+  '<table class="ess-table efficiency-summary-table">',
+  '<thead><tr><th>Metric</th>',
+  '<th class="ess-group ess-group-bayes">Conventional</th>',
+  '<th class="ess-group ess-group-s2z">S2Z coordinates</th>',
+  '</tr></thead><tbody>',
+  sep = "\n"
+)
+for (i in seq_len(nrow(hetero_efficiency_summary))) {
+  cat(sprintf(
+    '<tr><td>%s</td><td>%s</td><td>%s</td></tr>',
+    hetero_efficiency_summary$metric[i],
+    hetero_efficiency_summary$conventional[i],
+    hetero_efficiency_summary$s2z[i]
+  ), "\n")
+}
+cat('</tbody></table>')
+```
+
+::: {.ess-note}
+Both fits had zero divergences and zero maximum-treedepth hits.
+Wall-clock time is CmdStanR's total elapsed fit time for four parallel chains,
+including warmup and sampling but excluding compilation; it is machine-specific.
+:::
+
+## Sampling efficiency: effects and SDs
 
 ```{r}
 #| label: compare-heterogeneous-ess-per-gradient
@@ -1463,15 +1717,37 @@ gap is `r sprintf("%.1f", hetero_max_mcse_ratio)` combined Monte Carlo SEs.
 hetero_ess_table <- data.frame(
   parameter = c(
     "&alpha;",
-    paste0("<i>a</i><sub>", seq_len(J), "</sub>"),
+    "<i>a</i><sub><i>j</i></sub> (mean)",
     "<i>a&#772;</i>",
-    "&sigma;<sub><i>x</i></sub>"
+    "&sigma;<sub><i>x</i></sub>",
+    "<i>s</i><sub>&alpha;</sub>",
+    "<i>s</i><sub><i>j</i></sub> (mean)",
+    "&lambda_omega;"
   ),
-  bayes_ess = hetero_bayes_ess,
-  bayes_per_gradient = hetero_bayes_ess / hetero_bayes_gradients,
-  s2z_ess = hetero_s2z_ess,
-  s2z_per_gradient = hetero_s2z_ess / hetero_s2z_gradients
+  bayes_ess = c(
+    hetero_bayes_ess[1],
+    mean(hetero_bayes_ess[1 + seq_len(J)]),
+    hetero_bayes_ess[J + 2],
+    hetero_bayes_ess[J + 3],
+    hetero_bayes_scale_ess[1],
+    mean(hetero_bayes_scale_ess[1 + seq_len(J)]),
+    hetero_bayes_scale_ess[J + 2]
+  ),
+  s2z_ess = c(
+    hetero_s2z_ess[1],
+    mean(hetero_s2z_ess[1 + seq_len(J)]),
+    hetero_s2z_ess[J + 2],
+    hetero_s2z_ess[J + 3],
+    hetero_s2z_scale_ess[1],
+    mean(hetero_s2z_scale_ess[1 + seq_len(J)]),
+    hetero_s2z_scale_ess[J + 2]
+  ),
+  block_start = c(FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE)
 )
+hetero_ess_table$bayes_per_gradient <-
+  hetero_ess_table$bayes_ess / hetero_bayes_gradients
+hetero_ess_table$s2z_per_gradient <-
+  hetero_ess_table$s2z_ess / hetero_s2z_gradients
 
 cat(
   '<table class="ess-table hetero-ess-table">',
@@ -1492,11 +1768,17 @@ cat(
 )
 
 for (i in seq_len(nrow(hetero_ess_table))) {
+  row_class <- if (hetero_ess_table$block_start[i]) {
+    ' class="parameter-block-start"'
+  } else {
+    ""
+  }
   cat(sprintf(
     paste0(
-      '<tr><td>%s</td><td>%s</td><td>%.3f</td>',
-      '<td>%s</td><td>%.3f</td></tr>'
+      '<tr%s><td>%s</td><td>%s</td><td>%.5f</td>',
+      '<td>%s</td><td>%.5f</td></tr>'
     ),
+    row_class,
     hetero_ess_table$parameter[i],
     format(
       round(hetero_ess_table$bayes_ess[i]),
@@ -1517,22 +1799,232 @@ cat('</tbody></table>')
 ```
 
 ::: {.ess-note}
-Matched Bayesian estimands from
+The $a_j$ and $s_j$ rows report means across the six group-specific
+parameters; their individual ESS and ESS/grad values had similar magnitudes.
+Matched Bayesian estimands use
 `r format(hetero_sample_args$chains * hetero_sample_args$iter_sampling, big.mark = ",")`
 post-warmup draws. ESS/grad divides by total post-warmup `n_leapfrog__`:
 conventional = `r format(hetero_bayes_gradients, big.mark = ",")`;
 S2Z coordinates = `r format(hetero_s2z_gradients, big.mark = ",")`.
+$s_\alpha$ is the population-intercept prior SD, $s_j$ is the prior SD of
+varying intercept $a_j$, and $\omega$ is the SD of the group log-SD
+deviations.
+:::
+
+## ESS per gradient as groups grow {.nostretch}
+
+```{r}
+#| label: plot-heterogeneous-scaling-benchmark
+#| echo: false
+#| fig-align: center
+#| fig-width: 11
+#| fig-height: 4.55
+#| dev: !expr ifelse(knitr::is_latex_output(), "pdf", "svglite")
+#| dev-args:
+#|   bg: transparent
+#| fig-bg: transparent
+#| out-width: 96%
+
+scaling_efficiency <- read.csv(
+  "benchmarks/scaling_efficiency.csv",
+  stringsAsFactors = FALSE
+)
+scaling_diagnostics <- read.csv(
+  "benchmarks/scaling_diagnostics.csv",
+  stringsAsFactors = FALSE
+)
+stopifnot(
+  sum(scaling_diagnostics$divergences) == 0,
+  sum(scaling_diagnostics$max_treedepth_hits) == 0,
+  min(scaling_diagnostics$min_ebfmi) > 0.3,
+  max(scaling_diagnostics$max_rhat_checked) < 1.01
+)
+
+scaling_efficiency[c(
+  "ess_per_grad_q25",
+  "ess_per_grad_median",
+  "ess_per_grad_q75"
+)] <- 1000 * scaling_efficiency[c(
+  "ess_per_grad_q25",
+  "ess_per_grad_median",
+  "ess_per_grad_q75"
+)]
+
+scaling_J <- sort(unique(scaling_efficiency$J))
+scaling_methods <- c("conventional", "s2z")
+scaling_method_labels <- c("Conventional", "S2Z coordinates")
+scaling_colors <- c(darkblue, orange)
+scaling_pch <- c(16, 17)
+scaling_x_multiplier <- c(0.96, 1.04)
+scaling_grad_y_limits <- range(c(
+  scaling_efficiency$ess_per_grad_q25,
+  scaling_efficiency$ess_per_grad_q75
+))
+scaling_grad_y_limits <- exp(
+  log(scaling_grad_y_limits) + c(-0.15, 0.15)
+)
+scaling_grad_y_ticks <- c(0.5, 1, 2, 5, 10, 20, 50, 100, 200)
+
+draw_scaling_panel <- function(
+  data, family, panel_title, y_limits, y_ticks,
+  q25_column, median_column, q75_column,
+  show_legend = FALSE
+) {
+  panel <- data[data$family == family, ]
+  plot(
+    NA,
+    xlim = c(8.5, 117),
+    ylim = y_limits,
+    log = "xy",
+    axes = FALSE,
+    xlab = "",
+    ylab = "",
+    main = panel_title
+  )
+  abline(
+    h = y_ticks,
+    col = adjustcolor(grey, alpha.f = 0.16),
+    lwd = 1
+  )
+  axis(1, at = scaling_J, labels = scaling_J)
+  axis(2, at = y_ticks, labels = y_ticks, las = 1)
+  box(bty = "l")
+
+  for (method_index in seq_along(scaling_methods)) {
+    values <- panel[
+      panel$parameterization == scaling_methods[method_index],
+    ]
+    values <- values[match(scaling_J, values$J), ]
+    x_values <- values$J * scaling_x_multiplier[method_index]
+    segments(
+      x_values,
+      values[[q25_column]],
+      x_values,
+      values[[q75_column]],
+      col = adjustcolor(scaling_colors[method_index], alpha.f = 0.42),
+      lwd = 7,
+      lend = "round"
+    )
+    lines(
+      x_values,
+      values[[median_column]],
+      col = scaling_colors[method_index],
+      lwd = 3
+    )
+    points(
+      x_values,
+      values[[median_column]],
+      col = scaling_colors[method_index],
+      pch = scaling_pch[method_index],
+      cex = 1.25
+    )
+  }
+
+  if (show_legend) {
+    legend(
+      "topright",
+      legend = scaling_method_labels,
+      col = scaling_colors,
+      pch = scaling_pch,
+      lwd = 3,
+      bty = "n",
+      cex = 1.0
+    )
+  }
+}
+
+draw_scaling_figure <- function(
+  data, y_limits, y_ticks, y_label,
+  q25_column, median_column, q75_column
+) {
+  op <- par(
+    mfrow = c(1, 2),
+    mar = c(3.2, 2.8, 2.6, 0.8),
+    oma = c(2.4, 4.3, 0, 0),
+    bty = "n",
+    bg = NA,
+    family = "Spectral",
+    col.axis = "#333333",
+    col.lab = "#333333",
+    cex.axis = 1.0,
+    cex.main = 1.15
+  )
+
+  draw_scaling_panel(
+    data,
+    "local_effect",
+    expression("Varying effects " * a[j]),
+    y_limits,
+    y_ticks,
+    q25_column,
+    median_column,
+    q75_column
+  )
+  draw_scaling_panel(
+    data,
+    "local_prior_sd",
+    expression("Prior SDs " * s[j]),
+    y_limits,
+    y_ticks,
+    q25_column,
+    median_column,
+    q75_column,
+    show_legend = TRUE
+  )
+  mtext(
+    "Number of groups, J (log scale)",
+    side = 1,
+    outer = TRUE,
+    line = 1.1
+  )
+  mtext(y_label, side = 2, outer = TRUE, line = 2.6)
+  par(op)
+}
+
+draw_scaling_figure(
+  scaling_efficiency,
+  scaling_grad_y_limits,
+  scaling_grad_y_ticks,
+  "Median bulk ESS per 1,000 leapfrog steps (log scale)",
+  "ess_per_grad_q25",
+  "ess_per_grad_median",
+  "ess_per_grad_q75"
+)
+
+scaling_gain_at_100 <- function(family) {
+  values <- scaling_efficiency[
+    scaling_efficiency$J == 100 & scaling_efficiency$family == family,
+  ]
+  values$ess_per_grad_median[
+    values$parameterization == "s2z"
+  ] / values$ess_per_grad_median[
+    values$parameterization == "conventional"
+  ]
+}
+scaling_effect_gain_100 <- scaling_gain_at_100("local_effect")
+scaling_sd_gain_100 <- scaling_gain_at_100("local_prior_sd")
+scaling_N <- scaling_diagnostics[!duplicated(scaling_diagnostics$J), ]
+scaling_N <- scaling_N[match(scaling_J, scaling_N$J), "N"]
+stopifnot(identical(as.integer(scaling_N), c(296L, 681L, 1781L, 3596L)))
+```
+
+::: {.ess-note}
+This single nested benchmark extends the original $\tau=2.5$ simulation by
+repeating its six unbalanced group sizes through $J=(10,20,50,100)$, yielding
+$N=(296;\,681;\,1{,}781;\,3{,}596)$. Points show median ESS/grad across the
+matched group-specific estimands; bars show their IQR, not uncertainty
+intervals.
 :::
 
 ## Take-away
 
-Our Bayesian hierarchical models are doing something special. 
+Bayesian hierarchical models allow estimating a 'super-population' but it's not magic, it is a consequence of the distributional assumptions.
 
-Treating the varying effects as random variables allows specifying a distribution. For elliptical distributions we can convert across the two parameterizations!
+Sum-to-zero constraints are great and now you can get the Bayesian estimates with faster and more robust fitting.
 
-Don't be afraid to use sum-to-zero constraints in your models.
+Arguments here extend to elliptically symmetric distributions.
 
-More to come in the paper
+More details to come in the paper
 
 -   Multiple sets of varying effects
 -   Varying slopes conversions
@@ -1542,6 +2034,260 @@ More to come in the paper
 ![](images/repo_qr.png){fig-align="center" width="380"}
 
 <p style="text-align: center;">[github.com/spinkney/open-talks](https://github.com/spinkney/open-talks)</p>
+
+## Appendix
+
+Comparison diagnostics, Stan implementations, and Gaussian marginalization details
+
+## On the difference between two posterior means {.nostretch}
+
+::: {style="font-size: 72%;"}
+For each plotted parameter, calculate
+$$
+z=
+\frac{|\hat\mu_1-\hat\mu_2|}
+{\sqrt{\operatorname{MCSE}_1^2+
+       \operatorname{MCSE}_2^2}}.
+$$
+:::
+
+```{r}
+#| label: summarize-posterior-mean-differences
+#| echo: false
+#| results: asis
+
+posterior_mean_difference_table <- data.frame(
+  comparison = c(
+    "Recovered S2Z vs native S2Z",
+    "Native Bayesian vs recovered Bayesian",
+    "Different variances: conventional vs recovered Bayesian"
+  ),
+  mean_difference = c(
+    max_all_mean_difference,
+    max_reverse_all_difference,
+    hetero_max_mean_difference
+  ),
+  standardized_gap = c(
+    max_s2z_mcse_ratio,
+    max_reverse_mcse_ratio,
+    hetero_max_mcse_ratio
+  )
+)
+largest_standardized_gap_display <- round(
+  max(posterior_mean_difference_table$standardized_gap),
+  1
+)
+
+cat(
+  '<table class="comparison-gap-table">',
+  '<thead><tr><th>Fit comparison</th>',
+  '<th>Largest absolute posterior-mean difference</th>',
+  '<th>Largest standardized gap, <i>z</i></th></tr></thead><tbody>',
+  sep = "\n"
+)
+for (i in seq_len(nrow(posterior_mean_difference_table))) {
+  cat(sprintf(
+    '<tr><td>%s</td><td>%.3f</td><td>%.1f</td></tr>',
+    posterior_mean_difference_table$comparison[i],
+    posterior_mean_difference_table$mean_difference[i],
+    posterior_mean_difference_table$standardized_gap[i]
+  ), "\n")
+}
+cat('</tbody></table>')
+```
+
+::: {.comparison-gap-note}
+Each entry is the maximum across the plotted parameters for that comparison;
+the two maxima need not occur for the same parameter. The largest standardized
+gap was `r sprintf("%.1f", largest_standardized_gap_display)`
+combined Monte Carlo SEs. For one standard-normal comparison, a gap at least
+this large occurs about
+`r sprintf("%.0f", 200 * pnorm(-largest_standardized_gap_display))`%
+of the time; taking a maximum over several parameters makes it still less
+surprising.
+:::
+
+```{r}
+#| include: false
+
+emit_stan_lines <- function(path, first, last) {
+  stan_lines <- readLines(path, warn = FALSE)
+  stopifnot(first >= 1, last <= length(stan_lines), first <= last)
+  cat(sprintf(
+    '```{.stan code-line-numbers="true" startFrom="%d"}\n',
+    first
+  ))
+  cat(stan_lines[first:last], sep = "\n")
+  cat("\n```\n")
+}
+```
+
+## Differing variances conventional Bayesian Stan model: declarations {.long-code-title}
+
+```{r}
+#| echo: false
+#| results: asis
+
+emit_stan_lines(
+  "stan/varying_intercept_bayes_diff_vars.stan",
+  1,
+  18
+)
+```
+
+## Differing variances conventional Bayesian Stan model: SD hierarchy and model {.long-code-title .dense-code-slide}
+
+```{r}
+#| echo: false
+#| results: asis
+
+emit_stan_lines(
+  "stan/varying_intercept_bayes_diff_vars.stan",
+  18,
+  37
+)
+```
+
+## S2Z Stan: declarations
+
+```{r}
+#| echo: false
+#| results: asis
+
+emit_stan_lines(
+  "stan/varying_intercept_diff_vars.stan",
+  1,
+  20
+)
+```
+
+## S2Z Stan: log-scale constraint
+
+```{r}
+#| echo: false
+#| results: asis
+
+emit_stan_lines(
+  "stan/varying_intercept_diff_vars.stan",
+  21,
+  37
+)
+```
+
+## S2Z Stan: remove the effect mean
+
+```{r}
+#| echo: false
+#| results: asis
+
+emit_stan_lines(
+  "stan/varying_intercept_diff_vars.stan",
+  38,
+  48
+)
+```
+
+## S2Z Stan: prior and likelihood
+
+```{r}
+#| echo: false
+#| results: asis
+
+emit_stan_lines(
+  "stan/varying_intercept_diff_vars.stan",
+  48,
+  60
+)
+```
+
+## Completing the square in the removed mean $m$ {.nostretch}
+
+::: {style="font-size: 74%;"}
+For fixed $s_\alpha$, $\{s_j\}$, $\alpha_{\mathrm{s2z}}$, and
+$a^{\mathrm{s2z}}$, write
+
+$$
+\ell(m)=
+\log\mathcal N(\alpha_{\mathrm{s2z}}-m\mid0,s_\alpha^2)
++\sum_{j=1}^J
+\log\mathcal N(a_j^{\mathrm{s2z}}+m\mid0,s_j^2).
+$$
+
+With $P$ and $\widehat m$ from the main presentation, completing the square
+gives
+
+$$
+\ell(m)=\ell(\widehat m)-\frac{P}{2}(m-\widehat m)^2.
+$$
+
+This immediately gives
+$m\mid\alpha_{\mathrm{s2z}},a^{\mathrm{s2z}},s_\alpha,\{s_j\}
+\sim\mathcal N(\widehat m,P^{-1})$.
+:::
+
+## Marginalizing the removed mean $m$ {.nostretch}
+
+::: {style="font-size: 74%;"}
+From the completed square,
+$\ell(m)=\ell(\widehat m)-\tfrac12P(m-\widehat m)^2$. Therefore,
+marginalizing the removed direction contributes
+
+$$
+\begin{aligned}
+\log\!\int_{-\infty}^{\infty}e^{\ell(m)}\,dm
+&=\ell(\widehat m)+
+\log\!\int_{-\infty}^{\infty}
+e^{-\frac{P}{2}(m-\widehat m)^2}\,dm \\
+&=\ell(\widehat m)
++\frac12\log(2\pi)-\frac12\log P.
+\end{aligned}
+$$
+
+$$
+\boxed{
+\Delta\log p
+=\frac12\log(2\pi)-\frac12\log P
+}
+$$
+
+Thus $P={\tt precision\_mean\_a}$. This is a Gaussian integration factor,
+not a Jacobian. The $-\tfrac12\log P$ term must remain because $P$ depends on
+the sampled scales; $\tfrac12\log(2\pi)$ is constant and may be dropped. If
+$m$ were sampled directly, this marginalization term would not be added.
+:::
+
+## Distributions
+
+ We will restrict ourselves to elliptically symmetric distributions for hierarchical models, i.e.,
+$$
+\begin{align*}
+&f(x) = c \, g(x^\top \Sigma_x^{-1}x), \\
+&\int_{\mathbb{R}^d} f(x) \, dx = 1
+\end{align*}
+$$
+where^[@delmas_2024]
+
+-   the generator $g(\cdot): \mathbb{R}^+ \rightarrow \mathbb{R}^+$
+-   the normalizing constant $c$ ensures $f(x)$ integrates to 1
+
+## Distributions
+
+$$
+\begin{align*}
+&f(x) = c \, g(x^\top \Sigma_x^{-1}x), \\
+&\int_{\mathbb{R}^d} f(x) \, dx = 1
+\end{align*}
+$$
+
+The choice of $g$ controls the tail behavior, allowing both light- and heavy-tailed priors within the same family:
+
+-   Normal: $g(t) \propto e^{-t/2}$
+-   Student-$t_\nu$ (Cauchy at $\nu = 1$): $g(t) \propto \left(1 + t/\nu\right)^{-(\nu + d)/2}$
+-   Logistic: $g(t) \propto e^{-t} / \left(1 + e^{-t}\right)^2$
+-   Laplace: $g(t) \propto e^{-\sqrt{t}}$
+
+
+## References
 
 ::: {#refs}
 :::
