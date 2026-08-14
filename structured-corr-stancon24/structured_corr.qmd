@@ -91,7 +91,7 @@ Constrain the `y` "raw" parameters to be positive. This should make the correlat
 
 ## Let's first see how rejection sampling handles this
 
-::: columns
+::::: columns
 ::: {.column style="width: 60%; font-size: 70%;"}
 Sample a bunch and if **all** are positive then keep
 
@@ -146,7 +146,7 @@ Mean should be about 0.28 and std 0.18
 │    x[5,5] │     1.0 │     0.0 │      1.0 │       1.0 
 ```
 :::
-:::
+:::::
 
 ## Output in Stan
 
@@ -251,13 +251,11 @@ Assume we have $3 \times 3$ matrix that we wish to constrain all correlation val
 Let us choose $C_{2, 1} = C_{3,1} = \frac{-1}{\sqrt{2}}$ and solve for the bounds of $C_{3,2}$:
 
 ::: small-math
-```{=tex}
 \begin{align*}
 \max\left\{-1, -\sqrt{1 - C_{3,1}^2} \right\} &< \frac{B - C_{2,1} C_{3,1}}{L_{2, 2}} < \min\left\{0, \sqrt{1 - C_{3,1}^2} \right\} \\
 -\sqrt{0.5} &< \frac{B - 0.5}{\sqrt{0.5}} < 0 \\
 \implies 0 &< B < 0.5
 \end{align*}
-```
 :::
 
 ::: callout-note
@@ -266,7 +264,7 @@ This is all in @pinkney2024
 
 ## The Stan code
 
-::: columns
+::::: columns
 ::: {.column style="width: 80%; font-size: 60%;"}
 ``` stan
 matrix cholesky_corr_constrain_lp (vector col_one_raw, vector off_raw,
@@ -297,14 +295,15 @@ matrix cholesky_corr_constrain_lp (vector col_one_raw, vector off_raw,
   }
 ```
 :::
-::: {.column style="width: 20%; font-size: 50%;"}
-This is a bit more stable than what's in the paper but also more opaque. 
 
-The exp()'s here are just calculating stuff on the log-scale. 
+::: {.column style="width: 20%; font-size: 50%;"}
+This is a bit more stable than what's in the paper but also more opaque.
+
+The exp()'s here are just calculating stuff on the log-scale.
 
 Line 13 I take the log and try to stick with this as much as possible.
 :::
-:::
+:::::
 
 ## Back to the motivating example
 
@@ -386,7 +385,7 @@ Omega[6,5]  0.0009 -0.0018 0.2533 0.2675 -0.4113  0.4213  1.0002 4139.6808 2995.
 
 ## Do you want to see the Stan code for this?
 
-```stan
+``` stan
   matrix cholesky_corr_constrain_lp(int K, vector raw, int N_blocks,
                                     array[,] int res_index,
                                     array[] int res_id,
