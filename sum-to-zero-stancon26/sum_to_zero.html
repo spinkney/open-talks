@@ -998,10 +998,10 @@ Post-warmup leapfrog steps
 Wall-clock fit time
 </td>
 <td>
-4.3 s
+4.2 s
 </td>
 <td>
-0.7 s
+0.6 s
 </td>
 </tr>
 <tr>
@@ -1225,12 +1225,21 @@ ESS/grad
 <a href="https://github.com/spinkney/open-talks">github.com/spinkney/open-talks</a>
 </p>
 </section>
-<section id="appendix" class="slide level2">
-<h2>Appendix</h2>
-<p>Comparison diagnostics, Stan implementations, and Gaussian marginalization details</p>
+<section id="appendices" class="slide level2">
+<h2>Appendices</h2>
+<div class="appendix-index">
+<ul>
+<li><strong>Appendix A:</strong> Posterior comparison diagnostics</li>
+<li><strong>Appendix B:</strong> Varying SDs—conventional Bayesian implementation</li>
+<li><strong>Appendix C:</strong> Varying SDs—sum-to-zero implementation</li>
+<li><strong>Appendix D:</strong> Varying SDs—reconstruction and marginalization</li>
+<li><strong>Appendix E:</strong> Elliptically symmetric distributions</li>
+</ul>
+</div>
 </section>
-<section id="on-the-difference-between-two-posterior-means" class="slide level2 nostretch">
-<h2>On the difference between two posterior means</h2>
+<section id="appendix-a-posterior-comparison-diagnostics" class="slide level2 nostretch appendix-detail-slide">
+<h2>Appendix A · Posterior comparison diagnostics</h2>
+<h3 class="appendix-subheading" id="on-the-difference-between-two-posterior-means">On the difference between two posterior means</h3>
 <div style="font-size: 72%;">
 <p>For each plotted parameter, calculate <span class="math display">
 z=
@@ -1293,8 +1302,9 @@ Different variances: conventional vs recovered Bayesian
 <p>Each entry is the maximum across the plotted parameters for that comparison; the two maxima need not occur for the same parameter. The largest standardized gap was 1.8 combined Monte Carlo SEs. For one standard-normal comparison, a gap at least this large occurs about 7% of the time; taking a maximum over several parameters makes it still less surprising.</p>
 </div>
 </section>
-<section id="differing-variances-conventional-bayesian-stan-model-declarations" class="slide level2 long-code-title">
-<h2>Differing variances conventional Bayesian Stan model: declarations</h2>
+<section id="appendix-b-varying-sds-conventional-bayesian-implementation" class="slide level2 long-code-title appendix-detail-slide">
+<h2>Appendix B · Varying SDs · Conventional Bayesian implementation</h2>
+<h3 class="appendix-subheading" id="differing-variances-conventional-bayesian-stan-model-declarations">Differing variances conventional Bayesian Stan model: declarations</h3>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" data-startfrom="1"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb4-1"><a href=""></a><span class="kw">data</span> {</span>
 <span id="cb4-2"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>&gt; N;</span>
 <span id="cb4-3"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">2</span>&gt; J;</span>
@@ -1314,8 +1324,9 @@ Different variances: conventional vs recovered Bayesian
 <span id="cb4-17"><a href=""></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; sigma_x;</span>
 <span id="cb4-18"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="differing-variances-conventional-bayesian-stan-model-sd-hierarchy-and-model" class="slide level2 long-code-title dense-code-slide">
-<h2>Differing variances conventional Bayesian Stan model: SD hierarchy and model</h2>
+<section id="appendix-b-varying-sds-conventional-bayesian-implementation-1" class="slide level2 long-code-title dense-code-slide appendix-detail-slide">
+<h2>Appendix B · Varying SDs · Conventional Bayesian implementation</h2>
+<h3 class="appendix-subheading" id="differing-variances-conventional-bayesian-stan-model-sd-hierarchy-and-model">Differing variances conventional Bayesian Stan model: SD hierarchy and model</h3>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" data-startfrom="18"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan" style="counter-reset: source-line 17;"><span id="cb5-18"><a href=""></a>}</span>
 <span id="cb5-19"><a href=""></a><span class="kw">transformed parameters</span> {</span>
 <span id="cb5-20"><a href=""></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; alpha_prior_sd = exp(gamma);</span>
@@ -1337,8 +1348,9 @@ Different variances: conventional vs recovered Bayesian
 <span id="cb5-36"><a href=""></a>  <span class="dt">vector</span>[J] a_s2z_recovered = a_bayes - mean_a;</span>
 <span id="cb5-37"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="s2z-stan-declarations" class="slide level2">
-<h2>S2Z Stan: declarations</h2>
+<section id="appendix-c-varying-sds-sum-to-zero-implementation" class="slide level2 appendix-detail-slide">
+<h2>Appendix C · Varying SDs · Sum-to-zero implementation</h2>
+<h3 class="appendix-subheading" id="s2z-stan-declarations">S2Z Stan: declarations</h3>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" data-startfrom="1"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb6-1"><a href=""></a><span class="kw">data</span> {</span>
 <span id="cb6-2"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>&gt; N;</span>
 <span id="cb6-3"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">2</span>&gt; J;</span>
@@ -1360,8 +1372,9 @@ Different variances: conventional vs recovered Bayesian
 <span id="cb6-19"><a href=""></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; sigma_x;</span>
 <span id="cb6-20"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="s2z-stan-log-scale-constraint" class="slide level2">
-<h2>S2Z Stan: log-scale constraint</h2>
+<section id="appendix-c-varying-sds-sum-to-zero-implementation-1" class="slide level2 appendix-detail-slide">
+<h2>Appendix C · Varying SDs · Sum-to-zero implementation</h2>
+<h3 class="appendix-subheading" id="s2z-stan-log-scale-constraint">S2Z Stan: log-scale constraint</h3>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7" data-startfrom="21"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan" style="counter-reset: source-line 20;"><span id="cb7-21"><a href=""></a><span class="kw">transformed parameters</span> {</span>
 <span id="cb7-22"><a href=""></a>  <span class="dt">real</span> var_gamma = square(s_gamma);</span>
 <span id="cb7-23"><a href=""></a>  <span class="dt">real</span> var_mean_b = square(lambda_omega) / J;</span>
@@ -1380,8 +1393,9 @@ Different variances: conventional vs recovered Bayesian
 <span id="cb7-36"><a href=""></a>    exp(gamma_s2z + b_s2z);</span>
 <span id="cb7-37"><a href=""></a>  <span class="dt">vector</span>[J] inv_var_a = inv(square(a_prior_sd));</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="s2z-stan-remove-the-effect-mean" class="slide level2">
-<h2>S2Z Stan: remove the effect mean</h2>
+<section id="appendix-c-varying-sds-sum-to-zero-implementation-2" class="slide level2 appendix-detail-slide">
+<h2>Appendix C · Varying SDs · Sum-to-zero implementation</h2>
+<h3 class="appendix-subheading" id="s2z-stan-remove-the-effect-mean">S2Z Stan: remove the effect mean</h3>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8" data-startfrom="38"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan" style="counter-reset: source-line 37;"><span id="cb8-38"><a href=""></a>  <span class="dt">real</span> inv_var_alpha =</span>
 <span id="cb8-39"><a href=""></a>    inv(square(alpha_prior_sd_recovered));</span>
 <span id="cb8-40"><a href=""></a>  <span class="dt">real</span> precision_mean_a = inv_var_alpha + sum(inv_var_a);</span>
@@ -1394,8 +1408,9 @@ Different variances: conventional vs recovered Bayesian
 <span id="cb8-47"><a href=""></a>}</span>
 <span id="cb8-48"><a href=""></a><span class="kw">model</span> {</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="s2z-stan-prior-and-likelihood" class="slide level2">
-<h2>S2Z Stan: prior and likelihood</h2>
+<section id="appendix-c-varying-sds-sum-to-zero-implementation-3" class="slide level2 appendix-detail-slide">
+<h2>Appendix C · Varying SDs · Sum-to-zero implementation</h2>
+<h3 class="appendix-subheading" id="s2z-stan-prior-and-likelihood">S2Z Stan: prior and likelihood</h3>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9" data-startfrom="48"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan" style="counter-reset: source-line 47;"><span id="cb9-48"><a href=""></a><span class="kw">model</span> {</span>
 <span id="cb9-49"><a href=""></a>  gamma_s2z ~ normal(mu_gamma, sqrt(var_gamma_s2z));</span>
 <span id="cb9-50"><a href=""></a>  z_log_sd_s2z ~ std_normal();</span>
@@ -1410,8 +1425,9 @@ Different variances: conventional vs recovered Bayesian
 <span id="cb9-59"><a href=""></a>  x ~ normal(alpha_s2z + a_s2z[group], sigma_x);</span>
 <span id="cb9-60"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="completing-the-square-in-the-removed-mean-m" class="slide level2 nostretch">
-<h2>Completing the square in the removed mean <span class="math inline">m</span></h2>
+<section id="appendix-d-varying-sds-reconstruction-and-marginalization" class="slide level2 nostretch appendix-detail-slide">
+<h2>Appendix D · Varying SDs · Reconstruction and marginalization</h2>
+<h3 class="appendix-subheading" id="completing-the-square-in-the-removed-mean-m">Completing the square in the removed mean <span class="math inline">m</span></h3>
 <div style="font-size: 74%;">
 <p>For fixed <span class="math inline">s_\alpha</span>, <span class="math inline">\{s_j\}</span>, <span class="math inline">\alpha_{\mathrm{s2z}}</span>, and <span class="math inline">a^{\mathrm{s2z}}</span>, write</p>
 <p><span class="math display">
@@ -1428,8 +1444,9 @@ Different variances: conventional vs recovered Bayesian
 \sim\mathcal N(\widehat m,P^{-1})</span>.</p>
 </div>
 </section>
-<section id="marginalizing-the-removed-mean-m" class="slide level2 nostretch">
-<h2>Marginalizing the removed mean <span class="math inline">m</span></h2>
+<section id="appendix-d-varying-sds-reconstruction-and-marginalization-1" class="slide level2 nostretch appendix-detail-slide">
+<h2>Appendix D · Varying SDs · Reconstruction and marginalization</h2>
+<h3 class="appendix-subheading" id="marginalizing-the-removed-mean-m">Marginalizing the removed mean <span class="math inline">m</span></h3>
 <div style="font-size: 74%;">
 <p>From the completed square, <span class="math inline">\ell(m)=\ell(\widehat m)-\tfrac12P(m-\widehat m)^2</span>. Therefore, marginalizing the removed direction contributes</p>
 <p><span class="math display">
@@ -1451,8 +1468,9 @@ e^{-\frac{P}{2}(m-\widehat m)^2}\,dm \\
 <p>Thus <span class="math inline">P={\tt precision\_mean\_a}</span>. This is a Gaussian integration factor, not a Jacobian. The <span class="math inline">-\tfrac12\log P</span> term must remain because <span class="math inline">P</span> depends on the sampled scales; <span class="math inline">\tfrac12\log(2\pi)</span> is constant and may be dropped. If <span class="math inline">m</span> were sampled directly, this marginalization term would not be added.</p>
 </div>
 </section>
-<section id="distributions" class="slide level2">
-<h2>Distributions</h2>
+<section id="appendix-e-elliptically-symmetric-distributions" class="slide level2 appendix-detail-slide">
+<h2>Appendix E · Elliptically symmetric distributions</h2>
+<h3 class="appendix-subheading" id="distributions">Distributions</h3>
 <p>We will restrict ourselves to elliptically symmetric distributions for hierarchical models, i.e., <span class="math display">
 \begin{align*}
 &amp;f(x) = c \, g(x^\top \Sigma_x^{-1}x), \\
@@ -1464,8 +1482,9 @@ e^{-\frac{P}{2}(m-\widehat m)^2}\,dm \\
 <li>the normalizing constant <span class="math inline">c</span> ensures <span class="math inline">f(x)</span> integrates to 1</li>
 </ul>
 <aside><ol class="aside-footnotes"><li id="fn1"><p><span class="citation" data-cites="delmas_2024">Delmas (<a href="#/references" role="doc-biblioref" onclick="">2024</a>)</span></p></li></ol></aside></section>
-<section id="distributions-1" class="slide level2">
-<h2>Distributions</h2>
+<section id="appendix-e-elliptically-symmetric-distributions-1" class="slide level2 appendix-detail-slide">
+<h2>Appendix E · Elliptically symmetric distributions</h2>
+<h3 class="appendix-subheading" id="distributions-1">Distributions</h3>
 <p><span class="math display">
 \begin{align*}
 &amp;f(x) = c \, g(x^\top \Sigma_x^{-1}x), \\
