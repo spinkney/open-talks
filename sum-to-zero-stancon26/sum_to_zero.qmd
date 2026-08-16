@@ -899,26 +899,53 @@ the largest difference is `r sprintf("%.3f", max_all_mean_difference)`: Monte
 Carlo error at the scale of the plot.
 :::
 
+## Prior work and the missing connection {.nostretch .literature-positioning-slide}
+
+::::: columns
+::: {.column style="width: 59%; font-size: 57%; line-height: 1.12; border-right: 1px solid #d0d0d0; padding-right: 1.4em; box-sizing: border-box;"}
+[Established pieces]{.emphasis2}
+
+-   @gelman2005 distinguishes finite-population and superpopulation quantities.
+-   @rouder2012 compare constrained fixed effects with exchangeable random effects.
+-   @vines1996 introduce sweeping: replace $a_j$ by $a_j-\bar a$ and absorb $\bar a$ into the intercept.
+-   @millar2009 show that sweeping changes inference from the population mean to the sample mean—and leave recovery as future work.
+-   @ogle2020 extend sweeping to nested and crossed effect sets, but in the forward direction rather than from an S2Z fit back to the superpopulation posterior.
+:::
+
+::: {.column style="width: 41%; font-size: 60%; line-height: 1.14; padding-left: 1.4em; box-sizing: border-box;"}
+[Missing connection]{.emphasis}
+
+Prior derivations address a single batch of group effects, normal--normal hierarchical models, or hierarchical centering and sweeping. We have not found an explicit posterior equivalence between an **induced-prior sum-to-zero parameterization** and a **Bayesian superpopulation model**.
+
+[This work]{.emphasis2}
+
+Establishes that equivalence through **stochastic reconstruction of the omitted common-shift directions**, extending to
+
+-   heterogeneous scales,
+-   elliptically symmetric priors, and
+-   multiple batches of varying effects.
+:::
+:::::
+
 ## What about going from sum-to-zero to population models? {.nostretch .population-derivation-slide}
 
 ::: {style="font-size: 66%; line-height: 1.12;"}
-Given $\tau$, let $v_m=\tau^2/J$, with
-$\alpha_{\mathrm{bayes}}\perp\bar a\mid\tau$. Then
+Given $\tau$, let $v_{\bar{a}}=\tau^2/J$ and under the prior assumption that $\alpha_{\mathrm{bayes}}\perp\bar a\mid\tau$. Then
 
 $$
 \begin{gathered}
 \alpha_{\mathrm{bayes}}\sim\mathcal N(0,s_\alpha^2),
-\qquad \bar a\mid\tau\sim\mathcal N(0,v_m),\\[0.35em]
+\qquad \bar a\mid\tau\sim\mathcal N(0, v_{\bar{a}}),\\[0.35em]
 \alpha_{\mathrm{s2z}}=\alpha_{\mathrm{bayes}}+\bar a
 \ \Longrightarrow\
 \begin{cases}
-\operatorname{Var}(\alpha_{\mathrm{s2z}}\mid\tau)=s_\alpha^2+v_m,\\
-\operatorname{Cov}(\bar a,\alpha_{\mathrm{s2z}}\mid\tau)=v_m,
+\operatorname{Var}(\alpha_{\mathrm{s2z}}\mid\tau)=s_\alpha^2 + v_{\bar{a}}, \\
+\operatorname{Cov}(\bar a,\alpha_{\mathrm{s2z}}\mid\tau) = v_{\bar{a}},
 \end{cases}\\[0.45em]
-\begin{pmatrix}\bar a\\ \alpha_{\mathrm{s2z}}\end{pmatrix}\Bigm|\tau
+\begin{pmatrix}\bar a \\ \alpha_{\mathrm{s2z}}\end{pmatrix}\Bigm|\tau
 \sim\mathcal N\!\left[
 \begin{pmatrix}0\\0\end{pmatrix},
-\begin{pmatrix}v_m&v_m\\v_m&s_\alpha^2+v_m\end{pmatrix}
+\begin{pmatrix}v_{\bar{a}} & v_{\bar{a}} \\ v_{\bar{a}} &s_\alpha^2 + v_{\bar{a}} \end{pmatrix}
 \right].
 \end{gathered}
 $$
@@ -929,9 +956,9 @@ $$
 \begin{gathered}
 \bar a\mid\alpha_{\mathrm{s2z}},\tau
 \sim\mathcal N\!\left(w\alpha_{\mathrm{s2z}},v_c\right),\\[0.35em]
-\underbrace{\frac{v_m}{s_\alpha^2+v_m}}_{w},
+\underbrace{\frac{v_{\bar{a}}}{s_\alpha^2 + v_{\bar{a}}}}_{w},
 \qquad
-\underbrace{v_m-\frac{v_m^2}{s_\alpha^2+v_m}}_{v_c}.
+\underbrace{v_{\bar{a}} - \frac{v_{\bar{a}}^2}{s_\alpha^2 + v_{\bar{a}}}}_{v_c}.
 \end{gathered}
 $$
 :::
@@ -943,10 +970,10 @@ For each sum-to-zero posterior draw, sample the missing realized mean and
 shift the coordinates:
 
 $$
-m\mid\alpha_{\mathrm{s2z}},\tau
-\sim\mathcal N(w\alpha_{\mathrm{s2z}},v_c),\qquad
-\alpha_{\mathrm{bayes}}=\alpha_{\mathrm{s2z}}-m,\qquad
-a_j^{\mathrm{bayes}}=a_j^{\mathrm{s2z}}+m,
+\bar{a} \mid \alpha_{\mathrm{s2z}}, \tau
+\sim \mathcal N(w\alpha_{\mathrm{s2z}},v_c), \qquad
+\alpha_{\mathrm{bayes}} = \alpha_{\mathrm{s2z}} - \bar{a}, \qquad
+a_j^{\mathrm{bayes}} = a_j^{\mathrm{s2z}} + \bar{a},
 $$
 
 where $\mathcal N(\text{mean},\text{variance})$ is used.
@@ -1192,7 +1219,7 @@ Super-population decomposition
 ::: {.implications-pair .implications-math}
   $$
   \begin{aligned}
-  \underbrace{\alpha_{\mathrm{s2z}}}_{\text{mean of these }J\text{ groups}}
+  \underbrace{\alpha_{\mathrm{s2z}}}_{\text{mean of varying }J\text{ groups}}
     &=\underbrace{\alpha_{\mathrm{bayes}}}_{\text{super-population mean}} + \underbrace{\frac{1}{J}\sum a^{\text{bayes}}_j}_{\bar{a}},\\
   \bar{a} \mid\tau&\sim\mathcal N(0,\tau^2/J)
   \end{aligned}
@@ -1206,12 +1233,12 @@ Super-population decomposition
 ::: {.implications-pair .implications-math}
   $$
   \begin{aligned}
-  m\mid\alpha_{\mathrm{s2z}},\tau
+  \bar{a} \mid\alpha_{\mathrm{s2z}},\tau
     &\sim\mathcal N(w\alpha_{\mathrm{s2z}},v_c),\\
   \alpha_{\mathrm{Bayes}}^{\mathrm{rec}}
-    &=\alpha_{\mathrm{s2z}} - m,\\
+    &=\alpha_{\mathrm{s2z}} - \bar{a},\\
   \mathbf a_{\mathrm{Bayes}}^{\mathrm{rec}}
-    &=\mathbf a_{\mathrm{s2z}}+ m\mathbf 1.
+    &=\mathbf a_{\mathrm{s2z}}+ \bar{a} \mathbf 1.
   \end{aligned}
   $$
 :::
@@ -1334,7 +1361,7 @@ $$
 ::: {style="font-size: 60%; line-height: 1.08;"}
 **Recovering the removed log-scale mean $\bar b$**
 
-Let $v_b=\lambda_\omega^2/J=\omega^2/J$ and $V=s_\gamma^2+v_b$. Then
+Let $v_b = \lambda_\omega^2/J=\omega^2/J$ and $V = s_\gamma^2+v_b$. Then
 
 $$
 \bar b\mid\gamma_{\mathrm{s2z}},\lambda_\omega
@@ -2018,7 +2045,9 @@ Arguments here extend to elliptically symmetric distributions.
 More details to come in the paper
 
 -   Multiple sets of varying effects
--   Varying slopes conversions
+-   Argument extension to
+        -   elliptically symmetric distributions
+        -   varying slopes
 
 ## Thank you!
 
@@ -2278,7 +2307,7 @@ The choice of $g$ controls the tail behavior, allowing both light- and heavy-tai
 -   Laplace: $g(t) \propto e^{-\sqrt{t}}$
 
 
-## References
+## References {.smaller .nostretch}
 
 ::: {#refs}
 :::

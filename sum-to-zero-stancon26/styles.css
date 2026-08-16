@@ -220,3 +220,8 @@
   font-size: 0.94em;
   margin: 0.18em 0 0;
 }
+
+/* Keep long bibliography URLs inside the slide and printable page. */
+.reveal #refs a {
+  overflow-wrap: anywhere;
+}
