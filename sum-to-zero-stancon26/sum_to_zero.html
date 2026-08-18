@@ -506,7 +506,7 @@ n_j = (8, 13, 21, 34, 55, 89)</code></pre>
 </ul>
 </div><div class="column" style="width: 41%; font-size: 60%; line-height: 1.14; padding-left: 1.4em; box-sizing: border-box;">
 <p><span class="emphasis">Missing connection</span></p>
-<p>Prior derivations address a single batch of group effects, normal–normal hierarchical models, or hierarchical centering and sweeping. We have not found an explicit posterior equivalence between an <strong>induced-prior sum-to-zero parameterization</strong> and a <strong>Bayesian superpopulation model</strong>.</p>
+<p>Prior derivations address a single batch of group effects, normal–normal hierarchical models, or hierarchical centering and sweeping.</p>
 <p><span class="emphasis2">This work</span></p>
 <p>Establishes that equivalence through <strong>stochastic reconstruction of the omitted common-shift directions</strong>, extending to</p>
 <ul>
@@ -843,12 +843,10 @@ ESS/grad
 <p>Extends to varying prior standard deviations on the varying effects. Common in Bayesian models and we can derive similar logic.</p>
 </div>
 <div class="implications-pair implications-math">
-<ul>
-<li>Repeat the decomposition on the log-SD scale: <span class="math display">
-\log s_j=\gamma_{\mathrm{s2z}}+b_j^{\mathrm{s2z}},
-\qquad \mathbf 1^\top\mathbf b_{\mathrm{s2z}}=0,
-</span> then restore <span class="math inline">\bar b</span>.</li>
-</ul>
+<p>We can extend decomposition to varying standard deviations on the log-SD scale: <span class="math display">
+  \log s_j=\gamma_{\mathrm{s2z}}+b_j^{\mathrm{s2z}},
+  \qquad \mathbf 1^\top\mathbf b_{\mathrm{s2z}}=0,
+  </span> then restore <span class="math inline">\bar b</span>.</p>
 </div>
 </div>
 </section>
@@ -998,10 +996,10 @@ Post-warmup leapfrog steps
 Wall-clock fit time
 </td>
 <td>
-4.2 s
+4.4 s
 </td>
 <td>
-0.6 s
+0.7 s
 </td>
 </tr>
 <tr>
@@ -1211,11 +1209,14 @@ ESS/grad
 <h2>Take-away</h2>
 <p>Bayesian hierarchical models allow estimating a ‘super-population’ but it’s not magic, it is a consequence of the distributional assumptions.</p>
 <p>Sum-to-zero constraints are great and now you can get the Bayesian estimates with faster and more robust fitting.</p>
-<p>Arguments here extend to elliptically symmetric distributions.</p>
 <p>More details to come in the paper</p>
 <ul>
 <li>Multiple sets of varying effects</li>
-<li>Argument extension to - elliptically symmetric distributions - varying slopes</li>
+<li>Argument extends naturally to
+<ul>
+<li>elliptically symmetric distributions</li>
+<li>varying slopes</li>
+</ul></li>
 </ul>
 </section>
 <section id="thank-you" class="slide level2">

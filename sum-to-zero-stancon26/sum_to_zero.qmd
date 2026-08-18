@@ -915,7 +915,7 @@ Carlo error at the scale of the plot.
 ::: {.column style="width: 41%; font-size: 60%; line-height: 1.14; padding-left: 1.4em; box-sizing: border-box;"}
 [Missing connection]{.emphasis}
 
-Prior derivations address a single batch of group effects, normal--normal hierarchical models, or hierarchical centering and sweeping. We have not found an explicit posterior equivalence between an **induced-prior sum-to-zero parameterization** and a **Bayesian superpopulation model**.
+Prior derivations address a single batch of group effects, normal--normal hierarchical models, or hierarchical centering and sweeping.
 
 [This work]{.emphasis2}
 
@@ -1261,7 +1261,7 @@ Super-population decomposition
 :::
 
 ::: {.implications-pair .implications-math}
-- Repeat the decomposition on the log-SD scale:
+ We can extend decomposition to varying standard deviations on the log-SD scale:
   $$
   \log s_j=\gamma_{\mathrm{s2z}}+b_j^{\mathrm{s2z}},
   \qquad \mathbf 1^\top\mathbf b_{\mathrm{s2z}}=0,
@@ -2040,14 +2040,12 @@ Bayesian hierarchical models allow estimating a 'super-population' but it's not 
 
 Sum-to-zero constraints are great and now you can get the Bayesian estimates with faster and more robust fitting.
 
-Arguments here extend to elliptically symmetric distributions.
-
 More details to come in the paper
 
 -   Multiple sets of varying effects
--   Argument extension to
-        -   elliptically symmetric distributions
-        -   varying slopes
+-   Argument extends naturally to
+      -   elliptically symmetric distributions
+      -   varying slopes
 
 ## Thank you!
 
