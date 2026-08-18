@@ -220,3 +220,33 @@
   font-size: 0.94em;
   margin: 0.18em 0 0;
 }
+
+/* Keep long bibliography URLs inside the slide and printable page. */
+.reveal #refs a {
+  overflow-wrap: anywhere;
+}
+
+.reveal .appendix-index {
+  font-size: 0.72em;
+  line-height: 1.25;
+}
+
+.reveal .appendix-index li {
+  margin-bottom: 0.38em;
+}
+
+.reveal .slides section.appendix-detail-slide h2 {
+  font-size: 1.05em;
+  line-height: 1.08;
+  margin-bottom: 0.32em;
+}
+
+.reveal .slides section.appendix-detail-slide h3.appendix-subheading {
+  color: inherit;
+  font-family: inherit;
+  font-size: 0.7em;
+  font-style: normal;
+  font-weight: lighter;
+  line-height: 1.12;
+  margin: 0 0 0.6em;
+}

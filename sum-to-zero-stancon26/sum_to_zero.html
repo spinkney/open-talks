@@ -492,24 +492,48 @@ n_j = (8, 13, 21, 34, 55, 89)</code></pre>
 <p>Across <span class="math inline">\alpha_{\mathrm{s2z}}</span> and the six <span class="math inline">a_j^{\mathrm{s2z}}</span>, the largest posterior-mean difference is 0.002. Across every plotted parameter, the largest difference is 0.003: Monte Carlo error at the scale of the plot.</p>
 </div>
 </section>
+<section id="prior-work-and-the-missing-connection" class="slide level2 nostretch literature-positioning-slide">
+<h2>Prior work and the missing connection</h2>
+<div class="columns">
+<div class="column" style="width: 59%; font-size: 57%; line-height: 1.12; border-right: 1px solid #d0d0d0; padding-right: 1.4em; box-sizing: border-box;">
+<p><span class="emphasis2">Established pieces</span></p>
+<ul>
+<li><span class="citation" data-cites="gelman2005">Gelman (<a href="#/references" role="doc-biblioref" onclick="">2005</a>)</span> distinguishes finite-population and superpopulation quantities.</li>
+<li><span class="citation" data-cites="rouder2012">Rouder et al. (<a href="#/references" role="doc-biblioref" onclick="">2012</a>)</span> compare constrained fixed effects with exchangeable random effects.</li>
+<li><span class="citation" data-cites="vines1996">Vines, Gilks, and Wild (<a href="#/references" role="doc-biblioref" onclick="">1996</a>)</span> introduce sweeping: replace <span class="math inline">a_j</span> by <span class="math inline">a_j-\bar a</span> and absorb <span class="math inline">\bar a</span> into the intercept.</li>
+<li><span class="citation" data-cites="millar2009">Millar, Fryer, and Hirst (<a href="#/references" role="doc-biblioref" onclick="">2009</a>)</span> show that sweeping changes inference from the population mean to the sample mean—and leave recovery as future work.</li>
+<li><span class="citation" data-cites="ogle2020">Ogle and Barber (<a href="#/references" role="doc-biblioref" onclick="">2020</a>)</span> extend sweeping to nested and crossed effect sets, but in the forward direction rather than from an S2Z fit back to the superpopulation posterior.</li>
+</ul>
+</div><div class="column" style="width: 41%; font-size: 60%; line-height: 1.14; padding-left: 1.4em; box-sizing: border-box;">
+<p><span class="emphasis">Missing connection</span></p>
+<p>Prior derivations address a single batch of group effects, normal–normal hierarchical models, or hierarchical centering and sweeping.</p>
+<p><span class="emphasis2">This work</span></p>
+<p>Establishes that equivalence through <strong>stochastic reconstruction of the omitted common-shift directions</strong>, extending to</p>
+<ul>
+<li>heterogeneous scales,</li>
+<li>elliptically symmetric priors, and</li>
+<li>multiple batches of varying effects.</li>
+</ul>
+</div></div>
+</section>
 <section id="what-about-going-from-sum-to-zero-to-population-models" class="slide level2 nostretch population-derivation-slide">
 <h2>What about going from sum-to-zero to population models?</h2>
 <div style="font-size: 66%; line-height: 1.12;">
-<p>Given <span class="math inline">\tau</span>, let <span class="math inline">v_m=\tau^2/J</span>, with <span class="math inline">\alpha_{\mathrm{bayes}}\perp\bar a\mid\tau</span>. Then</p>
+<p>Given <span class="math inline">\tau</span>, let <span class="math inline">v_{\bar{a}}=\tau^2/J</span> and under the prior assumption that <span class="math inline">\alpha_{\mathrm{bayes}}\perp\bar a\mid\tau</span>. Then</p>
 <p><span class="math display">
 \begin{gathered}
 \alpha_{\mathrm{bayes}}\sim\mathcal N(0,s_\alpha^2),
-\qquad \bar a\mid\tau\sim\mathcal N(0,v_m),\\[0.35em]
+\qquad \bar a\mid\tau\sim\mathcal N(0, v_{\bar{a}}),\\[0.35em]
 \alpha_{\mathrm{s2z}}=\alpha_{\mathrm{bayes}}+\bar a
 \ \Longrightarrow\
 \begin{cases}
-\operatorname{Var}(\alpha_{\mathrm{s2z}}\mid\tau)=s_\alpha^2+v_m,\\
-\operatorname{Cov}(\bar a,\alpha_{\mathrm{s2z}}\mid\tau)=v_m,
+\operatorname{Var}(\alpha_{\mathrm{s2z}}\mid\tau)=s_\alpha^2 + v_{\bar{a}}, \\
+\operatorname{Cov}(\bar a,\alpha_{\mathrm{s2z}}\mid\tau) = v_{\bar{a}},
 \end{cases}\\[0.45em]
-\begin{pmatrix}\bar a\\ \alpha_{\mathrm{s2z}}\end{pmatrix}\Bigm|\tau
+\begin{pmatrix}\bar a \\ \alpha_{\mathrm{s2z}}\end{pmatrix}\Bigm|\tau
 \sim\mathcal N\!\left[
 \begin{pmatrix}0\\0\end{pmatrix},
-\begin{pmatrix}v_m&amp;v_m\\v_m&amp;s_\alpha^2+v_m\end{pmatrix}
+\begin{pmatrix}v_{\bar{a}} &amp; v_{\bar{a}} \\ v_{\bar{a}} &amp;s_\alpha^2 + v_{\bar{a}} \end{pmatrix}
 \right].
 \end{gathered}
 </span></p>
@@ -518,9 +542,9 @@ n_j = (8, 13, 21, 34, 55, 89)</code></pre>
 \begin{gathered}
 \bar a\mid\alpha_{\mathrm{s2z}},\tau
 \sim\mathcal N\!\left(w\alpha_{\mathrm{s2z}},v_c\right),\\[0.35em]
-\underbrace{\frac{v_m}{s_\alpha^2+v_m}}_{w},
+\underbrace{\frac{v_{\bar{a}}}{s_\alpha^2 + v_{\bar{a}}}}_{w},
 \qquad
-\underbrace{v_m-\frac{v_m^2}{s_\alpha^2+v_m}}_{v_c}.
+\underbrace{v_{\bar{a}} - \frac{v_{\bar{a}}^2}{s_\alpha^2 + v_{\bar{a}}}}_{v_c}.
 \end{gathered}
 </span></p>
 </div>
@@ -530,10 +554,10 @@ n_j = (8, 13, 21, 34, 55, 89)</code></pre>
 <div style="font-size: 64%; line-height: 1.08;">
 <p>For each sum-to-zero posterior draw, sample the missing realized mean and shift the coordinates:</p>
 <p><span class="math display">
-m\mid\alpha_{\mathrm{s2z}},\tau
-\sim\mathcal N(w\alpha_{\mathrm{s2z}},v_c),\qquad
-\alpha_{\mathrm{bayes}}=\alpha_{\mathrm{s2z}}-m,\qquad
-a_j^{\mathrm{bayes}}=a_j^{\mathrm{s2z}}+m,
+\bar{a} \mid \alpha_{\mathrm{s2z}}, \tau
+\sim \mathcal N(w\alpha_{\mathrm{s2z}},v_c), \qquad
+\alpha_{\mathrm{bayes}} = \alpha_{\mathrm{s2z}} - \bar{a}, \qquad
+a_j^{\mathrm{bayes}} = a_j^{\mathrm{s2z}} + \bar{a},
 </span></p>
 <p>where <span class="math inline">\mathcal N(\text{mean},\text{variance})</span> is used.</p>
 </div>
@@ -783,7 +807,7 @@ ESS/grad
 <div class="implications-pair implications-math">
 <p><span class="math display">
   \begin{aligned}
-  \underbrace{\alpha_{\mathrm{s2z}}}_{\text{mean of these }J\text{ groups}}
+  \underbrace{\alpha_{\mathrm{s2z}}}_{\text{mean of varying }J\text{ groups}}
     &amp;=\underbrace{\alpha_{\mathrm{bayes}}}_{\text{super-population mean}} + \underbrace{\frac{1}{J}\sum a^{\text{bayes}}_j}_{\bar{a}},\\
   \bar{a} \mid\tau&amp;\sim\mathcal N(0,\tau^2/J)
   \end{aligned}
@@ -795,12 +819,12 @@ ESS/grad
 <div class="implications-pair implications-math">
 <p><span class="math display">
   \begin{aligned}
-  m\mid\alpha_{\mathrm{s2z}},\tau
+  \bar{a} \mid\alpha_{\mathrm{s2z}},\tau
     &amp;\sim\mathcal N(w\alpha_{\mathrm{s2z}},v_c),\\
   \alpha_{\mathrm{Bayes}}^{\mathrm{rec}}
-    &amp;=\alpha_{\mathrm{s2z}} - m,\\
+    &amp;=\alpha_{\mathrm{s2z}} - \bar{a},\\
   \mathbf a_{\mathrm{Bayes}}^{\mathrm{rec}}
-    &amp;=\mathbf a_{\mathrm{s2z}}+ m\mathbf 1.
+    &amp;=\mathbf a_{\mathrm{s2z}}+ \bar{a} \mathbf 1.
   \end{aligned}
   </span></p>
 </div>
@@ -819,12 +843,10 @@ ESS/grad
 <p>Extends to varying prior standard deviations on the varying effects. Common in Bayesian models and we can derive similar logic.</p>
 </div>
 <div class="implications-pair implications-math">
-<ul>
-<li>Repeat the decomposition on the log-SD scale: <span class="math display">
-\log s_j=\gamma_{\mathrm{s2z}}+b_j^{\mathrm{s2z}},
-\qquad \mathbf 1^\top\mathbf b_{\mathrm{s2z}}=0,
-</span> then restore <span class="math inline">\bar b</span>.</li>
-</ul>
+<p>We can extend decomposition to varying standard deviations on the log-SD scale: <span class="math display">
+  \log s_j=\gamma_{\mathrm{s2z}}+b_j^{\mathrm{s2z}},
+  \qquad \mathbf 1^\top\mathbf b_{\mathrm{s2z}}=0,
+  </span> then restore <span class="math inline">\bar b</span>.</p>
 </div>
 </div>
 </section>
@@ -900,7 +922,7 @@ b_j^{\mathrm{s2z}}=\lambda_\omega z_j^{\mathrm{s2z}},
 <h2>Recovery</h2>
 <div style="font-size: 60%; line-height: 1.08;">
 <p><strong>Recovering the removed log-scale mean <span class="math inline">\bar b</span></strong></p>
-<p>Let <span class="math inline">v_b=\lambda_\omega^2/J=\omega^2/J</span> and <span class="math inline">V=s_\gamma^2+v_b</span>. Then</p>
+<p>Let <span class="math inline">v_b = \lambda_\omega^2/J=\omega^2/J</span> and <span class="math inline">V = s_\gamma^2+v_b</span>. Then</p>
 <p><span class="math display">
 \bar b\mid\gamma_{\mathrm{s2z}},\lambda_\omega
 \sim\mathcal N\!\left(
@@ -974,7 +996,7 @@ Post-warmup leapfrog steps
 Wall-clock fit time
 </td>
 <td>
-4.2 s
+4.4 s
 </td>
 <td>
 0.7 s
@@ -1187,11 +1209,14 @@ ESS/grad
 <h2>Take-away</h2>
 <p>Bayesian hierarchical models allow estimating a ‘super-population’ but it’s not magic, it is a consequence of the distributional assumptions.</p>
 <p>Sum-to-zero constraints are great and now you can get the Bayesian estimates with faster and more robust fitting.</p>
-<p>Arguments here extend to elliptically symmetric distributions.</p>
 <p>More details to come in the paper</p>
 <ul>
 <li>Multiple sets of varying effects</li>
-<li>Varying slopes conversions</li>
+<li>Argument extends naturally to
+<ul>
+<li>elliptically symmetric distributions</li>
+<li>varying slopes</li>
+</ul></li>
 </ul>
 </section>
 <section id="thank-you" class="slide level2">
@@ -1201,12 +1226,21 @@ ESS/grad
 <a href="https://github.com/spinkney/open-talks">github.com/spinkney/open-talks</a>
 </p>
 </section>
-<section id="appendix" class="slide level2">
-<h2>Appendix</h2>
-<p>Comparison diagnostics, Stan implementations, and Gaussian marginalization details</p>
+<section id="appendices" class="slide level2">
+<h2>Appendices</h2>
+<div class="appendix-index">
+<ul>
+<li><strong>Appendix A:</strong> Posterior comparison diagnostics</li>
+<li><strong>Appendix B:</strong> Varying SDs—conventional Bayesian implementation</li>
+<li><strong>Appendix C:</strong> Varying SDs—sum-to-zero implementation</li>
+<li><strong>Appendix D:</strong> Varying SDs—reconstruction and marginalization</li>
+<li><strong>Appendix E:</strong> Elliptically symmetric distributions</li>
+</ul>
+</div>
 </section>
-<section id="on-the-difference-between-two-posterior-means" class="slide level2 nostretch">
-<h2>On the difference between two posterior means</h2>
+<section id="appendix-a-posterior-comparison-diagnostics" class="slide level2 nostretch appendix-detail-slide">
+<h2>Appendix A · Posterior comparison diagnostics</h2>
+<h3 class="appendix-subheading" id="on-the-difference-between-two-posterior-means">On the difference between two posterior means</h3>
 <div style="font-size: 72%;">
 <p>For each plotted parameter, calculate <span class="math display">
 z=
@@ -1269,8 +1303,9 @@ Different variances: conventional vs recovered Bayesian
 <p>Each entry is the maximum across the plotted parameters for that comparison; the two maxima need not occur for the same parameter. The largest standardized gap was 1.8 combined Monte Carlo SEs. For one standard-normal comparison, a gap at least this large occurs about 7% of the time; taking a maximum over several parameters makes it still less surprising.</p>
 </div>
 </section>
-<section id="differing-variances-conventional-bayesian-stan-model-declarations" class="slide level2 long-code-title">
-<h2>Differing variances conventional Bayesian Stan model: declarations</h2>
+<section id="appendix-b-varying-sds-conventional-bayesian-implementation" class="slide level2 long-code-title appendix-detail-slide">
+<h2>Appendix B · Varying SDs · Conventional Bayesian implementation</h2>
+<h3 class="appendix-subheading" id="differing-variances-conventional-bayesian-stan-model-declarations">Differing variances conventional Bayesian Stan model: declarations</h3>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" data-startfrom="1"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb4-1"><a href=""></a><span class="kw">data</span> {</span>
 <span id="cb4-2"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>&gt; N;</span>
 <span id="cb4-3"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">2</span>&gt; J;</span>
@@ -1290,8 +1325,9 @@ Different variances: conventional vs recovered Bayesian
 <span id="cb4-17"><a href=""></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; sigma_x;</span>
 <span id="cb4-18"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="differing-variances-conventional-bayesian-stan-model-sd-hierarchy-and-model" class="slide level2 long-code-title dense-code-slide">
-<h2>Differing variances conventional Bayesian Stan model: SD hierarchy and model</h2>
+<section id="appendix-b-varying-sds-conventional-bayesian-implementation-1" class="slide level2 long-code-title dense-code-slide appendix-detail-slide">
+<h2>Appendix B · Varying SDs · Conventional Bayesian implementation</h2>
+<h3 class="appendix-subheading" id="differing-variances-conventional-bayesian-stan-model-sd-hierarchy-and-model">Differing variances conventional Bayesian Stan model: SD hierarchy and model</h3>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" data-startfrom="18"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan" style="counter-reset: source-line 17;"><span id="cb5-18"><a href=""></a>}</span>
 <span id="cb5-19"><a href=""></a><span class="kw">transformed parameters</span> {</span>
 <span id="cb5-20"><a href=""></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; alpha_prior_sd = exp(gamma);</span>
@@ -1313,8 +1349,9 @@ Different variances: conventional vs recovered Bayesian
 <span id="cb5-36"><a href=""></a>  <span class="dt">vector</span>[J] a_s2z_recovered = a_bayes - mean_a;</span>
 <span id="cb5-37"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="s2z-stan-declarations" class="slide level2">
-<h2>S2Z Stan: declarations</h2>
+<section id="appendix-c-varying-sds-sum-to-zero-implementation" class="slide level2 appendix-detail-slide">
+<h2>Appendix C · Varying SDs · Sum-to-zero implementation</h2>
+<h3 class="appendix-subheading" id="s2z-stan-declarations">S2Z Stan: declarations</h3>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" data-startfrom="1"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan"><span id="cb6-1"><a href=""></a><span class="kw">data</span> {</span>
 <span id="cb6-2"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>&gt; N;</span>
 <span id="cb6-3"><a href=""></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">2</span>&gt; J;</span>
@@ -1336,8 +1373,9 @@ Different variances: conventional vs recovered Bayesian
 <span id="cb6-19"><a href=""></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; sigma_x;</span>
 <span id="cb6-20"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="s2z-stan-log-scale-constraint" class="slide level2">
-<h2>S2Z Stan: log-scale constraint</h2>
+<section id="appendix-c-varying-sds-sum-to-zero-implementation-1" class="slide level2 appendix-detail-slide">
+<h2>Appendix C · Varying SDs · Sum-to-zero implementation</h2>
+<h3 class="appendix-subheading" id="s2z-stan-log-scale-constraint">S2Z Stan: log-scale constraint</h3>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7" data-startfrom="21"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan" style="counter-reset: source-line 20;"><span id="cb7-21"><a href=""></a><span class="kw">transformed parameters</span> {</span>
 <span id="cb7-22"><a href=""></a>  <span class="dt">real</span> var_gamma = square(s_gamma);</span>
 <span id="cb7-23"><a href=""></a>  <span class="dt">real</span> var_mean_b = square(lambda_omega) / J;</span>
@@ -1356,8 +1394,9 @@ Different variances: conventional vs recovered Bayesian
 <span id="cb7-36"><a href=""></a>    exp(gamma_s2z + b_s2z);</span>
 <span id="cb7-37"><a href=""></a>  <span class="dt">vector</span>[J] inv_var_a = inv(square(a_prior_sd));</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="s2z-stan-remove-the-effect-mean" class="slide level2">
-<h2>S2Z Stan: remove the effect mean</h2>
+<section id="appendix-c-varying-sds-sum-to-zero-implementation-2" class="slide level2 appendix-detail-slide">
+<h2>Appendix C · Varying SDs · Sum-to-zero implementation</h2>
+<h3 class="appendix-subheading" id="s2z-stan-remove-the-effect-mean">S2Z Stan: remove the effect mean</h3>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8" data-startfrom="38"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan" style="counter-reset: source-line 37;"><span id="cb8-38"><a href=""></a>  <span class="dt">real</span> inv_var_alpha =</span>
 <span id="cb8-39"><a href=""></a>    inv(square(alpha_prior_sd_recovered));</span>
 <span id="cb8-40"><a href=""></a>  <span class="dt">real</span> precision_mean_a = inv_var_alpha + sum(inv_var_a);</span>
@@ -1370,8 +1409,9 @@ Different variances: conventional vs recovered Bayesian
 <span id="cb8-47"><a href=""></a>}</span>
 <span id="cb8-48"><a href=""></a><span class="kw">model</span> {</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="s2z-stan-prior-and-likelihood" class="slide level2">
-<h2>S2Z Stan: prior and likelihood</h2>
+<section id="appendix-c-varying-sds-sum-to-zero-implementation-3" class="slide level2 appendix-detail-slide">
+<h2>Appendix C · Varying SDs · Sum-to-zero implementation</h2>
+<h3 class="appendix-subheading" id="s2z-stan-prior-and-likelihood">S2Z Stan: prior and likelihood</h3>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9" data-startfrom="48"><pre class="sourceCode numberSource stan number-lines code-with-copy"><code class="sourceCode stan" style="counter-reset: source-line 47;"><span id="cb9-48"><a href=""></a><span class="kw">model</span> {</span>
 <span id="cb9-49"><a href=""></a>  gamma_s2z ~ normal(mu_gamma, sqrt(var_gamma_s2z));</span>
 <span id="cb9-50"><a href=""></a>  z_log_sd_s2z ~ std_normal();</span>
@@ -1386,8 +1426,9 @@ Different variances: conventional vs recovered Bayesian
 <span id="cb9-59"><a href=""></a>  x ~ normal(alpha_s2z + a_s2z[group], sigma_x);</span>
 <span id="cb9-60"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="completing-the-square-in-the-removed-mean-m" class="slide level2 nostretch">
-<h2>Completing the square in the removed mean <span class="math inline">m</span></h2>
+<section id="appendix-d-varying-sds-reconstruction-and-marginalization" class="slide level2 nostretch appendix-detail-slide">
+<h2>Appendix D · Varying SDs · Reconstruction and marginalization</h2>
+<h3 class="appendix-subheading" id="completing-the-square-in-the-removed-mean-m">Completing the square in the removed mean <span class="math inline">m</span></h3>
 <div style="font-size: 74%;">
 <p>For fixed <span class="math inline">s_\alpha</span>, <span class="math inline">\{s_j\}</span>, <span class="math inline">\alpha_{\mathrm{s2z}}</span>, and <span class="math inline">a^{\mathrm{s2z}}</span>, write</p>
 <p><span class="math display">
@@ -1404,8 +1445,9 @@ Different variances: conventional vs recovered Bayesian
 \sim\mathcal N(\widehat m,P^{-1})</span>.</p>
 </div>
 </section>
-<section id="marginalizing-the-removed-mean-m" class="slide level2 nostretch">
-<h2>Marginalizing the removed mean <span class="math inline">m</span></h2>
+<section id="appendix-d-varying-sds-reconstruction-and-marginalization-1" class="slide level2 nostretch appendix-detail-slide">
+<h2>Appendix D · Varying SDs · Reconstruction and marginalization</h2>
+<h3 class="appendix-subheading" id="marginalizing-the-removed-mean-m">Marginalizing the removed mean <span class="math inline">m</span></h3>
 <div style="font-size: 74%;">
 <p>From the completed square, <span class="math inline">\ell(m)=\ell(\widehat m)-\tfrac12P(m-\widehat m)^2</span>. Therefore, marginalizing the removed direction contributes</p>
 <p><span class="math display">
@@ -1427,8 +1469,9 @@ e^{-\frac{P}{2}(m-\widehat m)^2}\,dm \\
 <p>Thus <span class="math inline">P={\tt precision\_mean\_a}</span>. This is a Gaussian integration factor, not a Jacobian. The <span class="math inline">-\tfrac12\log P</span> term must remain because <span class="math inline">P</span> depends on the sampled scales; <span class="math inline">\tfrac12\log(2\pi)</span> is constant and may be dropped. If <span class="math inline">m</span> were sampled directly, this marginalization term would not be added.</p>
 </div>
 </section>
-<section id="distributions" class="slide level2">
-<h2>Distributions</h2>
+<section id="appendix-e-elliptically-symmetric-distributions" class="slide level2 appendix-detail-slide">
+<h2>Appendix E · Elliptically symmetric distributions</h2>
+<h3 class="appendix-subheading" id="distributions">Distributions</h3>
 <p>We will restrict ourselves to elliptically symmetric distributions for hierarchical models, i.e., <span class="math display">
 \begin{align*}
 &amp;f(x) = c \, g(x^\top \Sigma_x^{-1}x), \\
@@ -1440,8 +1483,9 @@ e^{-\frac{P}{2}(m-\widehat m)^2}\,dm \\
 <li>the normalizing constant <span class="math inline">c</span> ensures <span class="math inline">f(x)</span> integrates to 1</li>
 </ul>
 <aside><ol class="aside-footnotes"><li id="fn1"><p><span class="citation" data-cites="delmas_2024">Delmas (<a href="#/references" role="doc-biblioref" onclick="">2024</a>)</span></p></li></ol></aside></section>
-<section id="distributions-1" class="slide level2">
-<h2>Distributions</h2>
+<section id="appendix-e-elliptically-symmetric-distributions-1" class="slide level2 appendix-detail-slide">
+<h2>Appendix E · Elliptically symmetric distributions</h2>
+<h3 class="appendix-subheading" id="distributions-1">Distributions</h3>
 <p><span class="math display">
 \begin{align*}
 &amp;f(x) = c \, g(x^\top \Sigma_x^{-1}x), \\
@@ -1456,11 +1500,26 @@ e^{-\frac{P}{2}(m-\widehat m)^2}\,dm \\
 <li>Laplace: <span class="math inline">g(t) \propto e^{-\sqrt{t}}</span></li>
 </ul>
 </section>
-<section id="references" class="slide level2 smaller scrollable">
+<section id="references" class="slide level2 smaller nostretch scrollable">
 <h2>References</h2>
 <div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
 <div id="ref-delmas_2024" class="csl-entry" role="listitem">
 Delmas, Jean-Pierre. 2024. <span>“Background on Real and Complex Elliptically Symmetric Distributions.”</span> In <em>Elliptically Symmetric Distributions in Signal Processing and Machine Learning</em>, edited by Jean-Pierre Delmas, Mohammed Nabil El Korso, Stefano Fortunati, and Frédéric Pascal, 1–34. Cham: Springer Nature Switzerland. <a href="https://doi.org/10.1007/978-3-031-52116-4_1">https://doi.org/10.1007/978-3-031-52116-4_1</a>.
+</div>
+<div id="ref-gelman2005" class="csl-entry" role="listitem">
+Gelman, Andrew. 2005. <span>“Analysis of Variance—Why It Is More Important Than Ever.”</span> <em>The Annals of Statistics</em> 33 (1): 1–53. <a href="https://doi.org/10.1214/009053604000001048">https://doi.org/10.1214/009053604000001048</a>.
+</div>
+<div id="ref-millar2009" class="csl-entry" role="listitem">
+Millar, Colin P., Robert J. Fryer, and David Hirst. 2009. <span>“Hierarchical Modelling of Scottish Fisheries Observer Data: The Underlying Model.”</span> Collaborative Report No. 01/09. Aberdeen, UK: Fisheries Research Services. <a href="https://www.researchgate.net/publication/259693119_Hierarchical_modelling_of_Scottish_fisheries_observer_data_The_underlying_model">https://www.researchgate.net/publication/259693119_Hierarchical_modelling_of_Scottish_fisheries_observer_data_The_underlying_model</a>.
+</div>
+<div id="ref-ogle2020" class="csl-entry" role="listitem">
+Ogle, Kiona, and Jarrett J. Barber. 2020. <span>“Ensuring Identifiability in Hierarchical Mixed Effects <span>Bayesian</span> Models.”</span> <em>Ecological Applications</em> 30 (7): e02159. <a href="https://doi.org/10.1002/eap.2159">https://doi.org/10.1002/eap.2159</a>.
+</div>
+<div id="ref-rouder2012" class="csl-entry" role="listitem">
+Rouder, Jeffrey N., Richard D. Morey, Paul L. Speckman, and Jordan M. Province. 2012. <span>“Default <span>Bayes</span> Factors for <span>ANOVA</span> Designs.”</span> <em>Journal of Mathematical Psychology</em> 56 (5): 356–74. <a href="https://doi.org/10.1016/j.jmp.2012.08.001">https://doi.org/10.1016/j.jmp.2012.08.001</a>.
+</div>
+<div id="ref-vines1996" class="csl-entry" role="listitem">
+Vines, S. K., W. R. Gilks, and P. Wild. 1996. <span>“Fitting <span>Bayesian</span> Multiple Random Effects Models.”</span> <em>Statistics and Computing</em> 6 (4): 337–46. <a href="https://doi.org/10.1007/BF00143554">https://doi.org/10.1007/BF00143554</a>.
 </div>
 </div>
 
